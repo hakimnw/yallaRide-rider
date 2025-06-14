@@ -12,8 +12,6 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
-import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
 import '/model/FileModel.dart';
 import '../network/RestApis.dart';
@@ -35,6 +33,8 @@ import 'utils/Colors.dart';
 import 'utils/Common.dart';
 import 'utils/Constants.dart';
 import 'utils/Extensions/app_common.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
+import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
 LanguageJsonData? selectedServerLanguageData;
 List<LanguageJsonData>? defaultServerLanguageData = [];
@@ -69,10 +69,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   sharedPref = await SharedPreferences.getInstance();
 
-  // Set up navigator key for Zego Cloud
+  // Set navigator key to ZegoUIKitPrebuiltCallInvitationService BEFORE Firebase initialization
   ZegoUIKitPrebuiltCallInvitationService().setNavigatorKey(navigatorKey);
 
-  // Initialize Firebase
   if (Platform.isIOS) {
     await Firebase.initializeApp();
   } else {
@@ -90,8 +89,6 @@ void main() async {
     }
   }
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-
-  // Initialize app store settings
   appStore.setLanguage(
       sharedPref.getString(SELECTED_LANGUAGE_CODE) ?? defaultLanguageCode);
   await appStore.setLoggedIn(sharedPref.getBool(IS_LOGGED_IN) ?? false,
@@ -104,7 +101,6 @@ void main() async {
   await appStore.setUserProfile(sharedPref.getString(USER_PROFILE_PHOTO) ?? '');
   await appStore.setUserPhone(sharedPref.getString(CONTACT_NUMBER) ?? '',
       isInitialization: true);
-
   try {
     initJsonFile();
   } catch (e) {}
@@ -112,22 +108,18 @@ void main() async {
     await oneSignalSettings();
   } catch (e) {}
 
-  // Initialize Zego Cloud System Calling UI FIRST
+  // Initialize Zego Cloud SDK for video/voice calling with proper setup
   try {
-    print("${DateTime.now()}: Setting up Zego System Calling UI...");
-    ZegoUIKit().initLog().then((value) {
-      ZegoUIKitPrebuiltCallInvitationService().useSystemCallingUI(
-        [ZegoUIKitSignalingPlugin()],
-      );
-      print("${DateTime.now()}: Zego System Calling UI setup completed");
-    });
-  } catch (e) {
-    print("${DateTime.now()}: Error setting up Zego System Calling UI: $e");
-  }
+    print("${DateTime.now()}: Setting up Zego Cloud SDK...");
 
-  // Initialize Zego Cloud SDK for video/voice calling
-  try {
-    print("${DateTime.now()}: Initializing Zego Cloud SDK...");
+    // Call useSystemCallingUI as per official documentation
+    ZegoUIKitPrebuiltCallInvitationService().useSystemCallingUI(
+      [ZegoUIKitSignalingPlugin()],
+    );
+
+    print("${DateTime.now()}: Zego system calling UI enabled");
+
+    // Initialize the SDK
     final zegoInitSuccess = await zegoService.initializeZegoSDK();
     if (zegoInitSuccess) {
       print("${DateTime.now()}: Zego SDK initialized successfully");
@@ -221,28 +213,30 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return Observer(builder: (context) {
-      return MaterialApp(
-        navigatorKey: navigatorKey,
-        debugShowCheckedModeBanner: false,
-        title: mAppName,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: appStore.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-        builder: (context, child) {
-          return ScrollConfiguration(behavior: MyBehavior(), child: child!);
-        },
-        home: SplashScreen(),
-        supportedLocales: getSupportedLocales(),
-        locale: Locale(
-            appStore.selectedLanguage.validate(value: defaultLanguageCode)),
-        localizationsDelegates: [
-          AppLocalizations(),
-          CountryLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        localeResolutionCallback: (locale, supportedLocales) => locale,
+      return zegoService.getCallInvitationWidget(
+        child: MaterialApp(
+          navigatorKey: navigatorKey,
+          debugShowCheckedModeBanner: false,
+          title: mAppName,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: appStore.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          builder: (context, child) {
+            return ScrollConfiguration(behavior: MyBehavior(), child: child!);
+          },
+          home: SplashScreen(),
+          supportedLocales: getSupportedLocales(),
+          locale: Locale(
+              appStore.selectedLanguage.validate(value: defaultLanguageCode)),
+          localizationsDelegates: [
+            AppLocalizations(),
+            CountryLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          localeResolutionCallback: (locale, supportedLocales) => locale,
+        ),
       );
     });
   }

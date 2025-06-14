@@ -131,6 +131,33 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
         return;
       }
 
+      // Show loading while checking/initializing Zego
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('جاري التحقق من اتصال Zego...'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Check and ensure Zego connection
+      bool zegoReady = await _ensureZegoConnection();
+
+      // Close loading dialog
+      Navigator.of(context).pop();
+
       // Show call options dialog
       String? callType = await showDialog<String>(
         context: context,
@@ -149,30 +176,25 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
                 Container(
                   padding: EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: zegoService.isLoggedIn
+                    color: zegoReady
                         ? Colors.green.withOpacity(0.1)
                         : Colors.orange.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color:
-                          zegoService.isLoggedIn ? Colors.green : Colors.orange,
+                      color: zegoReady ? Colors.green : Colors.orange,
                     ),
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        zegoService.isLoggedIn
-                            ? Icons.check_circle
-                            : Icons.warning,
-                        color: zegoService.isLoggedIn
-                            ? Colors.green
-                            : Colors.orange,
+                        zegoReady ? Icons.check_circle : Icons.warning,
+                        color: zegoReady ? Colors.green : Colors.orange,
                         size: 16,
                       ),
                       SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          zegoService.isLoggedIn
+                          zegoReady
                               ? 'Zego متصل - مكالمات فيديو متاحة'
                               : 'Zego غير متصل - سيتم استخدام الهاتف العادي',
                           style: TextStyle(fontSize: 12),
@@ -181,6 +203,18 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
                     ],
                   ),
                 ),
+                if (!zegoReady) ...[
+                  SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      await _handleDriverCall(); // Retry
+                    },
+                    icon: Icon(Icons.refresh, size: 16),
+                    label: Text('إعادة المحاولة'),
+                    style: TextButton.styleFrom(foregroundColor: primaryColor),
+                  ),
+                ],
               ],
             ),
             actions: [
@@ -188,7 +222,7 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
                 onPressed: () => Navigator.of(context).pop(null),
                 child: Text("إلغاء"),
               ),
-              if (zegoService.isLoggedIn) ...[
+              if (zegoReady) ...[
                 ElevatedButton.icon(
                   onPressed: () => Navigator.of(context).pop('voice'),
                   icon: Icon(Icons.phone, size: 16),
@@ -264,6 +298,57 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
     } catch (error) {
       print('Error in _handleDriverCall: $error');
       toast("حدث خطأ أثناء إجراء المكالمة");
+    }
+  }
+
+  /// Ensure Zego connection is ready
+  Future<bool> _ensureZegoConnection() async {
+    try {
+      print("${DateTime.now()}: Checking Zego connection...");
+
+      // Step 1: Check if SDK is initialized
+      if (!zegoService.isInitialized) {
+        print("${DateTime.now()}: SDK not initialized, initializing...");
+        bool initResult = await zegoService.initializeZegoSDK();
+        if (!initResult) {
+          print("${DateTime.now()}: Failed to initialize SDK");
+          return false;
+        }
+      }
+
+      // Step 2: Check if user is logged in
+      if (!zegoService.isLoggedIn) {
+        print(
+            "${DateTime.now()}: User not logged into Zego, attempting login...");
+
+        // Check if app user is authenticated
+        if (!appStore.isLoggedIn || appStore.userPhone.isEmpty) {
+          print("${DateTime.now()}: App user not authenticated");
+          return false;
+        }
+
+        // Attempt login
+        bool loginResult = await zegoService.loginToZego(
+          userID: appStore.userPhone,
+          userName: appStore.userName.isNotEmpty
+              ? appStore.userName
+              : appStore.firstName,
+        );
+
+        if (!loginResult) {
+          print("${DateTime.now()}: Failed to login to Zego");
+          return false;
+        }
+      }
+
+      // Step 3: Final verification
+      bool isReady = zegoService.isInitialized && zegoService.isLoggedIn;
+      print("${DateTime.now()}: Zego connection check result: $isReady");
+
+      return isReady;
+    } catch (error) {
+      print("${DateTime.now()}: Error ensuring Zego connection: $error");
+      return false;
     }
   }
 

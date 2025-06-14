@@ -1,17 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 import '../components/BottomNavBar.dart';
 import '../main.dart';
 import '../service/ZegoService.dart';
 import '../service/ZegoDebugHelper.dart';
-import '../utils/constant/app_colors.dart';
+import '../utils/Colors.dart';
+import '../utils/Common.dart';
+import '../utils/Constants.dart';
+import '../utils/Extensions/AppButtonWidget.dart';
+import '../utils/Extensions/app_common.dart';
+import '../utils/Extensions/dataTypeExtensions.dart';
 import 'DashBoardScreen.dart';
 import 'HomeScreen.dart';
 import 'RideListScreen.dart';
 import 'WalletScreen.dart';
 import 'SettingScreen.dart';
 import 'settings_screen_new.dart';
+import 'ZegoDebugScreen.dart';
+import 'EditProfileScreen.dart';
+import 'EmergencyContactScreen.dart';
+import 'GoogleMapScreen.dart';
+import 'NoInternetScreen.dart';
+import 'ScheduleRideListScreen.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
@@ -82,207 +97,294 @@ class _MainScreenState extends State<MainScreen> {
 
   /// Show enhanced Zego debug options
   void _showZegoQuickDebug() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            SizedBox(height: 20),
-
-            // Title
-            Text(
-              '🔧 Zego Professional Debug',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 16),
-
-            // Status Card
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: zegoService.isLoggedIn
-                    ? Colors.green.withOpacity(0.1)
-                    : Colors.orange.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: zegoService.isLoggedIn
-                      ? Colors.green.withOpacity(0.3)
-                      : Colors.orange.withOpacity(0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    zegoService.isLoggedIn ? Icons.check_circle : Icons.warning,
-                    color:
-                        zegoService.isLoggedIn ? Colors.green : Colors.orange,
-                    size: 24,
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          zegoService.isLoggedIn
-                              ? 'Zego Service Connected ✅'
-                              : 'Zego Service Disconnected ⚠️',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'User: ${zegoService.currentUserID ?? "Not logged in"}',
-                          style:
-                              TextStyle(fontSize: 12, color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 20),
-
-            // Action Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      ZegoDebugHelper.runDiagnostics();
-                    },
-                    icon: Icon(Icons.analytics),
-                    label: Text('Run Diagnostics'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      ZegoDebugHelper.showDebugDialog(context);
-                    },
-                    icon: Icon(Icons.info),
-                    label: Text('Debug Report'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 12),
-
-            // Test Call Section
-            Container(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _showTestCallDialog();
-                },
-                icon: Icon(Icons.call),
-                label: Text('Test Call Function'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
-
-            SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Show test call dialog
-  void _showTestCallDialog() {
-    final TextEditingController phoneController =
-        TextEditingController(text: '01234567890');
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('📞 Test Zego Call'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: phoneController,
-              decoration: InputDecoration(
-                labelText: 'Test Phone Number',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.phone),
+        title: Text('🔧 Zego Quick Debug'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Quick Zego Connection Test',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 16),
+
+              // Test Connection Button
+              Container(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await _performZegoConnectionTest();
+                  },
+                  icon: Icon(Icons.network_check),
+                  label: Text('🔍 Test Connection'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                ),
               ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'This will send a real call invitation to the entered number.',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
-          ],
+              SizedBox(height: 8),
+
+              // Force Reinitialize Button
+              Container(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await _forceReinitializeZego();
+                  },
+                  icon: Icon(Icons.refresh),
+                  label: Text('🔄 Force Reinitialize'),
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                ),
+              ),
+              SizedBox(height: 8),
+
+              // Full Debug Screen Button
+              Container(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ZegoDebugScreen()),
+                    );
+                  },
+                  icon: Icon(Icons.settings),
+                  label: Text('🛠️ Full Debug Screen'),
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+                ),
+              ),
+              SizedBox(height: 16),
+
+              // Current Status
+              Text('Current Status:',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 8),
+              Text('SDK Initialized: ${zegoService.isInitialized}'),
+              Text('User Logged In: ${zegoService.isLoggedIn}'),
+              Text('App User Phone: ${appStore.userPhone}'),
+              Text('App User Name: ${appStore.userName}'),
+            ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () async {
-              Navigator.pop(context);
-              await ZegoDebugHelper.testCall(
-                context: context,
-                targetPhone: phoneController.text,
-                targetName: 'Debug Test Driver',
-                isVideoCall: true,
-              );
-            },
-            icon: Icon(Icons.videocam),
-            label: Text('Video Call'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () async {
-              Navigator.pop(context);
-              await ZegoDebugHelper.testCall(
-                context: context,
-                targetPhone: phoneController.text,
-                targetName: 'Debug Test Driver',
-                isVideoCall: false,
-              );
-            },
-            icon: Icon(Icons.call),
-            label: Text('Voice Call'),
+            child: Text('Close'),
           ),
         ],
       ),
     );
+  }
+
+  /// Perform comprehensive Zego connection test
+  Future<void> _performZegoConnectionTest() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Testing Zego Connection...'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      List<String> results = [];
+
+      // Test 1: Check credentials
+      results.add('1. Checking Zego Credentials:');
+      if (ZEGO_APP_ID > 0 && ZEGO_APP_SIGN.isNotEmpty) {
+        results.add('   ✅ Credentials OK');
+      } else {
+        results.add('   ❌ Credentials INVALID');
+      }
+
+      // Test 2: Check app user
+      results.add('2. Checking App User:');
+      if (appStore.isLoggedIn && appStore.userPhone.isNotEmpty) {
+        results.add('   ✅ User logged in: ${appStore.userPhone}');
+      } else {
+        results.add('   ❌ User not logged in or no phone');
+      }
+
+      // Test 3: Initialize SDK
+      results.add('3. Testing SDK Initialization:');
+      try {
+        bool initResult = await zegoService.initializeZegoSDK();
+        results
+            .add(initResult ? '   ✅ SDK initialized' : '   ❌ SDK init failed');
+      } catch (e) {
+        results.add('   ❌ SDK init error: $e');
+      }
+
+      // Test 4: Login to Zego
+      results.add('4. Testing Zego Login:');
+      if (appStore.isLoggedIn) {
+        try {
+          bool loginResult = await zegoService.loginToZego(
+            userID: appStore.userPhone,
+            userName: appStore.userName.isNotEmpty
+                ? appStore.userName
+                : appStore.firstName,
+          );
+          results.add(loginResult
+              ? '   ✅ Zego login successful'
+              : '   ❌ Zego login failed');
+        } catch (e) {
+          results.add('   ❌ Zego login error: $e');
+        }
+      } else {
+        results.add('   ⚠️ Skipped - user not authenticated');
+      }
+
+      // Test 5: Final status
+      results.add('5. Final Status:');
+      results.add('   SDK Ready: ${zegoService.isInitialized}');
+      results.add('   User Ready: ${zegoService.isLoggedIn}');
+      results.add(
+          '   Overall: ${zegoService.isInitialized && zegoService.isLoggedIn ? "✅ READY" : "❌ NOT READY"}');
+
+      Navigator.pop(context); // Close loading
+
+      // Show results
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('🔍 Connection Test Results'),
+          content: SingleChildScrollView(
+            child: Text(
+              results.join('\n'),
+              style: TextStyle(fontFamily: 'monospace', fontSize: 12),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Close'),
+            ),
+            if (zegoService.isInitialized && zegoService.isLoggedIn)
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('🎉 Zego is ready! Try making a call now!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                },
+                child: Text('Test Passed! 🎉'),
+              ),
+          ],
+        ),
+      );
+    } catch (error) {
+      Navigator.pop(context); // Close loading
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('❌ Test Failed'),
+          content: Text('Error: $error'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Close'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  /// Force reinitialize Zego service
+  Future<void> _forceReinitializeZego() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Reinitializing Zego...'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      // Step 1: Logout first
+      await zegoService.logoutFromZego();
+
+      // Step 2: Reinitialize
+      bool initResult = await zegoService.initializeZegoSDK();
+
+      // Step 3: Login again if user is authenticated
+      bool loginResult = false;
+      if (appStore.isLoggedIn && appStore.userPhone.isNotEmpty) {
+        loginResult = await zegoService.loginToZego(
+          userID: appStore.userPhone,
+          userName: appStore.userName.isNotEmpty
+              ? appStore.userName
+              : appStore.firstName,
+        );
+      }
+
+      Navigator.pop(context); // Close loading
+
+      String message;
+      Color color;
+
+      if (initResult && loginResult) {
+        message = '🎉 Zego reinitialized successfully! Ready for calls!';
+        color = Colors.green;
+      } else if (initResult) {
+        message =
+            '⚠️ SDK initialized but login failed. Check user authentication.';
+        color = Colors.orange;
+      } else {
+        message = '❌ Reinitialize failed. Check credentials and network.';
+        color = Colors.red;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: color,
+          duration: Duration(seconds: 5),
+        ),
+      );
+    } catch (error) {
+      Navigator.pop(context); // Close loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Reinitialize error: $error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -304,7 +406,12 @@ class _MainScreenState extends State<MainScreen> {
       ),
 
       // Zego Debug FAB for development
-      floatingActionButton: _buildZegoDebugFAB(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showZegoQuickDebug,
+        child: Icon(Icons.bug_report),
+        backgroundColor: Colors.orange,
+        tooltip: 'Test Zego Connection',
+      ),
     );
   }
 }
