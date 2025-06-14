@@ -12,6 +12,8 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
+import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
 import '/model/FileModel.dart';
 import '../network/RestApis.dart';
@@ -27,6 +29,7 @@ import 'screens/SplashScreen.dart';
 import 'service/ChatMessagesService.dart';
 import 'service/NotificationService.dart';
 import 'service/UserServices.dart';
+import 'service/ZegoService.dart';
 import 'store/AppStore.dart';
 import 'utils/Colors.dart';
 import 'utils/Common.dart';
@@ -51,6 +54,8 @@ final GlobalKey locationScreenKey = GlobalKey();
 ChatMessageService chatMessageService = ChatMessageService();
 NotificationService notificationService = NotificationService();
 UserService userService = UserService();
+// Initialize Zego Cloud Service for video/voice calling
+ZegoService zegoService = ZegoService();
 late Position currentPosition;
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -63,6 +68,11 @@ String sourceLocationTitle = '';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   sharedPref = await SharedPreferences.getInstance();
+
+  // Set up navigator key for Zego Cloud
+  ZegoUIKitPrebuiltCallInvitationService().setNavigatorKey(navigatorKey);
+
+  // Initialize Firebase
   if (Platform.isIOS) {
     await Firebase.initializeApp();
   } else {
@@ -80,6 +90,8 @@ void main() async {
     }
   }
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+  // Initialize app store settings
   appStore.setLanguage(
       sharedPref.getString(SELECTED_LANGUAGE_CODE) ?? defaultLanguageCode);
   await appStore.setLoggedIn(sharedPref.getBool(IS_LOGGED_IN) ?? false,
@@ -92,12 +104,52 @@ void main() async {
   await appStore.setUserProfile(sharedPref.getString(USER_PROFILE_PHOTO) ?? '');
   await appStore.setUserPhone(sharedPref.getString(CONTACT_NUMBER) ?? '',
       isInitialization: true);
+
   try {
     initJsonFile();
   } catch (e) {}
   try {
     await oneSignalSettings();
   } catch (e) {}
+
+  // Initialize Zego Cloud System Calling UI FIRST
+  try {
+    print("${DateTime.now()}: Setting up Zego System Calling UI...");
+    ZegoUIKit().initLog().then((value) {
+      ZegoUIKitPrebuiltCallInvitationService().useSystemCallingUI(
+        [ZegoUIKitSignalingPlugin()],
+      );
+      print("${DateTime.now()}: Zego System Calling UI setup completed");
+    });
+  } catch (e) {
+    print("${DateTime.now()}: Error setting up Zego System Calling UI: $e");
+  }
+
+  // Initialize Zego Cloud SDK for video/voice calling
+  try {
+    print("${DateTime.now()}: Initializing Zego Cloud SDK...");
+    final zegoInitSuccess = await zegoService.initializeZegoSDK();
+    if (zegoInitSuccess) {
+      print("${DateTime.now()}: Zego SDK initialized successfully");
+
+      // Auto-login if user is already authenticated
+      if (appStore.isLoggedIn) {
+        print(
+            "${DateTime.now()}: User is authenticated, attempting Zego auto-login...");
+        final zegoLoginSuccess = await zegoService.autoLoginIfAuthenticated();
+        if (zegoLoginSuccess) {
+          print("${DateTime.now()}: Zego auto-login successful");
+        } else {
+          print("${DateTime.now()}: Zego auto-login failed");
+        }
+      }
+    } else {
+      print("${DateTime.now()}: Zego SDK initialization failed");
+    }
+  } catch (e) {
+    print("${DateTime.now()}: Error initializing Zego: $e");
+  }
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,

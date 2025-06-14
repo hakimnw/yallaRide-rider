@@ -12,6 +12,7 @@ import '../screens/AlertScreen.dart';
 import '../screens/ChatScreen.dart';
 import '../screens/MainScreen.dart';
 import '../service/ChatMessagesService.dart';
+import '../service/ZegoService.dart';
 import '../utils/Colors.dart';
 import '../utils/Common.dart';
 import '../utils/Constants.dart';
@@ -119,6 +120,151 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
       toast(error.toString());
       log(error.toString());
     });
+  }
+
+  /// Handle driver call with Zego integration
+  Future<void> _handleDriverCall() async {
+    try {
+      if (widget.driverData?.contactNumber == null ||
+          widget.driverData!.contactNumber!.isEmpty) {
+        toast("رقم الهاتف غير متوفر");
+        return;
+      }
+
+      // Show call options dialog
+      String? callType = await showDialog<String>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(
+              "اختر نوع المكالمة",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("كيف تريد الاتصال بالسائق؟"),
+                SizedBox(height: 12),
+                // Zego status indicator
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: zegoService.isLoggedIn
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color:
+                          zegoService.isLoggedIn ? Colors.green : Colors.orange,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        zegoService.isLoggedIn
+                            ? Icons.check_circle
+                            : Icons.warning,
+                        color: zegoService.isLoggedIn
+                            ? Colors.green
+                            : Colors.orange,
+                        size: 16,
+                      ),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          zegoService.isLoggedIn
+                              ? 'Zego متصل - مكالمات فيديو متاحة'
+                              : 'Zego غير متصل - سيتم استخدام الهاتف العادي',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(null),
+                child: Text("إلغاء"),
+              ),
+              if (zegoService.isLoggedIn) ...[
+                ElevatedButton.icon(
+                  onPressed: () => Navigator.of(context).pop('voice'),
+                  icon: Icon(Icons.phone, size: 16),
+                  label: Text("صوت"),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => Navigator.of(context).pop('video'),
+                  icon: Icon(Icons.videocam, size: 16),
+                  label: Text("فيديو"),
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: primaryColor),
+                ),
+              ] else ...[
+                ElevatedButton.icon(
+                  onPressed: () => Navigator.of(context).pop('phone'),
+                  icon: Icon(Icons.phone, size: 16),
+                  label: Text("اتصال"),
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                ),
+              ],
+            ],
+          );
+        },
+      );
+
+      if (callType != null) {
+        bool callSuccess = false;
+
+        switch (callType) {
+          case 'video':
+            callSuccess = await zegoService.initiateVideoCall(
+              driverPhoneNumber: widget.driverData!.contactNumber!,
+              context: context,
+              driverName:
+                  "${widget.driverData!.firstName ?? ''} ${widget.driverData!.lastName ?? ''}"
+                      .trim(),
+            );
+            break;
+          case 'voice':
+            callSuccess = await zegoService.initiateVoiceCall(
+              driverPhoneNumber: widget.driverData!.contactNumber!,
+              context: context,
+              driverName:
+                  "${widget.driverData!.firstName ?? ''} ${widget.driverData!.lastName ?? ''}"
+                      .trim(),
+            );
+            break;
+          case 'phone':
+            final Uri phoneUri =
+                Uri.parse('tel:${widget.driverData!.contactNumber}');
+            if (await canLaunchUrl(phoneUri)) {
+              await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
+              callSuccess = true;
+            }
+            break;
+        }
+
+        if (callSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                callType == 'phone'
+                    ? 'تم فتح تطبيق الهاتف'
+                    : 'تم إرسال دعوة المكالمة',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (error) {
+      print('Error in _handleDriverCall: $error');
+      toast("حدث خطأ أثناء إجراء المكالمة");
+    }
   }
 
   void _showCompleteRideDialog() {
@@ -429,11 +575,7 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
                 ),
                 SizedBox(width: 8),
                 inkWellWidget(
-                  onTap: () {
-                    launchUrl(
-                        Uri.parse('tel:${widget.driverData!.contactNumber}'),
-                        mode: LaunchMode.externalApplication);
-                  },
+                  onTap: () => _handleDriverCall(),
                   child: chatCallWidget(Icons.call),
                 ),
                 Spacer(),

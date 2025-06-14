@@ -7,7 +7,7 @@ const mAppName = 'Masarak';
 //endregion
 
 // region Google map key
-const GOOGLE_MAP_API_KEY = 'AIzaSyB2alUYyH1P5HlmbvdUXBDsBpIruxr6BLU';
+const GOOGLE_MAP_API_KEY = 'AIzaSyDcWIxw6lRSHR9O8ts9R76d9Z7ZzsFmDa0';
 //endregion
 
 //region DomainUrl
@@ -26,6 +26,15 @@ const mOneSignalAppIdRider = '1423d949-f09a-4026-8513-05ac0221129b';
 const mOneSignalRestKeyRider =
     'os_v2_app_cqr5sspqtjacnbitawwaeiistpxa3egnkcdejf57n57zsimkcgey4y27z7bavqgiju5q6jslw7pfprtscasp3zrujgmwvmqvejuuxvy';
 const mOneSignalRiderChannelID = 'd48c7b03-6d4d-4ed2-80c5-6cb35d3c0a6a';
+
+//region Zego Cloud Configuration - REAL CREDENTIALS
+const ZEGO_APP_ID = 113057318; // Real App ID from Zego Cloud console
+const ZEGO_APP_SIGN =
+    '0a02b0de3f2a9213f4cd0731e1ce7c0d2ee6acdc1f52cd6958ac7839b9caddc6'; // Real App Sign
+const ZEGO_CALLBACK_SECRET =
+    '0a02b0de3f2a9213f4cd0731e1ce7c0d'; // Callback Secret
+const ZEGO_SCENARIO = 'Default'; // Voice & Video Call scenario
+//endregion
 
 //region firebase configuration
 const projectId = 'friends-cc2a9';

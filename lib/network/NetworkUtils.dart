@@ -112,7 +112,7 @@ void apiURLResponseLog(
   log("\u001B[39m \u001b[96m Time: ${DateTime.now()}\u001B[39m");
   log("\u001b[31m Url: \u001B[39m $url");
   log("\u001b[31m Header: \u001B[39m \u001b[96m$headers\u001B[39m");
-  if (request.isNotEmpty)
+  if (request.isNotEmpty && request != 'null')
     log("\u001b[31m Request: \u001B[39m \u001b[96m$request\u001B[39m");
   log("${statusCode.isSuccessful() ? "\u001b[32m" : "\u001b[31m"}");
   log('Response ($methodType) $statusCode ${statusCode.isSuccessful() ? "\u001b[32m" : "\u001b[31m"} ');

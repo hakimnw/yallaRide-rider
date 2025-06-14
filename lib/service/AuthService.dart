@@ -17,6 +17,7 @@ import '../utils/Constants.dart';
 import '../utils/Extensions/app_common.dart';
 import '../utils/Extensions/dataTypeExtensions.dart';
 import 'AuthService1.dart';
+import 'ZegoService.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -192,7 +193,22 @@ Future<void> loginFromFirebase(
     await appStore.setUserProfile(currentUser.photoURL.toString());
     await sharedPref.setString(
         USER_PROFILE_PHOTO, currentUser.photoURL.toString());
-    if (value.data!.contactNumber.isEmptyOrNull) {
+
+    // Auto-login to Zego Cloud after successful app login
+    try {
+      print(
+          "${DateTime.now()}: User logged in successfully, attempting Zego auto-login...");
+      final zegoLoginSuccess = await zegoService.autoLoginIfAuthenticated();
+      if (zegoLoginSuccess) {
+        print("${DateTime.now()}: Zego auto-login successful after app login");
+      } else {
+        print("${DateTime.now()}: Zego auto-login failed after app login");
+      }
+    } catch (e) {
+      print("${DateTime.now()}: Error during Zego auto-login: $e");
+    }
+
+    if (value.data == null || value.data!.contactNumber.isEmptyOrNull) {
       launchScreen(getContext, EditProfileScreen(isGoogle: true),
           isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
     } else {

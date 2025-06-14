@@ -103,6 +103,10 @@ dependencies:
   # pdfx: 2.6.0
   path_provider: ^2.1.4
   open_file: ^3.5.3
+  # ZEGO CLOUD VIDEO/VOICE CALLING
+  zego_uikit_prebuilt_call: ^4.12.6
+  zego_uikit_signaling_plugin: ^2.8.4
+  zego_uikit: ^2.22.3
 
   flutter_localizations:
     sdk: flutter

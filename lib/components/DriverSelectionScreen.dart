@@ -20,6 +20,7 @@ import '../screens/MainScreen.dart';
 import '../screens/ChatScreen.dart';
 import '../model/LoginResponse.dart';
 import '../service/ChatMessagesService.dart';
+import '../service/ZegoService.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class DriverSelectionScreen extends StatefulWidget {
@@ -1208,20 +1209,20 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
     }
   }
 
-  /// Makes a phone call to the selected driver
+  /// Makes a video/voice call to the selected driver using Zego Cloud
   Future<void> _callDriver(Driver driver) async {
     try {
       // Add haptic feedback
       HapticFeedback.lightImpact();
 
       if (driver.contactNumber != null && driver.contactNumber!.isNotEmpty) {
-        // Show confirmation dialog
-        bool? shouldCall = await showDialog<bool>(
+        // Show enhanced call options dialog with video/voice choice
+        String? callType = await showDialog<String>(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text(
-                "إجراء مكالمة",
+                "اختر نوع المكالمة",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
@@ -1231,7 +1232,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("هل تريد الاتصال بالسائق؟"),
+                  Text("كيف تريد الاتصال بالسائق؟"),
                   SizedBox(height: 8),
                   Text(
                     "${driver.firstName ?? ''} ${driver.lastName ?? ''}",
@@ -1248,6 +1249,42 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                       fontSize: 16,
                     ),
                   ),
+                  SizedBox(height: 16),
+                  // Zego status indicator
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: zegoService.isLoggedIn
+                          ? Colors.green.withOpacity(0.1)
+                          : Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: zegoService.isLoggedIn
+                            ? Colors.green
+                            : Colors.orange,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          zegoService.isLoggedIn
+                              ? Icons.check_circle
+                              : Icons.warning,
+                          color: zegoService.isLoggedIn
+                              ? Colors.green
+                              : Colors.orange,
+                          size: 16,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          zegoService.isLoggedIn
+                              ? 'Zego متصل - مكالمات فيديو متاحة'
+                              : 'Zego غير متصل - سيتم استخدام الهاتف العادي',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
               shape: RoundedRectangleBorder(
@@ -1255,42 +1292,153 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
+                  onPressed: () => Navigator.of(context).pop(null),
                   child: Text(
                     "إلغاء",
                     style: TextStyle(color: Colors.grey[600]),
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                if (zegoService.isLoggedIn) ...[
+                  ElevatedButton.icon(
+                    onPressed: () => Navigator.of(context).pop('voice'),
+                    icon: Icon(Icons.phone, size: 16),
+                    label: Text("مكالمة صوتية"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
-                  child: Text("اتصال"),
-                ),
+                  SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: () => Navigator.of(context).pop('video'),
+                    icon: Icon(Icons.videocam, size: 16),
+                    label: Text("مكالمة فيديو"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  ElevatedButton.icon(
+                    onPressed: () => Navigator.of(context).pop('phone'),
+                    icon: Icon(Icons.phone, size: 16),
+                    label: Text("اتصال عادي"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             );
           },
         );
 
-        if (shouldCall == true) {
-          final Uri phoneUri = Uri.parse('tel:${driver.contactNumber}');
-          if (await canLaunchUrl(phoneUri)) {
-            await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
-          } else {
-            toast("لا يمكن إجراء المكالمة");
+        if (callType != null) {
+          // Show loading indicator
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AlertDialog(
+              content: Row(
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(width: 16),
+                  Text("جاري إجراء المكالمة..."),
+                ],
+              ),
+            ),
+          );
+
+          try {
+            bool callSuccess = false;
+
+            switch (callType) {
+              case 'video':
+                print(
+                    "${DateTime.now()}: Initiating Zego video call to ${driver.contactNumber}");
+                callSuccess = await zegoService.initiateVideoCall(
+                  driverPhoneNumber: driver.contactNumber!,
+                  context: context,
+                  driverName:
+                      "${driver.firstName ?? ''} ${driver.lastName ?? ''}"
+                          .trim(),
+                );
+                break;
+              case 'voice':
+                print(
+                    "${DateTime.now()}: Initiating Zego voice call to ${driver.contactNumber}");
+                callSuccess = await zegoService.initiateVoiceCall(
+                  driverPhoneNumber: driver.contactNumber!,
+                  context: context,
+                  driverName:
+                      "${driver.firstName ?? ''} ${driver.lastName ?? ''}"
+                          .trim(),
+                );
+                break;
+              case 'phone':
+                print(
+                    "${DateTime.now()}: Initiating traditional phone call to ${driver.contactNumber}");
+                final Uri phoneUri = Uri.parse('tel:${driver.contactNumber}');
+                if (await canLaunchUrl(phoneUri)) {
+                  await launchUrl(phoneUri,
+                      mode: LaunchMode.externalApplication);
+                  callSuccess = true;
+                } else {
+                  callSuccess = false;
+                }
+                break;
+            }
+
+            // Close loading dialog
+            Navigator.of(context).pop();
+
+            if (callSuccess) {
+              // Show success message
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    callType == 'phone'
+                        ? 'تم فتح تطبيق الهاتف'
+                        : 'تم إرسال دعوة المكالمة بنجاح',
+                  ),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            } else {
+              throw Exception('Failed to initiate call');
+            }
+          } catch (callError) {
+            // Close loading dialog
+            Navigator.of(context).pop();
+
+            print('Call error: $callError');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content:
+                    Text('فشل في إجراء المكالمة. الرجاء المحاولة مرة أخرى.'),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 3),
+              ),
+            );
           }
         }
       } else {
         toast("رقم الهاتف غير متوفر");
       }
     } catch (error) {
+      print('Error in _callDriver: $error');
       toast("حدث خطأ أثناء إجراء المكالمة");
-      print('Error making call: $error');
     }
   }
 

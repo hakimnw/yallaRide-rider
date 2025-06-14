@@ -212,8 +212,10 @@ Future updateProfile(
       await sharedPref.setString(
           CONTACT_NUMBER, res.data!.contactNumber.validate());
       await sharedPref.setString(GENDER, res.data!.gender.validate());
-      await appStore.setUserEmail(res.data!.email.validate());
-      await appStore.setUserProfile(res.data!.profileImage.validate());
+      if (res.data != null) {
+        await appStore.setUserEmail(res.data!.email.validate());
+        await appStore.setUserProfile(res.data!.profileImage.validate());
+      }
     }
   }, onError: (error) {
     toast(error.toString());

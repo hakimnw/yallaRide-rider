@@ -106,16 +106,19 @@ class SplashScreenState extends State<SplashScreen>
               isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
         } else {
           getUserDetail(userId: sharedPref.getInt(USER_ID)).then((value) {
-            appStore.setUserEmail(value.data!.email.validate());
-            appStore.setUserName(value.data!.username.validate());
-            appStore.setFirstName(value.data!.firstName.validate());
-            appStore.setUserProfile(value.data!.profileImage.validate());
+            if (value.data != null) {
+              appStore.setUserEmail(value.data!.email.validate());
+              appStore.setUserName(value.data!.username.validate());
+              appStore.setFirstName(value.data!.firstName.validate());
+              appStore.setUserProfile(value.data!.profileImage.validate());
 
-            sharedPref.setString(USER_EMAIL, value.data!.email.validate());
-            sharedPref.setString(FIRST_NAME, value.data!.firstName.validate());
-            sharedPref.setString(LAST_NAME, value.data!.lastName.validate());
-            sharedPref.setString(
-                USER_PROFILE_PHOTO, value.data!.profileImage.validate());
+              sharedPref.setString(USER_EMAIL, value.data!.email.validate());
+              sharedPref.setString(
+                  FIRST_NAME, value.data!.firstName.validate());
+              sharedPref.setString(LAST_NAME, value.data!.lastName.validate());
+              sharedPref.setString(
+                  USER_PROFILE_PHOTO, value.data!.profileImage.validate());
+            }
 
             appStore.setLoading(false);
             setState(() {});

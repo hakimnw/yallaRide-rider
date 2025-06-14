@@ -19,7 +19,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyB2alUYyH1P5HlmbvdUXBDsBpIruxr6BLU" />
+            android:value="AIzaSyDcWIxw6lRSHR9O8ts9R76d9Z7ZzsFmDa0" />
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"

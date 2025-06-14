@@ -112,11 +112,13 @@ class EditProfileScreenState extends State<EditProfileScreen>
         contactNumberController.text = value.data!.country_code.validate() +
             value.data!.contactNumber.validate();
       }
-      appStore.setUserEmail(value.data!.email.validate());
-      appStore.setUserName(value.data!.username.validate());
-      appStore.setFirstName(value.data!.firstName.validate());
-      if (sharedPref.getString(LOGIN_TYPE) != LoginTypeGoogle) {
-        appStore.setUserProfile(value.data!.profileImage.validate());
+      if (value.data != null) {
+        appStore.setUserEmail(value.data!.email.validate());
+        appStore.setUserName(value.data!.username.validate());
+        appStore.setFirstName(value.data!.firstName.validate());
+        if (sharedPref.getString(LOGIN_TYPE) != LoginTypeGoogle) {
+          appStore.setUserProfile(value.data!.profileImage.validate());
+        }
       }
       sharedPref.setString(USER_EMAIL, value.data!.email.validate());
       sharedPref.setString(FIRST_NAME, value.data!.firstName.validate());
