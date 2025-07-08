@@ -53,6 +53,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
   Timer? refreshTimer;
   ChatMessageService chatMessageService = ChatMessageService();
   Map<int, double> driverRatings = {}; // Cache for driver ratings
+  OnRideRequest? currentRideRequest; // Store current ride request for pricing
 
   late AnimationController _slideController;
   late AnimationController _fadeController;
@@ -131,6 +132,11 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
       final currentRequest = await getCurrentRideRequest();
       final rideRequest =
           currentRequest.rideRequest ?? currentRequest.onRideRequest;
+
+      // Store current ride request for pricing display
+      setState(() {
+        currentRideRequest = rideRequest;
+      });
 
       if (rideRequest != null && rideRequest.status == ACCEPTED) {
         // Get driver details for accepted ride
@@ -361,6 +367,25 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
     return "5 دقائق"; // Default fallback
   }
 
+  // Get trip price for display
+  String _getTripPrice() {
+    if (appStore.selectedTripTotalAmount > 0) {
+      return '${appStore.selectedTripTotalAmount.toStringAsFixed(2)} ${appStore.currencyCode}';
+    } else if (currentRideRequest?.subtotal != null) {
+      return '${currentRideRequest!.subtotal!.toStringAsFixed(2)} ${appStore.currencyCode}';
+    } else if (currentRideRequest?.totalAmount != null) {
+      return '${currentRideRequest!.totalAmount!.toStringAsFixed(2)} ${appStore.currencyCode}';
+    }
+    return 'تكلفة الرحلة';
+  }
+
+  // Check if price is available
+  bool _hasPriceInfo() {
+    return appStore.selectedTripTotalAmount > 0 ||
+        currentRideRequest?.subtotal != null ||
+        currentRideRequest?.totalAmount != null;
+  }
+
   Future<void> _acceptDriver(Driver driver) async {
     try {
       appStore.setLoading(true);
@@ -545,6 +570,57 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                             fontSize: 16,
                           ),
                           textAlign: TextAlign.center,
+                        ),
+                        // Trip price display
+                        Observer(
+                          builder: (context) => _hasPriceInfo()
+                              ? Column(
+                                  children: [
+                                    SizedBox(height: 16),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(0.3),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.payments,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            "تكلفة الرحلة: ",
+                                            style: TextStyle(
+                                              color:
+                                                  Colors.white.withOpacity(0.9),
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          Text(
+                                            _getTripPrice(),
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : SizedBox.shrink(),
                         ),
                       ],
                     ),
@@ -933,6 +1009,60 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                                 ),
                               ),
 
+                              // Trip price display for each driver
+                              Observer(
+                                builder: (context) => _hasPriceInfo()
+                                    ? Column(
+                                        children: [
+                                          SizedBox(height: 8),
+                                          Container(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 10, vertical: 6),
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  Colors.amber[50]!,
+                                                  Colors.amber[100]!,
+                                                ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              border: Border.all(
+                                                  color: Colors.amber[200]!),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(Icons.payments,
+                                                    color: Colors.amber[700],
+                                                    size: 16),
+                                                SizedBox(width: 6),
+                                                Text(
+                                                  "تكلفة الرحلة: ",
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    color: Colors.amber[800],
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  _getTripPrice(),
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.amber[900],
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : SizedBox.shrink(),
+                              ),
+
                               // Car details section
                               SizedBox(height: 8),
                               if (driver.userDetail?.carModel != null ||
@@ -1209,6 +1339,102 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
     }
   }
 
+  /// Ensure Zego connection is ready with retry logic
+  Future<bool> _ensureZegoConnection() async {
+    try {
+      print("${DateTime.now()}: Checking Zego connection...");
+
+      // If already connected, return true immediately
+      if (zegoService.isInitialized && zegoService.isLoggedIn) {
+        print("${DateTime.now()}: Zego already connected and ready");
+        return true;
+      }
+
+      // Step 1: Check if SDK is initialized
+      if (!zegoService.isInitialized) {
+        print("${DateTime.now()}: SDK not initialized, initializing...");
+        bool initResult = await zegoService.initializeZegoSDK();
+        if (!initResult) {
+          print("${DateTime.now()}: Failed to initialize SDK");
+          return false;
+        }
+
+        // Add small delay after initialization
+        await Future.delayed(Duration(milliseconds: 500));
+      }
+
+      // Step 2: Check if user is logged in
+      if (!zegoService.isLoggedIn) {
+        print(
+            "${DateTime.now()}: User not logged into Zego, attempting login...");
+
+        // Check if app user is authenticated
+        if (!appStore.isLoggedIn || appStore.userPhone.isEmpty) {
+          print("${DateTime.now()}: App user not authenticated");
+          return false;
+        }
+
+        // Attempt login with retry logic
+        bool loginResult = false;
+        int maxRetries = 3;
+        int attempt = 0;
+
+        while (!loginResult && attempt < maxRetries) {
+          attempt++;
+          print("${DateTime.now()}: Zego login attempt $attempt/$maxRetries");
+
+          try {
+            loginResult = await zegoService.loginToZego(
+              userID: appStore.userPhone,
+              userName: appStore.userName.isNotEmpty
+                  ? appStore.userName
+                  : appStore.firstName,
+            );
+
+            if (loginResult) {
+              print(
+                  "${DateTime.now()}: Zego login successful on attempt $attempt");
+              break;
+            } else {
+              print("${DateTime.now()}: Zego login failed on attempt $attempt");
+              if (attempt < maxRetries) {
+                // Wait before retrying
+                await Future.delayed(Duration(milliseconds: 1000 * attempt));
+              }
+            }
+          } catch (e) {
+            print(
+                "${DateTime.now()}: Zego login error on attempt $attempt: $e");
+            if (attempt < maxRetries) {
+              await Future.delayed(Duration(milliseconds: 1000 * attempt));
+            }
+          }
+        }
+
+        if (!loginResult) {
+          print(
+              "${DateTime.now()}: Failed to login to Zego after $maxRetries attempts");
+          return false;
+        }
+      }
+
+      // Step 3: Final verification with timeout
+      print(
+          "${DateTime.now()}: Performing final Zego connection verification...");
+
+      // Wait a bit for connection to stabilize
+      await Future.delayed(Duration(milliseconds: 500));
+
+      bool isReady = zegoService.isInitialized && zegoService.isLoggedIn;
+      print("${DateTime.now()}: Zego connection check result: $isReady");
+
+      return isReady;
+    } catch (error) {
+      print("${DateTime.now()}: Error ensuring Zego connection: $error");
+      return false;
+    }
+  }
+
   /// Makes a video/voice call to the selected driver using Zego Cloud
   Future<void> _callDriver(Driver driver) async {
     try {
@@ -1276,15 +1502,63 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                           size: 16,
                         ),
                         SizedBox(width: 8),
-                        Text(
-                          zegoService.isLoggedIn
-                              ? 'Zego متصل - مكالمات فيديو متاحة'
-                              : 'Zego غير متصل - سيتم استخدام الهاتف العادي',
-                          style: TextStyle(fontSize: 12),
+                        Expanded(
+                          child: Text(
+                            zegoService.isLoggedIn
+                                ? 'Zego متصل - مكالمات فيديو متاحة'
+                                : 'Zego غير متصل - سيتم استخدام الهاتف العادي',
+                            style: TextStyle(fontSize: 12),
+                          ),
                         ),
                       ],
                     ),
                   ),
+                  if (!zegoService.isLoggedIn) ...[
+                    SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: () async {
+                        Navigator.of(context).pop();
+                        // Show loading and retry Zego connection
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => AlertDialog(
+                            content: Row(
+                              children: [
+                                CircularProgressIndicator(),
+                                SizedBox(width: 16),
+                                Text("جاري إعادة الاتصال بـ Zego..."),
+                              ],
+                            ),
+                          ),
+                        );
+
+                        try {
+                          // Force reinitialize Zego
+                          await zegoService.logoutFromZego();
+                          await zegoService.initializeZegoSDK();
+                          if (appStore.isLoggedIn &&
+                              appStore.userPhone.isNotEmpty) {
+                            await zegoService.loginToZego(
+                              userID: appStore.userPhone,
+                              userName: appStore.userName.isNotEmpty
+                                  ? appStore.userName
+                                  : appStore.firstName,
+                            );
+                          }
+                        } catch (e) {
+                          print('Error reinitializing Zego: $e');
+                        }
+
+                        Navigator.of(context).pop(); // Close loading
+                        await _callDriver(driver); // Retry call
+                      },
+                      icon: Icon(Icons.refresh, size: 16),
+                      label: Text('إعادة المحاولة'),
+                      style:
+                          TextButton.styleFrom(foregroundColor: primaryColor),
+                    ),
+                  ],
                 ],
               ),
               shape: RoundedRectangleBorder(
@@ -1361,6 +1635,27 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
 
           try {
             bool callSuccess = false;
+
+            // Ensure Zego connection before making video/voice calls
+            if (callType == 'video' || callType == 'voice') {
+              bool zegoReady = await _ensureZegoConnection();
+              if (!zegoReady) {
+                Navigator.of(context).pop(); // Close loading
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        'فشل في الاتصال بخدمة Zego. سيتم استخدام الهاتف العادي.'),
+                    backgroundColor: Colors.orange,
+                    action: SnackBarAction(
+                      label: 'محاولة مرة أخرى',
+                      textColor: Colors.white,
+                      onPressed: () => _callDriver(driver),
+                    ),
+                  ),
+                );
+                return;
+              }
+            }
 
             switch (callType) {
               case 'video':

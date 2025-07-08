@@ -192,7 +192,19 @@ class DashBoardScreenState extends State<DashBoardScreen>
   }
 
   void init() async {
+    // Load location from SharedPreferences first for immediate display
+    if (sharedPref.getDouble(LATITUDE) != null &&
+        sharedPref.getDouble(LONGITUDE) != null) {
+      sourceLocation = LatLng(
+        sharedPref.getDouble(LATITUDE)!,
+        sharedPref.getDouble(LONGITUDE)!,
+      );
+      setState(() {});
+    }
+
+    // Then get current location to update if needed
     getCurrentUserLocation();
+
     riderIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration(
           devicePixelRatio: 2.5,
@@ -216,36 +228,50 @@ class DashBoardScreenState extends State<DashBoardScreen>
         await getNearByDriver();
         return;
       }
-      final geoPosition = await Geolocator.getCurrentPosition(
-              timeLimit: Duration(seconds: 30),
-              desiredAccuracy: LocationAccuracy.high)
-          .catchError((error) {
+
+      try {
+        final geoPosition = await Geolocator.getCurrentPosition(
+            timeLimit: Duration(seconds: 30),
+            desiredAccuracy: LocationAccuracy.high);
+
+        sourceLocation = LatLng(geoPosition.latitude, geoPosition.longitude);
+
+        // Immediately update map camera to user's location
+        if (mapController != null) {
+          await mapController!.animateCamera(
+            CameraUpdate.newLatLngZoom(sourceLocation!, cameraZoom),
+          );
+        }
+
+        try {
+          List<Placemark>? placemarks = await placemarkFromCoordinates(
+              geoPosition.latitude, geoPosition.longitude);
+          await getNearByDriver();
+
+          //set Country
+          sharedPref.setString(COUNTRY,
+              placemarks[0].isoCountryCode.validate(value: defaultCountry));
+
+          Placemark place = placemarks[0];
+          if (place != null) {
+            sourceLocationTitle =
+                "${place.name != null ? place.name : place.subThoroughfare}, ${place.subLocality}, ${place.locality}, ${place.administrativeArea} ${place.postalCode}, ${place.country}";
+            polylineSource =
+                LatLng(geoPosition.latitude, geoPosition.longitude);
+          }
+        } catch (e) {
+          print("Error getting placemark: $e");
+        }
+
+        addMarker();
+        startLocationTracking();
+
+        setState(() {});
+      } catch (error) {
+        print("Error getting current location: $error");
         launchScreen(navigatorKey.currentState!.overlay!.context,
             LocationPermissionScreen());
-      });
-      sourceLocation = LatLng(geoPosition.latitude, geoPosition.longitude);
-      try {
-        List<Placemark>? placemarks = await placemarkFromCoordinates(
-            geoPosition.latitude, geoPosition.longitude);
-        await getNearByDriver();
-
-        //set Country
-        sharedPref.setString(COUNTRY,
-            placemarks[0].isoCountryCode.validate(value: defaultCountry));
-
-        Placemark place = placemarks[0];
-        if (place != null) {
-          sourceLocationTitle =
-              "${place.name != null ? place.name : place.subThoroughfare}, ${place.subLocality}, ${place.locality}, ${place.administrativeArea} ${place.postalCode}, ${place.country}";
-          polylineSource = LatLng(geoPosition.latitude, geoPosition.longitude);
-        }
-      } catch (e) {
-        throw e;
       }
-      addMarker();
-      startLocationTracking();
-
-      setState(() {});
     } else {
       launchScreen(navigatorKey.currentState!.overlay!.context,
           LocationPermissionScreen());
@@ -400,15 +426,20 @@ class DashBoardScreenState extends State<DashBoardScreen>
   }
 
   addMarker() {
-    markers.add(
-      Marker(
-        markerId: MarkerId('Order Detail'),
-        position: sourceLocation!,
-        draggable: true,
-        infoWindow: InfoWindow(title: sourceLocationTitle, snippet: ''),
-        icon: riderIcon,
-      ),
-    );
+    // Clear existing user location markers
+    markers.removeWhere((marker) => marker.markerId.value == 'Order Detail');
+
+    if (sourceLocation != null) {
+      markers.add(
+        Marker(
+          markerId: MarkerId('Order Detail'),
+          position: sourceLocation!,
+          draggable: true,
+          infoWindow: InfoWindow(title: sourceLocationTitle, snippet: ''),
+          icon: riderIcon,
+        ),
+      );
+    }
   }
 
   Future<void> startLocationTracking() async {
@@ -504,29 +535,68 @@ class DashBoardScreenState extends State<DashBoardScreen>
         resizeToAvoidBottomInset: false,
         body: Stack(
           children: [
-            // Map as primary element
-            GoogleMap(
-              mapToolbarEnabled: false,
-              zoomControlsEnabled: false,
-              myLocationEnabled: true,
-              myLocationButtonEnabled: false,
-              mapType: MapType.normal,
-              initialCameraPosition: CameraPosition(
-                target: sourceLocation ?? LatLng(0.00, 0.00),
-                zoom: cameraZoom,
-                bearing: cameraBearing,
-                tilt: cameraTilt,
-              ),
-              markers: markers.map((e) => e).toSet(),
-              polylines: _polyLines,
-              compassEnabled: false,
-              onMapCreated: (GoogleMapController controller) async {
-                mapController = controller;
-                setState(() {
-                  isMapReady = true;
-                });
-              },
-            ),
+            // Map as primary element with loading state
+            sourceLocation == null &&
+                    (sharedPref.getDouble(LATITUDE) == null ||
+                        sharedPref.getDouble(LONGITUDE) == null)
+                ? Container(
+                    color: Colors.grey[300],
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.primary),
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'جاري تحديد موقعك...',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : GoogleMap(
+                    mapToolbarEnabled: false,
+                    zoomControlsEnabled: false,
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: false,
+                    mapType: MapType.normal,
+                    initialCameraPosition: CameraPosition(
+                      target: sourceLocation ??
+                          LatLng(
+                            sharedPref.getDouble(LATITUDE) ?? 24.7136,
+                            sharedPref.getDouble(LONGITUDE) ?? 46.6753,
+                          ),
+                      zoom: cameraZoom,
+                      bearing: cameraBearing,
+                      tilt: cameraTilt,
+                    ),
+                    markers: markers.map((e) => e).toSet(),
+                    polylines: _polyLines,
+                    compassEnabled: false,
+                    onMapCreated: (GoogleMapController controller) async {
+                      mapController = controller;
+                      setState(() {
+                        isMapReady = true;
+                      });
+
+                      // If we have current location, move camera to it
+                      if (sourceLocation != null) {
+                        await Future.delayed(Duration(milliseconds: 500));
+                        await controller.animateCamera(
+                          CameraUpdate.newLatLngZoom(
+                              sourceLocation!, cameraZoom),
+                        );
+                      }
+                    },
+                  ),
 
             // // Top status bar with user info - Modern design
             // Positioned(
@@ -852,13 +922,48 @@ class DashBoardScreenState extends State<DashBoardScreen>
                         color: Colors.transparent,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(24),
-                          onTap: () {
-                            if (sourceLocation != null &&
-                                mapController != null) {
-                              mapController!.animateCamera(
-                                CameraUpdate.newLatLngZoom(
-                                    sourceLocation!, cameraZoom),
+                          onTap: () async {
+                            try {
+                              // Get fresh current location
+                              final geoPosition =
+                                  await Geolocator.getCurrentPosition(
+                                timeLimit: Duration(seconds: 10),
+                                desiredAccuracy: LocationAccuracy.high,
                               );
+
+                              final currentLocation = LatLng(
+                                  geoPosition.latitude, geoPosition.longitude);
+
+                              // Update global sourceLocation
+                              sourceLocation = currentLocation;
+
+                              // Save to SharedPreferences
+                              sharedPref.setDouble(
+                                  LATITUDE, geoPosition.latitude);
+                              sharedPref.setDouble(
+                                  LONGITUDE, geoPosition.longitude);
+
+                              // Move map camera
+                              if (mapController != null) {
+                                await mapController!.animateCamera(
+                                  CameraUpdate.newLatLngZoom(
+                                      currentLocation, cameraZoom),
+                                );
+                              }
+
+                              // Update markers
+                              addMarker();
+                              setState(() {});
+                            } catch (error) {
+                              print("Error getting current location: $error");
+                              // Fallback to existing location if available
+                              if (sourceLocation != null &&
+                                  mapController != null) {
+                                mapController!.animateCamera(
+                                  CameraUpdate.newLatLngZoom(
+                                      sourceLocation!, cameraZoom),
+                                );
+                              }
                             }
                           },
                           child:

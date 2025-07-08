@@ -30,6 +30,7 @@ import '../utils/images.dart';
 import 'DashBoardScreen.dart';
 import 'SignUpScreen.dart';
 import 'TermsConditionScreen.dart';
+import 'PrivacyPolicyScreen.dart';
 
 class SignInScreen extends StatefulWidget {
   @override
@@ -491,17 +492,8 @@ class SignInScreenState extends State<SignInScreen>
                             AppTextStyles.sSemiBold14(color: AppColors.primary),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            if (appStore.privacyPolicy != null &&
-                                appStore.privacyPolicy!.isNotEmpty) {
-                              launchScreen(
-                                  context,
-                                  TermsConditionScreen(
-                                      title: language.privacyPolicy,
-                                      subtitle: appStore.privacyPolicy),
-                                  pageRouteAnimation: PageRouteAnimation.Slide);
-                            } else {
-                              toast(language.txtURLEmpty);
-                            }
+                            launchScreen(context, PrivacyPolicyScreen(),
+                                pageRouteAnimation: PageRouteAnimation.Slide);
                           },
                       ),
                     ],
@@ -769,17 +761,8 @@ class SignInScreenState extends State<SignInScreen>
                             AppTextStyles.sSemiBold14(color: AppColors.primary),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            if (appStore.privacyPolicy != null &&
-                                appStore.privacyPolicy!.isNotEmpty) {
-                              launchScreen(
-                                  context,
-                                  TermsConditionScreen(
-                                      title: language.privacyPolicy,
-                                      subtitle: appStore.privacyPolicy),
-                                  pageRouteAnimation: PageRouteAnimation.Slide);
-                            } else {
-                              toast(language.txtURLEmpty);
-                            }
+                            launchScreen(context, PrivacyPolicyScreen(),
+                                pageRouteAnimation: PageRouteAnimation.Slide);
                           },
                       ),
                     ],

@@ -80,6 +80,35 @@ Future<LoginResponse> signUpApi(Map request) async {
       await sharedPref.setString(UID, loginResponse.data!.uid.validate());
       await appStore
           .setUserProfile(loginResponse.data!.profileImage.validate());
+
+      // Initialize Zego Cloud after successful signup
+      if (loginResponse.data!.contactNumber.validate().isNotEmpty) {
+        try {
+          print(
+              "${DateTime.now()}: User signed up successfully, initializing Zego Cloud...");
+
+          // Ensure SDK is initialized
+          if (!zegoService.isInitialized) {
+            await zegoService.initializeZegoSDK();
+          }
+
+          // Auto-login to Zego Cloud after successful signup
+          final zegoLoginSuccess = await zegoService.loginToZego(
+            userID: loginResponse.data!.contactNumber.validate(),
+            userName: loginResponse.data!.firstName.validate().isNotEmpty
+                ? loginResponse.data!.firstName.validate()
+                : loginResponse.data!.username.validate(),
+          );
+
+          if (zegoLoginSuccess) {
+            print("${DateTime.now()}: Zego login successful after signup");
+          } else {
+            print("${DateTime.now()}: Zego login failed after signup");
+          }
+        } catch (e) {
+          print("${DateTime.now()}: Error during Zego initialization: $e");
+        }
+      }
     }
 
     return loginResponse;
@@ -139,6 +168,35 @@ Future<LoginResponse> logInApi(Map request,
         await sharedPref.setString(UID, loginResponse.data!.uid.validate());
       await appStore
           .setUserProfile(loginResponse.data!.profileImage.validate());
+
+      // Initialize Zego Cloud after successful login
+      if (loginResponse.data!.contactNumber.validate().isNotEmpty) {
+        try {
+          print(
+              "${DateTime.now()}: User logged in successfully, initializing Zego Cloud...");
+
+          // Ensure SDK is initialized
+          if (!zegoService.isInitialized) {
+            await zegoService.initializeZegoSDK();
+          }
+
+          // Auto-login to Zego Cloud after successful app login
+          final zegoLoginSuccess = await zegoService.loginToZego(
+            userID: loginResponse.data!.contactNumber.validate(),
+            userName: loginResponse.data!.firstName.validate().isNotEmpty
+                ? loginResponse.data!.firstName.validate()
+                : loginResponse.data!.username.validate(),
+          );
+
+          if (zegoLoginSuccess) {
+            print("${DateTime.now()}: Zego login successful after app login");
+          } else {
+            print("${DateTime.now()}: Zego login failed after app login");
+          }
+        } catch (e) {
+          print("${DateTime.now()}: Error during Zego initialization: $e");
+        }
+      }
     }
 
     return loginResponse;
@@ -296,9 +354,47 @@ Future<ContactNumberListModel> deleteSosList({int? id}) async {
 }
 
 Future<EstimatePriceModel> estimatePriceList(Map request) async {
-  return EstimatePriceModel.fromJson(await handleResponse(
-      await buildHttpResponse('estimate-price-time',
-          method: HttpMethod.POST, request: request)));
+  // DEBUG: Log price calculation request
+  print('=== PRICE ESTIMATION DEBUG START ===');
+  print('Estimate price request: ${jsonEncode(request)}');
+  print('Request contains:');
+  request.forEach((key, value) {
+    print('  $key: $value');
+  });
+
+  try {
+    final response = await buildHttpResponse('estimate-price-time',
+        method: HttpMethod.POST, request: request);
+
+    print('Price estimation API response status: ${response.statusCode}');
+    print('Price estimation API response body: ${response.body}');
+
+    final result = EstimatePriceModel.fromJson(await handleResponse(response));
+
+    if (result.data != null && result.data!.isNotEmpty) {
+      print(
+          'Price estimation successful! Services found: ${result.data!.length}');
+      for (int i = 0; i < result.data!.length; i++) {
+        final service = result.data![i];
+        print('Service $i: ${service.name}');
+        print('  - Total Amount: ${service.totalAmount}');
+        print('  - Subtotal: ${service.subtotal}');
+        print('  - Base Fare: ${service.baseFare}');
+        print('  - Distance Price: ${service.distancePrice}');
+        print('  - Time Price: ${service.timePrice}');
+        print('  - Discount: ${service.discountAmount}');
+      }
+    } else {
+      print('❌ No services returned in price estimation');
+    }
+
+    print('=== PRICE ESTIMATION DEBUG END ===');
+    return result;
+  } catch (e) {
+    print('❌ Error in price estimation: $e');
+    print('=== PRICE ESTIMATION DEBUG END ===');
+    rethrow;
+  }
 }
 
 Future<CouponListModel> getCouponList({required int page}) async {
@@ -315,10 +411,68 @@ Future<LDBaseResponse> savePayment(Map request) async {
 }
 
 Future<LDBaseResponse> saveRideRequest(Map request) async {
-  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse(
-      'save-riderequest',
-      method: HttpMethod.POST,
-      request: request)));
+  // DEBUG: Log ride request saving
+  print('=== RIDE REQUEST SAVE DEBUG START ===');
+  print('Save ride request payload: ${jsonEncode(request)}');
+  print('Request contains:');
+  request.forEach((key, value) {
+    print('  $key: $value');
+  });
+
+  // Check if price information is missing
+  bool hasPriceInfo = request.containsKey('total_amount') ||
+      request.containsKey('subtotal') ||
+      request.containsKey('base_fare') ||
+      request.containsKey('estimated_price');
+
+  if (!hasPriceInfo) {
+    print('⚠️  WARNING: NO PRICE INFORMATION FOUND IN RIDE REQUEST!');
+    print('⚠️  This might be why drivers see zero price!');
+    print(
+        '⚠️  Missing keys: total_amount, subtotal, base_fare, estimated_price');
+  } else {
+    print('✅ Price information found in request');
+    print('💰 Price details being sent to driver:');
+    if (request.containsKey('total_amount'))
+      print('  - Total Amount: ${request['total_amount']}');
+    if (request.containsKey('subtotal'))
+      print('  - Subtotal: ${request['subtotal']}');
+    if (request.containsKey('base_fare'))
+      print('  - Base Fare: ${request['base_fare']}');
+    if (request.containsKey('distance_price'))
+      print('  - Distance Price: ${request['distance_price']}');
+    if (request.containsKey('time_price'))
+      print('  - Time Price: ${request['time_price']}');
+    if (request.containsKey('minimum_fare'))
+      print('  - Minimum Fare: ${request['minimum_fare']}');
+  }
+
+  try {
+    final response = await buildHttpResponse('save-riderequest',
+        method: HttpMethod.POST, request: request);
+
+    print('Save ride request API response status: ${response.statusCode}');
+    print('Save ride request API response body: ${response.body}');
+
+    final result = LDBaseResponse.fromJson(await handleResponse(response));
+
+    if (result.rideRequestId != null) {
+      print(
+          '✅ Ride request saved successfully with ID: ${result.rideRequestId}');
+      print('🎯 SUCCESS: Driver should now see the trip with proper pricing!');
+      print('🔔 Next step: Check driver app for ride notification with price');
+    } else {
+      print('❌ Ride request save failed - no ride ID returned');
+      print('❌ FAILURE: Driver will not receive ride request');
+    }
+
+    print('=== RIDE REQUEST SAVE DEBUG END ===');
+    return result;
+  } catch (e) {
+    print('❌ Error saving ride request: $e');
+    print('=== RIDE REQUEST SAVE DEBUG END ===');
+    rethrow;
+  }
 }
 
 Future<BidListingModel> getBidListing(Map request) async {

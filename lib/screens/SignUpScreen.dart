@@ -21,6 +21,7 @@ import '../utils/Extensions/context_extension.dart';
 import '../utils/Extensions/dataTypeExtensions.dart';
 import '../utils/images.dart';
 import 'TermsConditionScreen.dart';
+import 'PrivacyPolicyScreen.dart';
 
 class SignUpScreen extends StatefulWidget {
   final bool socialLogin;
@@ -560,20 +561,10 @@ class SignUpScreenState extends State<SignUpScreen> {
                                         color: AppColors.primary),
                                     recognizer: TapGestureRecognizer()
                                       ..onTap = () {
-                                        if (widget.privacyPolicyUrl != null &&
-                                            widget
-                                                .privacyPolicyUrl!.isNotEmpty) {
-                                          launchScreen(
-                                              context,
-                                              TermsConditionScreen(
-                                                  title: language.privacyPolicy,
-                                                  subtitle:
-                                                      widget.privacyPolicyUrl),
-                                              pageRouteAnimation:
-                                                  PageRouteAnimation.Slide);
-                                        } else {
-                                          toast(language.txtURLEmpty);
-                                        }
+                                        launchScreen(
+                                            context, PrivacyPolicyScreen(),
+                                            pageRouteAnimation:
+                                                PageRouteAnimation.Slide);
                                       },
                                   ),
                                 ]),

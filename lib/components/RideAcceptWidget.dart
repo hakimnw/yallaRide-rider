@@ -301,10 +301,16 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
     }
   }
 
-  /// Ensure Zego connection is ready
+  /// Ensure Zego connection is ready with retry logic
   Future<bool> _ensureZegoConnection() async {
     try {
       print("${DateTime.now()}: Checking Zego connection...");
+
+      // If already connected, return true immediately
+      if (zegoService.isInitialized && zegoService.isLoggedIn) {
+        print("${DateTime.now()}: Zego already connected and ready");
+        return true;
+      }
 
       // Step 1: Check if SDK is initialized
       if (!zegoService.isInitialized) {
@@ -314,6 +320,9 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
           print("${DateTime.now()}: Failed to initialize SDK");
           return false;
         }
+
+        // Add small delay after initialization
+        await Future.delayed(Duration(milliseconds: 500));
       }
 
       // Step 2: Check if user is logged in
@@ -327,21 +336,57 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
           return false;
         }
 
-        // Attempt login
-        bool loginResult = await zegoService.loginToZego(
-          userID: appStore.userPhone,
-          userName: appStore.userName.isNotEmpty
-              ? appStore.userName
-              : appStore.firstName,
-        );
+        // Attempt login with retry logic
+        bool loginResult = false;
+        int maxRetries = 3;
+        int attempt = 0;
+
+        while (!loginResult && attempt < maxRetries) {
+          attempt++;
+          print("${DateTime.now()}: Zego login attempt $attempt/$maxRetries");
+
+          try {
+            loginResult = await zegoService.loginToZego(
+              userID: appStore.userPhone,
+              userName: appStore.userName.isNotEmpty
+                  ? appStore.userName
+                  : appStore.firstName,
+            );
+
+            if (loginResult) {
+              print(
+                  "${DateTime.now()}: Zego login successful on attempt $attempt");
+              break;
+            } else {
+              print("${DateTime.now()}: Zego login failed on attempt $attempt");
+              if (attempt < maxRetries) {
+                // Wait before retrying
+                await Future.delayed(Duration(milliseconds: 1000 * attempt));
+              }
+            }
+          } catch (e) {
+            print(
+                "${DateTime.now()}: Zego login error on attempt $attempt: $e");
+            if (attempt < maxRetries) {
+              await Future.delayed(Duration(milliseconds: 1000 * attempt));
+            }
+          }
+        }
 
         if (!loginResult) {
-          print("${DateTime.now()}: Failed to login to Zego");
+          print(
+              "${DateTime.now()}: Failed to login to Zego after $maxRetries attempts");
           return false;
         }
       }
 
-      // Step 3: Final verification
+      // Step 3: Final verification with timeout
+      print(
+          "${DateTime.now()}: Performing final Zego connection verification...");
+
+      // Wait a bit for connection to stabilize
+      await Future.delayed(Duration(milliseconds: 500));
+
       bool isReady = zegoService.isInitialized && zegoService.isLoggedIn;
       print("${DateTime.now()}: Zego connection check result: $isReady");
 

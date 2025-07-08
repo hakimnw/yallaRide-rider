@@ -26,6 +26,7 @@ import 'EditProfileScreen.dart';
 import 'LanguageScreen.dart';
 import 'SignInScreen.dart';
 import 'TermsConditionScreen.dart';
+import 'PrivacyPolicyScreen.dart';
 import 'ComplaintScreen.dart';
 import '../components/ModernAppBar.dart';
 import '../model/RiderModel.dart';
@@ -769,21 +770,16 @@ class SettingScreenState extends State<SettingScreen>
             },
             index: 14,
           ),
-        if (appStore.privacyPolicy != null)
-          _buildModernSettingItem(
-            icon: MaterialCommunityIcons.shield_check_outline,
-            title: language.privacyPolicy,
-            subtitle: "اقرأ سياسة الخصوصية الخاصة بنا",
-            onTap: () {
-              launchScreen(
-                  context,
-                  TermsConditionScreen(
-                      title: language.privacyPolicy,
-                      subtitle: appStore.privacyPolicy),
-                  pageRouteAnimation: PageRouteAnimation.Slide);
-            },
-            index: 15,
-          ),
+        _buildModernSettingItem(
+          icon: MaterialCommunityIcons.shield_check_outline,
+          title: language.privacyPolicy,
+          subtitle: "اقرأ سياسة الخصوصية الخاصة بنا",
+          onTap: () {
+            launchScreen(context, PrivacyPolicyScreen(),
+                pageRouteAnimation: PageRouteAnimation.Slide);
+          },
+          index: 15,
+        ),
         if (appStore.termsCondition == null)
           _buildModernSettingItem(
             icon: MaterialCommunityIcons.file_document_outline,

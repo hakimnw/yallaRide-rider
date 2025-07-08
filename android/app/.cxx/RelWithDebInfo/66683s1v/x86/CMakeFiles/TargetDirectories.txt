@@ -1,0 +1,2 @@
+D:/Rider/android/app/.cxx/RelWithDebInfo/66683s1v/x86/CMakeFiles/edit_cache.dir
+D:/Rider/android/app/.cxx/RelWithDebInfo/66683s1v/x86/CMakeFiles/rebuild_cache.dir

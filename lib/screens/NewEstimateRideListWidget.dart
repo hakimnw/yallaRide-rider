@@ -508,6 +508,9 @@ class NewEstimateRideListWidgetState extends State<NewEstimateRideListWidget>
 
     await estimatePriceList(req).then((value) {
       appStore.setLoading(false);
+
+      // Price estimation completed with coupon
+
       serviceList.clear();
       value.data!.sort((a, b) => a.totalAmount!.compareTo(b.totalAmount!));
       serviceList.addAll(value.data!);
@@ -542,6 +545,10 @@ class NewEstimateRideListWidgetState extends State<NewEstimateRideListWidget>
           // Store the actual price including discount in global store
           appStore.setSelectedTripTotalAmount(
               serviceList[selectedIndex].subtotal ?? 0);
+          print(
+              '💰 Selected service amount (with coupon discount): $mSelectServiceAmount');
+          print(
+              '💰 Stored in app store: ${serviceList[selectedIndex].subtotal}');
         } else {
           mSelectServiceAmount = serviceList[selectedIndex]
               .totalAmount!
@@ -549,8 +556,22 @@ class NewEstimateRideListWidgetState extends State<NewEstimateRideListWidget>
           // Store the total amount in global store
           appStore.setSelectedTripTotalAmount(
               serviceList[selectedIndex].totalAmount ?? 0);
+          print('💰 Selected service amount (total): $mSelectServiceAmount');
+          print(
+              '💰 Stored in app store: ${serviceList[selectedIndex].totalAmount}');
         }
       }
+
+      // DEBUG: Log the selected service details after coupon
+      if (servicesListData != null) {
+        print('✅ Selected service details (after coupon):');
+        print('  - Name: ${servicesListData!.name}');
+        print('  - Total Amount: ${servicesListData!.totalAmount}');
+        print('  - Subtotal: ${servicesListData!.subtotal}');
+        print('  - Discount Amount: ${servicesListData!.discountAmount}');
+        print('  - Selected Amount: $mSelectServiceAmount');
+      }
+
       setState(() {});
       Navigator.pop(context);
     }).catchError((error) {
@@ -1994,6 +2015,20 @@ class NewEstimateRideListWidgetState extends State<NewEstimateRideListWidget>
       "seat_count": servicesListData!.capacity.toString(),
       "status": NEW_RIDE_REQUESTED,
       "payment_type": CASH,
+      // 🔧 PRICE FIX: Include all price information so drivers see the correct fare
+      "total_amount": servicesListData!.totalAmount?.toString() ?? "0",
+      "subtotal": servicesListData!.subtotal?.toString() ?? "0",
+      "base_fare": servicesListData!.baseFare?.toString() ?? "0",
+      "minimum_fare": servicesListData!.minimumFare?.toString() ?? "0",
+      "distance_price": servicesListData!.distancePrice?.toString() ?? "0",
+      "time_price": servicesListData!.timePrice?.toString() ?? "0",
+      "per_distance": servicesListData!.perDistance?.toString() ?? "0",
+      "per_minute_drive": servicesListData!.perMinuteDrive?.toString() ?? "0",
+      "per_minute_wait": servicesListData!.perMinuteWait?.toString() ?? "0",
+      "distance": servicesListData!.distance?.toString() ?? "0",
+      "duration": servicesListData!.duration?.toString() ?? "0",
+      if (servicesListData!.discountAmount != null)
+        "discount_amount": servicesListData!.discountAmount.toString(),
       if (promoCode.text.isNotEmpty) "coupon_code": promoCode.text,
       "is_schedule": schduleRideDateTime == null ? 0 : 1,
       "schedule_datetime": schduleRideDateTime == null
@@ -2009,6 +2044,9 @@ class NewEstimateRideListWidgetState extends State<NewEstimateRideListWidget>
     if (ride_type != null) {
       req['ride_type'] = ride_type;
     }
+
+    // Price information prepared for driver
+
     var abc = [];
     if (widget.multiDropObj != null) {
       widget.multiDropObj!.forEach(

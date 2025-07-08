@@ -38,10 +38,10 @@ const ZEGO_SCENARIO = 'Default'; // Voice & Video Call scenario
 
 //region firebase configuration
 const projectId = 'friends-cc2a9';
-const appIdAndroid = 'YOUR_FIREBASE_ANDROID_APP_ID';
+const appIdAndroid = '1:1051282221989:android:c3b05dd2c65e5e7f1a9fe1';
 const apiKeyFirebase =
     'AAAAEXZClug:APA91bFr3TfH2C2KKP6NkWViMze93SHOeWA4tUQRcJ7vD3Y0qKvZXNibxlP05hb0jGLuVCGsnguXBeroBx57AfLt6jlId0OwvacmwoyuQpwKKegrBfZUsPJH1IpaWfQd-8uWHrNt-ZYu';
-const messagingSenderId = 'YOUR_FIREBASE_SENDER_ID';
+const messagingSenderId = '1051282221989';
 const storageBucket = '$projectId.appspot.com';
 const authDomain = "$projectId.firebaseapp.com";
 //endregion
