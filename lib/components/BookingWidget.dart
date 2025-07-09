@@ -161,8 +161,11 @@ class BookingWidgetState extends State<BookingWidget>
         try {
           final driverData = await getUserDetail(userId: rideRequest!.driverId);
           if (driverData.data != null) {
-            driverName =
-                "${driverData.data!.firstName} ${driverData.data!.lastName}";
+            final firstName = driverData.data!.firstName?.trim() ?? '';
+            final lastName = driverData.data!.lastName?.trim() ?? '';
+            if (firstName.isNotEmpty || lastName.isNotEmpty) {
+              driverName = "$firstName $lastName".trim();
+            }
           }
         } catch (e) {
           print('Error getting driver info: $e');

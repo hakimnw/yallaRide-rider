@@ -275,9 +275,17 @@ class NewEstimateRideListWidgetState extends State<NewEstimateRideListWidget>
 
   void _showDriverAcceptanceNotification() {
     // Show beautiful driver acceptance notification using overlay
+    // Prepare driver name with proper null handling
+    String? displayDriverName;
+    if (driverData?.firstName?.trim().isNotEmpty == true) {
+      final firstName = driverData!.firstName!.trim();
+      final lastName = driverData!.lastName?.trim() ?? '';
+      displayDriverName = "$firstName $lastName".trim();
+    }
+
     showDriverAcceptanceNotification(
       context,
-      driverName: driverData?.firstName ?? 'السائق',
+      driverName: displayDriverName,
       duration: Duration(seconds: 3),
     );
 

@@ -210,10 +210,21 @@ class _DriverAcceptanceNotificationState
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          if (widget.driverName != null) ...[
+                          if (widget.driverName != null &&
+                              widget.driverName!.isNotEmpty) ...[
                             SizedBox(height: 8),
                             Text(
                               "السائق: ${widget.driverName}",
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.8),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ] else ...[
+                            SizedBox(height: 8),
+                            Text(
+                              "يرجى اختيار السائق المناسب لرحلتك",
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.8),
                                 fontSize: 14,
