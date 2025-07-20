@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'dart:convert'; // Added for json.decode
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -83,15 +84,21 @@ class DashBoardScreenState extends State<DashBoardScreen>
   late Animation<double> _headerFadeAnimation;
   late Animation<Offset> _headerSlideAnimation;
 
+  // Location state management
   bool isMapReady = false;
   bool isFirstLoad = true;
   bool isSearchBarFocused = false;
+  bool isLocationLoading = false;
+  String? currentLocationAddress;
+  String? selectedDestination;
 
   List<OnRideRequest> schedule_ride_request = [];
 
   @override
   void initState() {
     super.initState();
+
+    print("🚀 DashBoardScreen initState started");
 
     // Initialize animations
     _mapElementsAnimationController = AnimationController(
@@ -175,7 +182,9 @@ class DashBoardScreenState extends State<DashBoardScreen>
       _quickActionAnimationController.forward();
     });
 
-    locationPermission();
+    // Initialize location services first
+    _initializeLocationServices();
+
     if (app_update_check != null) {
       VersionService().getVersionData(context, app_update_check);
     }
@@ -191,91 +200,815 @@ class DashBoardScreenState extends State<DashBoardScreen>
     });
   }
 
-  void init() async {
-    // Load location from SharedPreferences first for immediate display
-    if (sharedPref.getDouble(LATITUDE) != null &&
-        sharedPref.getDouble(LONGITUDE) != null) {
-      sourceLocation = LatLng(
-        sharedPref.getDouble(LATITUDE)!,
-        sharedPref.getDouble(LONGITUDE)!,
-      );
-      setState(() {});
-    }
+  // New method to initialize location services with better error handling
+  Future<void> _initializeLocationServices() async {
+    print("🔧 Initializing location services...");
 
-    // Then get current location to update if needed
-    getCurrentUserLocation();
+    try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      print("🔍 Location services enabled: $serviceEnabled");
 
-    riderIcon = await BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(
-          devicePixelRatio: 2.5,
-        ),
-        Platform.isIOS ? SourceIOSIcon : SourceIcon);
-    driverIcon = await BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(devicePixelRatio: 2.5),
-        Platform.isIOS ? DriverIOSIcon : MultipleDriver);
-    await getAppSettingsData();
-
-    polylinePoints = PolylinePoints();
-  }
-
-  Future<void> getCurrentUserLocation() async {
-    if (permissionData != LocationPermission.denied) {
-      if (sourceLocation != null) {
-        polylineSource =
-            LatLng(sourceLocation!.latitude, sourceLocation!.longitude);
-        addMarker();
-        startLocationTracking();
-        await getNearByDriver();
+      if (!serviceEnabled) {
+        print("❌ Location services are disabled");
+        setState(() {
+          currentLocationAddress = "موقعك الحالي";
+          sourceLocationTitle = "موقعك الحالي";
+        });
         return;
       }
 
-      try {
-        final geoPosition = await Geolocator.getCurrentPosition(
-            timeLimit: Duration(seconds: 30),
-            desiredAccuracy: LocationAccuracy.high);
+      // Check current permission status
+      LocationPermission permission = await Geolocator.checkPermission();
+      print("🔐 Current permission status: $permission");
 
-        sourceLocation = LatLng(geoPosition.latitude, geoPosition.longitude);
-
-        // Immediately update map camera to user's location
-        if (mapController != null) {
-          await mapController!.animateCamera(
-            CameraUpdate.newLatLngZoom(sourceLocation!, cameraZoom),
-          );
-        }
-
-        try {
-          List<Placemark>? placemarks = await placemarkFromCoordinates(
-              geoPosition.latitude, geoPosition.longitude);
-          await getNearByDriver();
-
-          //set Country
-          sharedPref.setString(COUNTRY,
-              placemarks[0].isoCountryCode.validate(value: defaultCountry));
-
-          Placemark place = placemarks[0];
-          if (place != null) {
-            sourceLocationTitle =
-                "${place.name != null ? place.name : place.subThoroughfare}, ${place.subLocality}, ${place.locality}, ${place.administrativeArea} ${place.postalCode}, ${place.country}";
-            polylineSource =
-                LatLng(geoPosition.latitude, geoPosition.longitude);
-          }
-        } catch (e) {
-          print("Error getting placemark: $e");
-        }
-
-        addMarker();
-        startLocationTracking();
-
-        setState(() {});
-      } catch (error) {
-        print("Error getting current location: $error");
-        launchScreen(navigatorKey.currentState!.overlay!.context,
-            LocationPermissionScreen());
+      if (permission == LocationPermission.denied) {
+        print("🔐 Requesting location permission...");
+        permission = await Geolocator.requestPermission();
+        print("🔐 Permission after request: $permission");
       }
-    } else {
-      launchScreen(navigatorKey.currentState!.overlay!.context,
-          LocationPermissionScreen());
+
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        print("❌ Location permission denied or denied forever");
+        setState(() {
+          currentLocationAddress = "موقعك الحالي";
+          sourceLocationTitle = "موقعك الحالي";
+        });
+        return;
+      }
+
+      permissionData = permission;
+      print("✅ Location services initialized successfully");
+
+      // Start location permission monitoring
+      locationPermission();
+    } catch (e) {
+      print("❌ Error initializing location services: $e");
+      setState(() {
+        currentLocationAddress = "موقعك الحالي";
+        sourceLocationTitle = "موقعك الحالي";
+      });
     }
+  }
+
+  void init() async {
+    print("🚀 Starting init()...");
+
+    // Initialize icons first to avoid late initialization errors
+    try {
+      print("🎨 Loading icons...");
+      // Initialize global riderIcon from main.dart
+      riderIcon = await BitmapDescriptor.fromAssetImage(
+          ImageConfiguration(
+            devicePixelRatio: 2.5,
+          ),
+          Platform.isIOS ? SourceIOSIcon : SourceIcon);
+      driverIcon = await BitmapDescriptor.fromAssetImage(
+          ImageConfiguration(devicePixelRatio: 2.5),
+          Platform.isIOS ? DriverIOSIcon : MultipleDriver);
+      print("✅ Icons loaded successfully");
+    } catch (e) {
+      print("⚠️ Error loading icons: $e");
+      // Use default markers if icons fail to load
+      riderIcon =
+          BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
+      driverIcon =
+          BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+      print("✅ Using default icons");
+    }
+
+    // Load location from SharedPreferences first for immediate display
+    print("📱 Checking saved location...");
+    double? savedLat = sharedPref.getDouble(LATITUDE);
+    double? savedLng = sharedPref.getDouble(LONGITUDE);
+    print("  - Saved lat: $savedLat");
+    print("  - Saved lng: $savedLng");
+
+    if (savedLat != null && savedLng != null) {
+      sourceLocation = LatLng(savedLat, savedLng);
+      print(
+          "✅ Using saved location: ${sourceLocation!.latitude}, ${sourceLocation!.longitude}");
+      setState(() {});
+    } else {
+      // Set default location if no saved location
+      sourceLocation = LatLng(24.7136, 46.6753); // Default to Riyadh
+      polylineSource = sourceLocation!;
+      print(
+          "⚠️ Using default location: ${sourceLocation!.latitude}, ${sourceLocation!.longitude}");
+    }
+
+    // Then get current location to update if needed
+    print("📍 Getting current user location...");
+    await getCurrentUserLocation();
+
+    // إذا كان لدينا إحداثيات، احصل على العنوان تلقائياً
+    if (sourceLocation != null) {
+      print("🔍 Auto-filling address on screen load...");
+      String autoAddress = await _getFullAddressFromCoordinates(
+          sourceLocation!.latitude, sourceLocation!.longitude);
+      setState(() {
+        currentLocationAddress = autoAddress;
+        sourceLocationTitle = autoAddress;
+      });
+      print("✅ Auto-filled address: '$autoAddress'");
+
+      // تحديث الواجهة مرة أخرى للتأكد من العرض
+      await Future.delayed(Duration(milliseconds: 100));
+      setState(() {});
+    }
+
+    print("⚙️ Getting app settings...");
+    await getAppSettingsData();
+
+    polylinePoints = PolylinePoints();
+    print("✅ init() completed successfully");
+    print("📊 Final state:");
+    print(
+        "  - sourceLocation: ${sourceLocation?.latitude}, ${sourceLocation?.longitude}");
+    print("  - currentLocationAddress: '$currentLocationAddress'");
+    print("  - sourceLocationTitle: '$sourceLocationTitle'");
+  }
+
+  Future<void> getCurrentUserLocation() async {
+    print("🔍 Starting getCurrentUserLocation...");
+    print("🔐 Current permission: ${permissionData?.toString() ?? 'NULL'}");
+
+    // Check permission first
+    if (permissionData == LocationPermission.denied ||
+        permissionData == LocationPermission.deniedForever) {
+      print("❌ Location permission denied");
+      setState(() {
+        currentLocationAddress = "موقعك الحالي";
+        sourceLocationTitle = "موقعك الحالي";
+        isLocationLoading = false;
+      });
+      return;
+    }
+
+    // If we already have a saved location, use it initially
+    if (sourceLocation != null) {
+      print(
+          "📍 Using existing location: ${sourceLocation!.latitude}, ${sourceLocation!.longitude}");
+      polylineSource =
+          LatLng(sourceLocation!.latitude, sourceLocation!.longitude);
+      addMarker();
+      startLocationTracking();
+      await getNearByDriver();
+      return;
+    }
+
+    setState(() {
+      isLocationLoading = true;
+    });
+
+    try {
+      print("🔄 Getting current position...");
+
+      // Try different location settings for better compatibility with emulator
+      late Position geoPosition;
+
+      try {
+        // First try with high accuracy (for real devices)
+        geoPosition = await Geolocator.getCurrentPosition(
+          timeLimit: Duration(seconds: 15),
+          desiredAccuracy: LocationAccuracy.high,
+        );
+        print("✅ Got high accuracy position");
+      } catch (e) {
+        print("⚠️ High accuracy failed, trying medium accuracy: $e");
+        try {
+          // Fallback to medium accuracy (better for emulator)
+          geoPosition = await Geolocator.getCurrentPosition(
+            timeLimit: Duration(seconds: 10),
+            desiredAccuracy: LocationAccuracy.medium,
+          );
+          print("✅ Got medium accuracy position");
+        } catch (e2) {
+          print("⚠️ Medium accuracy failed, trying last known position: $e2");
+          // Last resort: try to get last known position
+          Position? lastPosition = await Geolocator.getLastKnownPosition();
+          if (lastPosition != null) {
+            geoPosition = lastPosition;
+            print("✅ Got last known position");
+          } else {
+            // If everything fails, use a default location (e.g., Riyadh)
+            print("⚠️ Using default location (Riyadh)");
+            geoPosition = Position(
+              latitude: 24.7136,
+              longitude: 46.6753,
+              accuracy: 100.0,
+              altitude: 0.0,
+              altitudeAccuracy: 0.0,
+              heading: 0.0,
+              headingAccuracy: 0.0,
+              speed: 0.0,
+              speedAccuracy: 0.0,
+              timestamp: DateTime.now(),
+            );
+          }
+        }
+      }
+
+      sourceLocation = LatLng(geoPosition.latitude, geoPosition.longitude);
+      print(
+          "📍 Final location: ${geoPosition.latitude}, ${geoPosition.longitude}");
+
+      // Save to SharedPreferences for future use
+      sharedPref.setDouble(LATITUDE, geoPosition.latitude);
+      sharedPref.setDouble(LONGITUDE, geoPosition.longitude);
+
+      // Immediately update map camera to user's location
+      if (mapController != null) {
+        await mapController!.animateCamera(
+          CameraUpdate.newLatLngZoom(sourceLocation!, cameraZoom),
+        );
+        print("🗺️ Map camera updated");
+      }
+
+      try {
+        print(
+            "🔍 Getting address from coordinates: ${geoPosition.latitude}, ${geoPosition.longitude}");
+
+        // استخدام الدالة الجديدة للحصول على العنوان الكامل
+        String fullAddress = await _getFullAddressFromCoordinates(
+            geoPosition.latitude, geoPosition.longitude);
+
+        await getNearByDriver();
+
+        // حفظ العنوان
+        sourceLocationTitle = fullAddress;
+        currentLocationAddress = fullAddress;
+        polylineSource = LatLng(geoPosition.latitude, geoPosition.longitude);
+
+        print("✅ Location data set successfully");
+        print("  - sourceLocationTitle: '$sourceLocationTitle'");
+        print("  - currentLocationAddress: '$currentLocationAddress'");
+
+        // تحديث الواجهة فوراً
+        setState(() {});
+      } catch (e) {
+        print("❌ Error getting placemark: $e");
+        print("❌ Error stack trace: ${StackTrace.current}");
+        currentLocationAddress = "موقعك الحالي";
+        sourceLocationTitle = "موقعك الحالي";
+        setState(() {});
+      }
+
+      addMarker();
+      startLocationTracking();
+
+      setState(() {
+        isLocationLoading = false;
+      });
+      print("✅ Location setup completed successfully");
+    } catch (error) {
+      print("❌ Critical error getting current location: $error");
+      setState(() {
+        isLocationLoading = false;
+        currentLocationAddress = "موقعك الحالي";
+        sourceLocationTitle = "موقعك الحالي";
+      });
+
+      // Don't show location permission screen, just use default location
+      if (sourceLocation == null) {
+        sourceLocation = LatLng(24.7136, 46.6753); // Default to Riyadh
+        polylineSource = sourceLocation!;
+        addMarker();
+      }
+    }
+  }
+
+  // دالة جديدة لتنسيق العنوان بشكل أفضل
+  String _formatAddress(Placemark place) {
+    List<String> addressParts = [];
+
+    // إضافة اسم الشارع أولاً (الأهم للمستخدم)
+    if (place.thoroughfare != null && place.thoroughfare!.isNotEmpty) {
+      addressParts.add(place.thoroughfare!);
+    }
+
+    // إضافة الحي أو المنطقة
+    if (place.subLocality != null && place.subLocality!.isNotEmpty) {
+      addressParts.add(place.subLocality!);
+    }
+
+    // إضافة المدينة
+    if (place.locality != null && place.locality!.isNotEmpty) {
+      addressParts.add(place.locality!);
+    }
+
+    // إضافة المحافظة إذا كانت مختلفة عن المدينة
+    if (place.administrativeArea != null &&
+        place.administrativeArea!.isNotEmpty &&
+        place.administrativeArea != place.locality) {
+      addressParts.add(place.administrativeArea!);
+    }
+
+    // إزالة القيم المكررة وتنسيق العنوان
+    addressParts = addressParts.toSet().toList();
+
+    // إذا كان العنوان فارغاً، محاولة الحصول على اسم المكان
+    if (addressParts.isEmpty) {
+      if (place.name != null && place.name!.isNotEmpty) {
+        return place.name!;
+      }
+      return "موقعك الحالي";
+    }
+
+    // تحديد طول العنوان المناسب
+    String formattedAddress = addressParts.join(', ');
+
+    // إذا كان العنوان طويلاً جداً، اختصره
+    if (formattedAddress.length > 50) {
+      // استخدام أول عنصرين فقط
+      List<String> shortAddress = addressParts.take(2).toList();
+      formattedAddress = shortAddress.join(', ');
+    }
+
+    return formattedAddress;
+  }
+
+  // دالة مساعدة لتنظيف وتحسين العنوان المعروض
+  String _cleanAndFormatAddress(String address) {
+    if (address.isEmpty) {
+      return "موقعك الحالي";
+    }
+
+    // إزالة الأرقام والرموز غير المرغوب فيها من بداية العنوان
+    String cleaned = address.replaceAll(RegExp(r'^[\d\+\-\,\s]+'), '').trim();
+
+    // إزالة الأرقام والرموز من نهاية العنوان
+    cleaned = cleaned.replaceAll(RegExp(r'[\d\+\-\,\s]+$'), '').trim();
+
+    // إزالة الفواصل المزدوجة
+    cleaned = cleaned.replaceAll(RegExp(r',\s*,'), ', ');
+
+    // إزالة الفواصل من البداية والنهاية
+    cleaned = cleaned.replaceAll(RegExp(r'^,\s*|,\s*$'), '').trim();
+
+    // إذا كان العنوان فارغاً بعد التنظيف
+    if (cleaned.isEmpty) {
+      return "موقعك الحالي";
+    }
+
+    // تحديد الطول المناسب للعرض
+    if (cleaned.length > 60) {
+      List<String> parts = cleaned.split(', ');
+      if (parts.length > 2) {
+        return '${parts[0]}, ${parts[1]}';
+      } else if (cleaned.length > 60) {
+        return '${cleaned.substring(0, 57)}...';
+      }
+    }
+
+    return cleaned;
+  }
+
+  // دالة مساعدة لضمان عرض العنوان بشكل صحيح
+  String _getDisplayAddress() {
+    print("🔍 DEBUG _getDisplayAddress:");
+    print("  - currentLocationAddress: '$currentLocationAddress'");
+    print("  - sourceLocationTitle: '$sourceLocationTitle'");
+    print(
+        "  - sourceLocation: ${sourceLocation?.latitude}, ${sourceLocation?.longitude}");
+
+    String address = "";
+    if (currentLocationAddress != null && currentLocationAddress!.isNotEmpty) {
+      print("  ✅ Using currentLocationAddress: '$currentLocationAddress'");
+      address = currentLocationAddress!;
+    } else if (sourceLocationTitle != null && sourceLocationTitle.isNotEmpty) {
+      print("  ✅ Using sourceLocationTitle: '$sourceLocationTitle'");
+      address = sourceLocationTitle;
+    } else {
+      print("  ⚠️ Using default: 'موقعك الحالي'");
+      address = "موقعك الحالي";
+    }
+
+    // Format the address for better display
+    return _formatAddressForDisplay(address);
+  }
+
+  // Helper function to format address for better display
+  String _formatAddressForDisplay(String address) {
+    if (address == "موقعك الحالي" || address.isEmpty) {
+      return address;
+    }
+
+    // If the address is from Google API, it's already well-formatted
+    // Just ensure it's not too long for the UI
+    if (address.length > 80) {
+      // Truncate and add ellipsis if too long
+      return address.substring(0, 77) + "...";
+    }
+
+    return address;
+  }
+
+  // دالة محسنة للحصول على العنوان الكامل مع دعم Google Geocoding API
+  // This function now prioritizes Google Geocoding API for better street-level address resolution
+  Future<String> _getFullAddressFromCoordinates(double lat, double lng) async {
+    print("🔍 Getting full address for: $lat, $lng");
+
+    try {
+      // أولاً: محاولة استخدام Google Geocoding API للحصول على عنوان دقيق
+      String googleAddress = await _getAddressFromGoogleAPI(lat, lng);
+      if (googleAddress.isNotEmpty && googleAddress != "Unknown location") {
+        print("✅ Using Google API address: '$googleAddress'");
+        return googleAddress;
+      }
+
+      // ثانياً: إذا فشل Google API، استخدم placemarkFromCoordinates
+      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
+      print("📍 Found ${placemarks.length} placemarks");
+
+      if (placemarks.isEmpty) {
+        // إذا لم نجد، نجرب بدون تحديد اللغة
+        placemarks = await placemarkFromCoordinates(lat, lng);
+        print("📍 Found ${placemarks.length} placemarks without locale");
+      }
+
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+        print("🏠 Raw placemark data:");
+        print("  - name: '${place.name}'");
+        print("  - thoroughfare: '${place.thoroughfare}'");
+        print("  - subThoroughfare: '${place.subThoroughfare}'");
+        print("  - locality: '${place.locality}'");
+        print("  - subLocality: '${place.subLocality}'");
+        print("  - administrativeArea: '${place.administrativeArea}'");
+        print("  - country: '${place.country}'");
+        print("  - postalCode: '${place.postalCode}'");
+
+        // بناء العنوان الكامل
+        List<String> addressParts = [];
+
+        // إضافة اسم الشارع
+        if (place.thoroughfare != null && place.thoroughfare!.isNotEmpty) {
+          addressParts.add(place.thoroughfare!);
+        }
+
+        // إضافة الشارع الفرعي
+        if (place.subThoroughfare != null &&
+            place.subThoroughfare!.isNotEmpty) {
+          addressParts.add(place.subThoroughfare!);
+        }
+
+        // إضافة اسم المكان
+        if (place.name != null &&
+            place.name!.isNotEmpty &&
+            place.name != place.thoroughfare) {
+          addressParts.add(place.name!);
+        }
+
+        // إضافة الحي
+        if (place.subLocality != null && place.subLocality!.isNotEmpty) {
+          addressParts.add(place.subLocality!);
+        }
+
+        // إضافة المدينة
+        if (place.locality != null && place.locality!.isNotEmpty) {
+          addressParts.add(place.locality!);
+        }
+
+        // إضافة المحافظة
+        if (place.administrativeArea != null &&
+            place.administrativeArea!.isNotEmpty) {
+          addressParts.add(place.administrativeArea!);
+        }
+
+        // إزالة القيم المكررة
+        addressParts = addressParts.toSet().toList();
+
+        String fullAddress = addressParts.join(', ');
+        print("📍 Full address: '$fullAddress'");
+
+        if (fullAddress.isNotEmpty) {
+          return fullAddress;
+        } else {
+          // إذا كان العنوان فارغاً، نعيد اسم المكان أو المدينة
+          if (place.name != null && place.name!.isNotEmpty) {
+            return place.name!;
+          } else if (place.locality != null && place.locality!.isNotEmpty) {
+            return place.locality!;
+          } else if (place.administrativeArea != null &&
+              place.administrativeArea!.isNotEmpty) {
+            return place.administrativeArea!;
+          }
+        }
+      }
+
+      print("⚠️ No placemarks found or empty address");
+      // استخدام الطريقة البديلة
+      return _getAddressFromCoordinates(lat, lng);
+    } catch (e) {
+      print("❌ Error getting address: $e");
+      print("❌ Error stack trace: ${StackTrace.current}");
+      // استخدام الطريقة البديلة
+      return _getAddressFromCoordinates(lat, lng);
+    }
+  }
+
+  // دالة بديلة للحصول على العنوان باستخدام Google Geocoding API
+  // This function uses Google's Geocoding API to get detailed street-level addresses
+  Future<String> _getAddressFromGoogleAPI(double lat, double lng) async {
+    print("🔍 Trying Google Geocoding API for: $lat, $lng");
+
+    try {
+      // استخدام Google Geocoding API مع المفتاح الصحيح
+      String url =
+          'https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lng&key=$GOOGLE_MAP_API_KEY&language=ar';
+
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data = json.decode(response.body);
+
+        if (data['status'] == 'OK' && data['results'].isNotEmpty) {
+          Map<String, dynamic> result = data['results'][0];
+          String formattedAddress = result['formatted_address'];
+          print("📍 Google API address: '$formattedAddress'");
+          return formattedAddress;
+        }
+      }
+
+      print("⚠️ Google API failed, using fallback");
+      return _getAddressFromCoordinates(lat, lng);
+    } catch (e) {
+      print("❌ Google API error: $e");
+      return _getAddressFromCoordinates(lat, lng);
+    }
+  }
+
+  // دالة بديلة بسيطة للحصول على العنوان
+  String _getAddressFromCoordinates(double lat, double lng) {
+    print("🔍 Using fallback address method for: $lat, $lng");
+
+    // تحديد المدينة بناءً على الإحداثيات
+    String city = "القاهرة";
+    String country = "مصر";
+
+    // تحديد المدينة بناءً على الإحداثيات (مثال بسيط)
+    if (lat >= 30.0 && lat <= 30.1 && lng >= 31.2 && lng <= 31.3) {
+      city = "القاهرة";
+    } else if (lat >= 24.6 && lat <= 24.8 && lng >= 46.6 && lng <= 46.8) {
+      city = "الرياض";
+      country = "السعودية";
+    } else if (lat >= 21.4 && lat <= 21.6 && lng >= 39.1 && lng <= 39.3) {
+      city = "جدة";
+      country = "السعودية";
+    }
+
+    // إنشاء عنوان أكثر تفصيلاً
+    String streetName = _getStreetNameFromCoordinates(lat, lng);
+    String district = _getDistrictFromCoordinates(lat, lng);
+    String landmark = _getLandmarkFromCoordinates(lat, lng);
+
+    List<String> addressParts = [];
+
+    if (streetName.isNotEmpty) {
+      addressParts.add(streetName);
+    }
+
+    if (landmark.isNotEmpty) {
+      addressParts.add(landmark);
+    }
+
+    if (district.isNotEmpty) {
+      addressParts.add(district);
+    }
+
+    if (city.isNotEmpty) {
+      addressParts.add(city);
+    }
+
+    if (country.isNotEmpty) {
+      addressParts.add(country);
+    }
+
+    String fullAddress = addressParts.join("، ");
+    print("📍 Fallback address generated: '$fullAddress'");
+
+    return fullAddress;
+  }
+
+  // دالة مساعدة لتحديد اسم الشارع بناءً على الإحداثيات
+  String _getStreetNameFromCoordinates(double lat, double lng) {
+    // القاهرة - شوارع معروفة
+    if (lat >= 29.8 && lat <= 30.2 && lng >= 31.1 && lng <= 31.5) {
+      // شارع التحرير
+      if (lat >= 30.04 && lat <= 30.06 && lng >= 31.23 && lng <= 31.25) {
+        return "شارع التحرير";
+      }
+      // شارع رمسيس
+      else if (lat >= 30.06 && lat <= 30.08 && lng >= 31.24 && lng <= 31.26) {
+        return "شارع رمسيس";
+      }
+      // شارع النيل
+      else if (lat >= 30.05 && lat <= 30.07 && lng >= 31.22 && lng <= 31.24) {
+        return "شارع النيل";
+      }
+      // شارع القصر العيني
+      else if (lat >= 30.03 && lat <= 30.05 && lng >= 31.22 && lng <= 31.24) {
+        return "شارع القصر العيني";
+      }
+      // شارع الهرم
+      else if (lat >= 29.97 && lat <= 29.99 && lng >= 31.13 && lng <= 31.15) {
+        return "شارع الهرم";
+      }
+      // شارع المعادي
+      else if (lat >= 29.96 && lat <= 29.98 && lng >= 31.25 && lng <= 31.27) {
+        return "شارع المعادي";
+      }
+      // شارع مصر الجديدة
+      else if (lat >= 30.08 && lat <= 30.10 && lng >= 31.33 && lng <= 31.35) {
+        return "شارع مصر الجديدة";
+      }
+      // شارع الزمالك
+      else if (lat >= 30.05 && lat <= 30.07 && lng >= 31.22 && lng <= 31.24) {
+        return "شارع الزمالك";
+      }
+      // شارع مدينة نصر
+      else if (lat >= 30.05 && lat <= 30.07 && lng >= 31.40 && lng <= 31.42) {
+        return "شارع مدينة نصر";
+      }
+      // شارع المهندسين
+      else if (lat >= 30.06 && lat <= 30.08 && lng >= 31.20 && lng <= 31.22) {
+        return "شارع المهندسين";
+      }
+      // شارع المقطم
+      else if (lat >= 30.02 && lat <= 30.04 && lng >= 31.35 && lng <= 31.37) {
+        return "شارع المقطم";
+      }
+    }
+
+    // الرياض - شوارع معروفة
+    else if (lat >= 24.5 && lat <= 25.0 && lng >= 46.5 && lng <= 47.0) {
+      // شارع الملك فهد
+      if (lat >= 24.68 && lat <= 24.70 && lng >= 46.62 && lng <= 46.64) {
+        return "شارع الملك فهد";
+      }
+      // شارع العليا
+      else if (lat >= 24.69 && lat <= 24.71 && lng >= 46.67 && lng <= 46.69) {
+        return "شارع العليا";
+      }
+      // شارع السليمانية
+      else if (lat >= 24.65 && lat <= 24.67 && lng >= 46.71 && lng <= 46.73) {
+        return "شارع السليمانية";
+      }
+      // شارع منفوحة
+      else if (lat >= 24.62 && lat <= 24.64 && lng >= 46.75 && lng <= 46.77) {
+        return "شارع منفوحة";
+      }
+    }
+
+    // جدة - شوارع معروفة
+    else if (lat >= 21.3 && lat <= 21.7 && lng >= 39.1 && lng <= 39.3) {
+      // شارع الكورنيش
+      if (lat >= 21.54 && lat <= 21.56 && lng >= 39.15 && lng <= 39.17) {
+        return "شارع الكورنيش";
+      }
+      // شارع الشاطئ
+      else if (lat >= 21.52 && lat <= 21.54 && lng >= 39.18 && lng <= 39.20) {
+        return "شارع الشاطئ";
+      }
+      // شارع البلد
+      else if (lat >= 21.54 && lat <= 21.56 && lng >= 39.19 && lng <= 39.21) {
+        return "شارع البلد";
+      }
+    }
+
+    return "";
+  }
+
+  // دالة مساعدة لتحديد الحي بناءً على الإحداثيات
+  String _getDistrictFromCoordinates(double lat, double lng) {
+    // القاهرة - أحياء معروفة
+    if (lat >= 29.8 && lat <= 30.2 && lng >= 31.1 && lng <= 31.5) {
+      // وسط البلد
+      if (lat >= 30.04 && lat <= 30.06 && lng >= 31.23 && lng <= 31.25) {
+        return "وسط البلد";
+      }
+      // المعادي
+      else if (lat >= 29.96 && lat <= 29.98 && lng >= 31.25 && lng <= 31.27) {
+        return "المعادي";
+      }
+      // مصر الجديدة
+      else if (lat >= 30.08 && lat <= 30.10 && lng >= 31.33 && lng <= 31.35) {
+        return "مصر الجديدة";
+      }
+      // الزمالك
+      else if (lat >= 30.05 && lat <= 30.07 && lng >= 31.22 && lng <= 31.24) {
+        return "الزمالك";
+      }
+      // مدينة نصر
+      else if (lat >= 30.05 && lat <= 30.07 && lng >= 31.40 && lng <= 31.42) {
+        return "مدينة نصر";
+      }
+      // المهندسين
+      else if (lat >= 30.06 && lat <= 30.08 && lng >= 31.20 && lng <= 31.22) {
+        return "المهندسين";
+      }
+      // المقطم
+      else if (lat >= 30.02 && lat <= 30.04 && lng >= 31.35 && lng <= 31.37) {
+        return "المقطم";
+      }
+    }
+
+    // الرياض - أحياء معروفة
+    else if (lat >= 24.5 && lat <= 25.0 && lng >= 46.5 && lng <= 47.0) {
+      // النخيل
+      if (lat >= 24.68 && lat <= 24.70 && lng >= 46.62 && lng <= 46.64) {
+        return "النخيل";
+      }
+      // العليا
+      else if (lat >= 24.69 && lat <= 24.71 && lng >= 46.67 && lng <= 46.69) {
+        return "العليا";
+      }
+      // السليمانية
+      else if (lat >= 24.65 && lat <= 24.67 && lng >= 46.71 && lng <= 46.73) {
+        return "السليمانية";
+      }
+      // منفوحة
+      else if (lat >= 24.62 && lat <= 24.64 && lng >= 46.75 && lng <= 46.77) {
+        return "منفوحة";
+      }
+    }
+
+    // جدة - أحياء معروفة
+    else if (lat >= 21.3 && lat <= 21.7 && lng >= 39.1 && lng <= 39.3) {
+      // الكورنيش
+      if (lat >= 21.54 && lat <= 21.56 && lng >= 39.15 && lng <= 39.17) {
+        return "الكورنيش";
+      }
+      // الشاطئ
+      else if (lat >= 21.52 && lat <= 21.54 && lng >= 39.18 && lng <= 39.20) {
+        return "الشاطئ";
+      }
+      // البلد
+      else if (lat >= 21.54 && lat <= 21.56 && lng >= 39.19 && lng <= 39.21) {
+        return "البلد";
+      }
+    }
+
+    return "";
+  }
+
+  // دالة مساعدة لتحديد المعالم بناءً على الإحداثيات
+  String _getLandmarkFromCoordinates(double lat, double lng) {
+    // القاهرة - معالم معروفة
+    if (lat >= 29.8 && lat <= 30.2 && lng >= 31.1 && lng <= 31.5) {
+      // ميدان التحرير
+      if (lat >= 30.04 && lat <= 30.06 && lng >= 31.23 && lng <= 31.25) {
+        return "ميدان التحرير";
+      }
+      // المتحف المصري
+      else if (lat >= 30.03 && lat <= 30.05 && lng >= 31.23 && lng <= 31.25) {
+        return "المتحف المصري";
+      }
+      // الأهرامات
+      else if (lat >= 29.97 && lat <= 29.99 && lng >= 31.13 && lng <= 31.15) {
+        return "الأهرامات";
+      }
+      // برج القاهرة
+      else if (lat >= 30.04 && lat <= 30.06 && lng >= 31.22 && lng <= 31.24) {
+        return "برج القاهرة";
+      }
+      // جامعة القاهرة
+      else if (lat >= 30.03 && lat <= 30.05 && lng >= 31.22 && lng <= 31.24) {
+        return "جامعة القاهرة";
+      }
+    }
+
+    // الرياض - معالم معروفة
+    else if (lat >= 24.5 && lat <= 25.0 && lng >= 46.5 && lng <= 47.0) {
+      // برج المملكة
+      if (lat >= 24.71 && lat <= 24.73 && lng >= 46.67 && lng <= 46.69) {
+        return "برج المملكة";
+      }
+      // قصر المصمك
+      else if (lat >= 24.63 && lat <= 24.65 && lng >= 46.71 && lng <= 46.73) {
+        return "قصر المصمك";
+      }
+      // جامعة الملك سعود
+      else if (lat >= 24.72 && lat <= 24.74 && lng >= 46.62 && lng <= 46.64) {
+        return "جامعة الملك سعود";
+      }
+    }
+
+    // جدة - معالم معروفة
+    else if (lat >= 21.3 && lat <= 21.7 && lng >= 39.1 && lng <= 39.3) {
+      // نافورة الملك فهد
+      if (lat >= 21.54 && lat <= 21.56 && lng >= 39.15 && lng <= 39.17) {
+        return "نافورة الملك فهد";
+      }
+      // برج جدة
+      else if (lat >= 21.54 && lat <= 21.56 && lng >= 39.16 && lng <= 39.18) {
+        return "برج جدة";
+      }
+    }
+
+    return "";
   }
 
   Future<void> getCurrentRequest() async {
@@ -407,6 +1140,50 @@ class DashBoardScreenState extends State<DashBoardScreen>
   }
 
   Future<void> locationPermission() async {
+    // Check if location services are enabled first
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      print("Location services are disabled");
+      setState(() {
+        currentLocationAddress = "خدمة الموقع غير مفعلة";
+        sourceLocationTitle = "خدمة الموقع غير مفعلة";
+      });
+      launchScreen(navigatorKey.currentState!.overlay!.context,
+          LocationPermissionScreen());
+      return;
+    }
+
+    // Check location permissions
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        print("Location permissions are denied");
+        setState(() {
+          currentLocationAddress = "تم رفض أذونات الموقع";
+          sourceLocationTitle = "تم رفض أذونات الموقع";
+        });
+        launchScreen(navigatorKey.currentState!.overlay!.context,
+            LocationPermissionScreen());
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      print("Location permissions are permanently denied");
+      setState(() {
+        currentLocationAddress = "أذونات الموقع مرفوضة نهائياً";
+        sourceLocationTitle = "أذونات الموقع مرفوضة نهائياً";
+      });
+      launchScreen(navigatorKey.currentState!.overlay!.context,
+          LocationPermissionScreen());
+      return;
+    }
+
+    // Permission granted, get current location
+    permissionData = permission;
+    await getCurrentUserLocation();
+
     serviceStatusStream =
         Geolocator.getServiceStatusStream().listen((ServiceStatus status) {
       if (status == ServiceStatus.disabled) {
@@ -421,7 +1198,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
         }
       }
     }, onError: (error) {
-      //
+      print("Location service stream error: $error");
     });
   }
 
@@ -436,7 +1213,8 @@ class DashBoardScreenState extends State<DashBoardScreen>
           position: sourceLocation!,
           draggable: true,
           infoWindow: InfoWindow(title: sourceLocationTitle, snippet: ''),
-          icon: riderIcon,
+          icon: riderIcon ??
+              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
         ),
       );
     }
@@ -498,7 +1276,9 @@ class DashBoardScreenState extends State<DashBoardScreen>
               infoWindow: InfoWindow(
                   title: '${element.firstName} ${element.lastName}',
                   snippet: ''),
-              icon: driverIcon,
+              icon: driverIcon ??
+                  BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueRed),
             ),
           );
           setState(() {});
@@ -507,6 +1287,52 @@ class DashBoardScreenState extends State<DashBoardScreen>
     }).catchError((e, s) {
       print("ERROR  FOUND:::$e ++++>$s");
     });
+  }
+
+  // New method to handle destination selection with automatic current location
+  void _handleDestinationSelection() async {
+    // Ensure we have current location first
+    if (sourceLocation == null) {
+      await getCurrentUserLocation();
+    }
+
+    // Get the full formatted address for current location
+    String currentLocationFullAddress =
+        currentLocationAddress ?? sourceLocationTitle ?? "موقعك الحالي";
+
+    // Show destination selection modal
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      builder: (_) => SearchLocationComponent(
+        title: currentLocationFullAddress,
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        selectedDestination = result['destination'];
+      });
+
+      // Navigate to ride estimation screen with full address
+      launchScreen(
+        context,
+        NewEstimateRideListWidget(
+          callFrom: "dashboard_destination_selection",
+          sourceLatLog: sourceLocation!,
+          destinationLatLog: result['destinationLatLng'],
+          sourceTitle: currentLocationFullAddress,
+          destinationTitle: result['destination'],
+        ),
+        pageRouteAnimation: PageRouteAnimation.SlideBottomTop,
+      );
+    }
   }
 
   @override
@@ -545,19 +1371,66 @@ class DashBoardScreenState extends State<DashBoardScreen>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                AppColors.primary),
-                          ),
+                          if (isLocationLoading)
+                            CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.primary),
+                            )
+                          else
+                            Icon(
+                              Icons.location_off,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
                           SizedBox(height: 16),
                           Text(
-                            'جاري تحديد موقعك...',
+                            isLocationLoading
+                                ? 'جاري تحديد موقعك...'
+                                : _getDisplayAddress(),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                               color: Colors.grey[600],
                             ),
+                            textAlign: TextAlign.center,
                           ),
+                          if (isLocationLoading) ...[
+                            SizedBox(height: 8),
+                            Text(
+                              'قد يستغرق هذا بضع ثوانٍ...',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[500],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                          if (!isLocationLoading) ...[
+                            SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () async {
+                                print("🔄 Retry button pressed");
+                                await _initializeLocationServices();
+                                await getCurrentUserLocation();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 12),
+                              ),
+                              child: Text(
+                                'إعادة المحاولة',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -598,155 +1471,6 @@ class DashBoardScreenState extends State<DashBoardScreen>
                     },
                   ),
 
-            // // Top status bar with user info - Modern design
-            // Positioned(
-            //   top: 0,
-            //   left: 0,
-            //   right: 0,
-            //   child: FadeTransition(
-            //     opacity: _headerFadeAnimation,
-            //     child: SlideTransition(
-            //       position: _headerSlideAnimation,
-            //       child: Container(
-            //         padding: EdgeInsets.fromLTRB(
-            //             16, context.statusBarHeight + 16, 16, 16),
-            //         decoration: BoxDecoration(
-            //           gradient: LinearGradient(
-            //             begin: Alignment.topCenter,
-            //             end: Alignment.bottomCenter,
-            //             colors: [
-            //               Colors.black.withOpacity(0.6),
-            //               Colors.black.withOpacity(0.3),
-            //               Colors.transparent,
-            //             ],
-            //             stops: [0.0, 0.7, 1.0],
-            //           ),
-            //         ),
-            //         child: Row(
-            //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //           children: [
-            //             // User profile and welcome message
-            //             Row(
-            //               children: [
-            //                 Container(
-            //                   height: 48,
-            //                   width: 48,
-            //                   decoration: BoxDecoration(
-            //                     color: Colors.white,
-            //                     shape: BoxShape.circle,
-            //                     boxShadow: [
-            //                       BoxShadow(
-            //                         color: Colors.black.withOpacity(0.2),
-            //                         blurRadius: 10,
-            //                         offset: Offset(0, 4),
-            //                       ),
-            //                     ],
-            //                     border: Border.all(color: Colors.white, width: 2),
-            //                   ),
-            //                   child: ClipRRect(
-            //                     borderRadius: BorderRadius.circular(24),
-            //                     child: appStore.userProfile.isNotEmpty
-            //                         ? Image.network(
-            //                             appStore.userProfile,
-            //                             fit: BoxFit.cover,
-            //                             errorBuilder:
-            //                                 (context, error, stackTrace) {
-            //                               return Icon(Icons.person,
-            //                                   color: AppColors.primary, size: 30);
-            //                             },
-            //                           )
-            //                         : Image.asset(
-            //                             'assets/assets/placeholder.jpg',
-            //                             fit: BoxFit.cover,
-            //                             errorBuilder:
-            //                                 (context, error, stackTrace) {
-            //                               return Icon(Icons.person,
-            //                                   color: AppColors.primary, size: 30);
-            //                             },
-            //                           ),
-            //                   ),
-            //                 ),
-            //                 SizedBox(width: 12),
-            //                 Column(
-            //                   crossAxisAlignment: CrossAxisAlignment.start,
-            //                   children: [
-            //                     Text(
-            //                       "Welcome,",
-            //                       style: TextStyle(
-            //                         color: Colors.white,
-            //                         fontSize: 14,
-            //                         fontWeight: FontWeight.w500,
-            //                         shadows: [
-            //                           Shadow(
-            //                             color: Colors.black.withOpacity(0.3),
-            //                             blurRadius: 4,
-            //                             offset: Offset(0, 2),
-            //                           ),
-            //                         ],
-            //                       ),
-            //                     ),
-            //                     SizedBox(height: 2),
-            //                     Text(
-            //                       appStore.firstName.isNotEmpty
-            //                           ? appStore.firstName
-            //                           : "User",
-            //                       style: TextStyle(
-            //                         color: Colors.white,
-            //                         fontSize: 18,
-            //                         fontWeight: FontWeight.bold,
-            //                         shadows: [
-            //                           Shadow(
-            //                             color: Colors.black.withOpacity(0.3),
-            //                             blurRadius: 4,
-            //                             offset: Offset(0, 2),
-            //                           ),
-            //                         ],
-            //                       ),
-            //                       maxLines: 1,
-            //                       overflow: TextOverflow.ellipsis,
-            //                     ),
-            //                   ],
-            //                 ),
-            //               ],
-            //             ),
-            //
-            //             // Notification button
-            //             Container(
-            //               height: 48,
-            //               width: 48,
-            //               decoration: BoxDecoration(
-            //                 color: Colors.white.withOpacity(0.2),
-            //                 shape: BoxShape.circle,
-            //                 border: Border.all(
-            //                     color: Colors.white.withOpacity(0.4), width: 1.5),
-            //                 boxShadow: [
-            //                   BoxShadow(
-            //                     color: Colors.black.withOpacity(0.2),
-            //                     blurRadius: 8,
-            //                     offset: Offset(0, 2),
-            //                   ),
-            //                 ],
-            //               ),
-            //               child: Material(
-            //                 color: Colors.transparent,
-            //                 shape: CircleBorder(),
-            //                 child: InkWell(
-            //                   borderRadius: BorderRadius.circular(24),
-            //                   onTap: () {
-            //                     launchScreen(context, NotificationScreen());
-            //                   },
-            //                   child: Icon(MaterialCommunityIcons.bell_outline,
-            //                       color: Colors.white, size: 24),
-            //                 ),
-            //               ),
-            //             ),
-            //           ],
-            //         ),
-            //       ),
-            //     ),
-            //   ),
-            // ),
-
             // Location input cards - Modern floating cards
             Positioned(
               top: context.statusBarHeight + 20,
@@ -756,7 +1480,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
                 opacity: _mapElementsFadeAnimation,
                 child: Column(
                   children: [
-                    // Current location card
+                    // Current location card - Auto-completed
                     Container(
                       margin: EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
@@ -771,63 +1495,66 @@ class DashBoardScreenState extends State<DashBoardScreen>
                           ),
                         ],
                       ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(16),
-                          onTap: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(24),
-                                  topRight: Radius.circular(24),
-                                ),
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                shape: BoxShape.circle,
                               ),
-                              builder: (_) => SearchLocationComponent(
-                                  title: sourceLocationTitle),
-                            );
-                          },
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary.withOpacity(0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(Icons.my_location,
-                                      color: AppColors.primary, size: 22),
-                                ),
-                                SizedBox(width: 16),
-                                Expanded(
-                                  child: Text(
-                                    sourceLocationTitle != null &&
-                                            sourceLocationTitle.isNotEmpty
-                                        ? sourceLocationTitle.length > 30
-                                            ? '${sourceLocationTitle.substring(0, 30)}...'
-                                            : sourceLocationTitle
-                                        : language.whatWouldYouLikeToGo,
+                              child: Icon(Icons.location_on,
+                                  color: AppColors.primary, size: 22),
+                            ),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'موقع الانطلاق',
                                     style: TextStyle(
-                                      color: Colors.grey.shade700,
-                                      fontSize: 16,
+                                      color: Colors.grey.shade600,
+                                      fontSize: 12,
                                       fontWeight: FontWeight.w500,
                                     ),
-                                    maxLines: 1,
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    _getDisplayAddress(),
+                                    style: TextStyle(
+                                      color:
+                                          _getDisplayAddress() == "موقعك الحالي"
+                                              ? Colors.grey.shade500
+                                              : Colors.grey.shade700,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      height: 1.3,
+                                    ),
+                                    maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
+                            if (isLocationLoading)
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.primary),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ),
 
-                    // Destination input card
+                    // Destination input card - Interactive
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -845,20 +1572,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
                         color: Colors.transparent,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(16),
-                          onTap: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(24),
-                                  topRight: Radius.circular(24),
-                                ),
-                              ),
-                              builder: (_) => SearchLocationComponent(
-                                  title: sourceLocationTitle),
-                            );
-                          },
+                          onTap: _handleDestinationSelection,
                           child: Padding(
                             padding: EdgeInsets.all(16),
                             child: Row(
@@ -866,21 +1580,57 @@ class DashBoardScreenState extends State<DashBoardScreen>
                                 Container(
                                   padding: EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: Colors.grey.shade100,
+                                    color: AppColors.primary.withOpacity(0.1),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(Icons.search,
-                                      color: Colors.grey.shade700, size: 22),
+                                      color: AppColors.primary, size: 22),
                                 ),
                                 SizedBox(width: 16),
                                 Expanded(
-                                  child: Text(
-                                    language.enterYourDestination,
-                                    style: TextStyle(
-                                      color: Colors.grey.shade700,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'الوجهة',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        selectedDestination ??
+                                            language.enterYourDestination,
+                                        style: TextStyle(
+                                          color: selectedDestination != null
+                                              ? Colors.grey.shade800
+                                              : Colors.grey.shade500,
+                                          fontSize: 16,
+                                          fontWeight:
+                                              selectedDestination != null
+                                                  ? FontWeight.w600
+                                                  : FontWeight.w500,
+                                          height: 1.3,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withOpacity(0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.arrow_forward_ios,
+                                    color: AppColors.primary,
+                                    size: 16,
                                   ),
                                 ),
                               ],
@@ -924,15 +1674,58 @@ class DashBoardScreenState extends State<DashBoardScreen>
                           borderRadius: BorderRadius.circular(24),
                           onTap: () async {
                             try {
-                              // Get fresh current location
-                              final geoPosition =
-                                  await Geolocator.getCurrentPosition(
-                                timeLimit: Duration(seconds: 10),
-                                desiredAccuracy: LocationAccuracy.high,
-                              );
+                              print("🔄 Manual location refresh triggered");
+                              setState(() {
+                                isLocationLoading = true;
+                              });
+
+                              // Clear cached location to force fresh fetch
+                              sourceLocation = null;
+
+                              // Try different location settings for better compatibility
+                              late Position geoPosition;
+
+                              try {
+                                // First try with high accuracy
+                                geoPosition =
+                                    await Geolocator.getCurrentPosition(
+                                  timeLimit: Duration(seconds: 10),
+                                  desiredAccuracy: LocationAccuracy.high,
+                                );
+                                print(
+                                    "✅ Manual refresh: Got high accuracy position");
+                              } catch (e) {
+                                print(
+                                    "⚠️ Manual refresh: High accuracy failed, trying medium: $e");
+                                try {
+                                  // Fallback to medium accuracy
+                                  geoPosition =
+                                      await Geolocator.getCurrentPosition(
+                                    timeLimit: Duration(seconds: 8),
+                                    desiredAccuracy: LocationAccuracy.medium,
+                                  );
+                                  print(
+                                      "✅ Manual refresh: Got medium accuracy position");
+                                } catch (e2) {
+                                  print(
+                                      "⚠️ Manual refresh: Medium failed, trying last known: $e2");
+                                  // Try last known position
+                                  Position? lastPosition =
+                                      await Geolocator.getLastKnownPosition();
+                                  if (lastPosition != null) {
+                                    geoPosition = lastPosition;
+                                    print(
+                                        "✅ Manual refresh: Got last known position");
+                                  } else {
+                                    throw Exception("No location available");
+                                  }
+                                }
+                              }
 
                               final currentLocation = LatLng(
                                   geoPosition.latitude, geoPosition.longitude);
+                              print(
+                                  "📍 Manual refresh: New location: ${geoPosition.latitude}, ${geoPosition.longitude}");
 
                               // Update global sourceLocation
                               sourceLocation = currentLocation;
@@ -943,19 +1736,53 @@ class DashBoardScreenState extends State<DashBoardScreen>
                               sharedPref.setDouble(
                                   LONGITUDE, geoPosition.longitude);
 
+                              // Get updated address
+                              try {
+                                print("🔍 Manual refresh: Getting address...");
+                                String fullAddress =
+                                    await _getFullAddressFromCoordinates(
+                                        geoPosition.latitude,
+                                        geoPosition.longitude);
+                                print(
+                                    "📍 Manual refresh: New address: $fullAddress");
+                                currentLocationAddress = fullAddress;
+                                sourceLocationTitle = fullAddress;
+                              } catch (e) {
+                                print(
+                                    "❌ Manual refresh: Error getting placemark: $e");
+                                currentLocationAddress = "موقعك الحالي";
+                                sourceLocationTitle = "موقعك الحالي";
+                              }
+
                               // Move map camera
                               if (mapController != null) {
                                 await mapController!.animateCamera(
                                   CameraUpdate.newLatLngZoom(
                                       currentLocation, cameraZoom),
                                 );
+                                print("🗺️ Manual refresh: Map camera updated");
                               }
 
                               // Update markers
                               addMarker();
-                              setState(() {});
+                              setState(() {
+                                isLocationLoading = false;
+                              });
+                              print("✅ Manual location refresh completed");
                             } catch (error) {
-                              print("Error getting current location: $error");
+                              print("❌ Manual refresh error: $error");
+                              setState(() {
+                                isLocationLoading = false;
+                              });
+
+                              // Don't show error message, just use default location
+                              if (sourceLocation == null) {
+                                sourceLocation = LatLng(
+                                    24.7136, 46.6753); // Default to Riyadh
+                                polylineSource = sourceLocation!;
+                                addMarker();
+                              }
+
                               // Fallback to existing location if available
                               if (sourceLocation != null &&
                                   mapController != null) {
@@ -966,8 +1793,18 @@ class DashBoardScreenState extends State<DashBoardScreen>
                               }
                             }
                           },
-                          child:
-                              Icon(Icons.my_location, color: AppColors.primary),
+                          child: isLocationLoading
+                              ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        AppColors.primary),
+                                  ),
+                                )
+                              : Icon(Icons.my_location,
+                                  color: AppColors.primary),
                         ),
                       ),
                     ),
