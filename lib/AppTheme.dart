@@ -12,13 +12,12 @@ class AppTheme {
     textSelectionTheme: TextSelectionThemeData(
         cursorColor: AppColors.primary,
         selectionHandleColor: AppColors.primary,
-        selectionColor: AppColors.primary.withOpacity(0.3)),
+        selectionColor: AppColors.primary.withAlpha(76)),
     primarySwatch: createMaterialColor(AppColors.primary),
     primaryColor: AppColors.primary,
     scaffoldBackgroundColor: AppColors.white,
     fontFamily: AppFontFamilies.sfRoboto,
-    bottomNavigationBarTheme:
-        BottomNavigationBarThemeData(backgroundColor: AppColors.white),
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(backgroundColor: AppColors.white),
     iconTheme: IconThemeData(color: AppColors.black),
     textTheme: TextTheme(titleLarge: TextStyle()),
     dialogBackgroundColor: AppColors.white,
@@ -26,7 +25,7 @@ class AppTheme {
     dividerColor: AppColors.lightGray,
     cardColor: AppColors.white,
     listTileTheme: ListTileThemeData(iconColor: AppColors.white),
-    dialogTheme: DialogTheme(shape: dialogShape()),
+    dialogTheme: DialogThemeData(shape: dialogShape()),
     appBarTheme: AppBarTheme(
       color: AppColors.primary,
       iconTheme: IconThemeData(color: AppColors.white),
@@ -51,15 +50,14 @@ class AppTheme {
     primaryColor: AppColors.primary,
     scaffoldBackgroundColor: AppColors.black,
     fontFamily: AppFontFamilies.sfRoboto,
-    bottomNavigationBarTheme:
-        BottomNavigationBarThemeData(backgroundColor: AppColors.black),
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(backgroundColor: AppColors.black),
     iconTheme: IconThemeData(color: AppColors.white),
     textTheme: TextTheme(titleLarge: TextStyle(color: AppColors.gray)),
     dialogBackgroundColor: AppColors.black,
-    unselectedWidgetColor: AppColors.white.withOpacity(0.6),
+    unselectedWidgetColor: AppColors.white.withAlpha(153),
     dividerColor: AppColors.white.withOpacity(0.12),
     cardColor: AppColors.black,
-    dialogTheme: DialogTheme(shape: dialogShape()),
+    dialogTheme: DialogThemeData(shape: dialogShape()),
     appBarTheme: AppBarTheme(
       backgroundColor: AppColors.primary,
       systemOverlayStyle: SystemUiOverlayStyle(

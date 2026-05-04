@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 
-import '../main.dart';
 import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/Constants.dart';
 import '../utils/Extensions/app_common.dart';
 
 class PaymentScreen extends StatefulWidget {
-  final num? amount;
-
   PaymentScreen({this.amount});
-
+  final num? amount;
   @override
   PaymentScreenState createState() => PaymentScreenState();
 }
@@ -50,7 +44,7 @@ class PaymentScreenState extends State<PaymentScreen> {
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
                   BoxShadow(
-                    color: primaryColor.withOpacity(0.2),
+                    color: primaryColor.withAlpha(51),
                     blurRadius: 10,
                     spreadRadius: 0,
                     offset: Offset(0, 0),

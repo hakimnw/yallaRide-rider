@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 import 'package:taxi_booking/utils/Extensions/context_extension.dart';
 
 import '../../main.dart';
@@ -11,6 +12,7 @@ import '../../model/OrderHistory.dart';
 import '../../model/RiderModel.dart';
 import '../../network/RestApis.dart';
 import '../../screens/RideHistoryScreen.dart';
+import '../../screens/settings/wallet_screens/presentation/providers/wallet_provider.dart';
 import '../../utils/Colors.dart';
 import '../../utils/Constants.dart';
 import '../../utils/Extensions/AppButtonWidget.dart';
@@ -20,9 +22,10 @@ import '../service/RideService.dart';
 import '../utils/Common.dart';
 import '../utils/Extensions/app_common.dart';
 import '../utils/Extensions/dataTypeExtensions.dart';
+import '../utils/constant/app_colors.dart';
 import '../utils/images.dart';
 import 'DashBoardScreen.dart';
-import 'PaymentScreen.dart';
+import 'settings/wallet_screens/presentation/pages/WalletScreen.dart';
 
 class RidePaymentDetailScreen extends StatefulWidget {
   final int? rideId;
@@ -95,11 +98,14 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
     };
     await savePayment(req).then((value) async {
       appStore.setLoading(false);
-      await rideService.updateStatusOfRide(
-          rideID: currentData!.payment!.rideRequestId,
-          req: {
-            "on_stream_api_call": 0, /*"payment_status": PAID*/
-          });
+      await rideService.updateStatusOfRide(rideID: currentData!.payment!.rideRequestId, req: {
+        "on_stream_api_call": 0, /*"payment_status": PAID*/
+      });
+      // Refresh wallet balance after successful payment
+      if (req['payment_type'] == WALLET) {
+        final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+        await walletProvider.refresh();
+      }
       orderDetailApi();
       paymentPressed = false;
     }).catchError((error) {
@@ -109,16 +115,15 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
       appStore.setLoading(false);
       log(error.toString());
       toast(error.toString());
-      getWalletList(page: 1).then((value) {
-        appStore.setLoading(false);
-        if (value.walletBalance != null)
-          balance = value.walletBalance!.totalAmount!;
+      // Refresh wallet balance on error
+      final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+      walletProvider.refresh().then((_) {
+        balance = walletProvider.balance;
         payableAmount = currentData!.payment!.totalAmount!;
-        requiredAmount = payableAmount! - balance!;
+        requiredAmount = payableAmount! - (balance ?? 0);
         requiredAmount = requiredAmount! + 1;
         setState(() {});
       }).catchError((error) {
-        appStore.setLoading(false);
         log(error.toString());
       });
     });
@@ -131,15 +136,11 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
       "is_change_payment_type": 1,
     };
     log(req);
-    await rideRequestUpdate(
-            request: req, rideId: currentData!.payment!.rideRequestId)
-        .then((value) async {
-      await rideService.updateStatusOfRide(
-          rideID: currentData!.payment!.rideRequestId,
-          req: {
-            /*"tips": 1,*/ "on_stream_api_call": 0,
-            "payment_type": isCashPayment ? CASH : WALLET,
-          });
+    await rideRequestUpdate(request: req, rideId: currentData!.payment!.rideRequestId).then((value) async {
+      await rideService.updateStatusOfRide(rideID: currentData!.payment!.rideRequestId, req: {
+        /*"tips": 1,*/ "on_stream_api_call": 0,
+        "payment_type": isCashPayment ? CASH : WALLET,
+      });
       appStore.setLoading(false);
       init();
     }).catchError((error) {
@@ -160,6 +161,12 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
         paymentData = value.payment;
       }
       rideHistory = value.rideHistory!;
+      // Initialize balance from wallet provider
+      final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+      balance = walletProvider.balance;
+      payableAmount = currentData!.payment!.totalAmount!;
+      requiredAmount = payableAmount! - (balance ?? 0);
+      requiredAmount = requiredAmount! + 1;
       setState(() {});
       if (paymentData != null && paymentData!.paymentStatus == "paid") {
         isPaymentDone = true;
@@ -168,9 +175,8 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
         Future.delayed(
           Duration(seconds: 3),
           () {
-            launchScreen(getContext, DashBoardScreen(),
-                isNewTask: true,
-                pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+            launchScreen(getContext, DashboardScreen(),
+                isNewTask: true, pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
             isPaymentDone = false;
           },
         );
@@ -192,8 +198,7 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text(language.detailScreen,
-            style: boldTextStyle(color: appTextPrimaryColorWhite)),
+        title: Text(language.detailScreen, style: boldTextStyle(color: appTextPrimaryColorWhite)),
       ),
       body: StreamBuilder(
           stream: rideService.fetchRide(rideId: widget.rideId),
@@ -201,10 +206,7 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
             if (snap.hasData) {
               List<FRideBookingModel> data = [];
               try {
-                data = snap.data!.docs
-                    .map((e) => FRideBookingModel.fromJson(
-                        e.data() as Map<String, dynamic>))
-                    .toList();
+                data = snap.data!.docs.map((e) => FRideBookingModel.fromJson(e.data() as Map<String, dynamic>)).toList();
               } catch (e) {
                 data = [];
               }
@@ -218,9 +220,7 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                   },
                 );
               }
-              if (data.isNotEmpty &&
-                  data[0].paymentStatus.toString() == PAID &&
-                  data[0].status.toString() == COMPLETED) {
+              if (data.isNotEmpty && data[0].paymentStatus.toString() == PAID && data[0].status.toString() == COMPLETED) {
                 // isPaymentDone = true;
                 Future.delayed(
                   Duration(seconds: 1),
@@ -247,26 +247,20 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                               SizedBox(height: 12),
                               priceDetailWidget(),
                               SizedBox(height: 12),
-                              if (currentData!.payment != null &&
-                                  currentData!.payment!.paymentStatus !=
-                                      COMPLETED &&
-                                  isShow)
+                              if (currentData!.payment != null && currentData!.payment!.paymentStatus != COMPLETED && isShow)
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(language.payment,
-                                        style: boldTextStyle()),
+                                    Text(language.payment, style: boldTextStyle()),
                                     SizedBox(height: 12),
                                     Container(
                                       decoration: BoxDecoration(
                                           color: Colors.white,
-                                          border: Border.all(
-                                              color: Colors.grey.shade300),
+                                          border: Border.all(color: Colors.grey.shade300),
                                           // boxShadow: [
                                           // BoxShadow(color: Colors.grey.shade300,spreadRadius: 1,blurRadius: 1.5)
                                           // ],
-                                          borderRadius:
-                                              BorderRadius.circular(14)),
+                                          borderRadius: BorderRadius.circular(14)),
                                       padding: EdgeInsets.all(6),
                                       child: Row(
                                         children: [
@@ -278,49 +272,31 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                                                 },
                                                 child: Container(
                                                   decoration: BoxDecoration(
-                                                      color: isCashPayment
-                                                          ? primaryColor
-                                                          : null,
+                                                      color: isCashPayment ? primaryColor : null,
                                                       boxShadow: isCashPayment
                                                           ? [
                                                               BoxShadow(
-                                                                  color: Colors
-                                                                      .grey
-                                                                      .shade400,
-                                                                  spreadRadius:
-                                                                      1,
+                                                                  color: Colors.grey.shade400,
+                                                                  spreadRadius: 1,
                                                                   blurRadius: 1)
                                                             ]
                                                           : [],
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12)),
+                                                      borderRadius: BorderRadius.circular(12)),
                                                   padding: EdgeInsets.all(12),
                                                   child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .center,
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    crossAxisAlignment: CrossAxisAlignment.center,
                                                     children: [
-                                                      ImageIcon(
-                                                          AssetImage(icCash),
-                                                          size: 20,
-                                                          color: isCashPayment
-                                                              ? Colors.white
-                                                              : Colors.grey),
+                                                      ImageIcon(AssetImage(icCash),
+                                                          size: 20, color: isCashPayment ? Colors.white : Colors.grey),
                                                       SizedBox(
                                                         width: 8,
                                                       ),
                                                       Text(
                                                         language.cash,
-                                                        style: boldTextStyle(
-                                                            color: isCashPayment
-                                                                ? Colors.white
-                                                                : Colors.grey),
+                                                        style:
+                                                            boldTextStyle(color: isCashPayment ? Colors.white : Colors.grey),
                                                       ),
                                                     ],
                                                   ),
@@ -335,59 +311,32 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                                                 },
                                                 child: Container(
                                                   decoration: BoxDecoration(
-                                                      color: isCashPayment ==
-                                                              false
-                                                          ? primaryColor
-                                                          : null,
-                                                      boxShadow:
-                                                          isCashPayment == false
-                                                              ? [
-                                                                  BoxShadow(
-                                                                      color: Colors
-                                                                          .grey
-                                                                          .shade400,
-                                                                      spreadRadius:
-                                                                          1,
-                                                                      blurRadius:
-                                                                          1)
-                                                                ]
-                                                              : [],
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12)),
+                                                      color: isCashPayment == false ? primaryColor : null,
+                                                      boxShadow: isCashPayment == false
+                                                          ? [
+                                                              BoxShadow(
+                                                                  color: Colors.grey.shade400,
+                                                                  spreadRadius: 1,
+                                                                  blurRadius: 1)
+                                                            ]
+                                                          : [],
+                                                      borderRadius: BorderRadius.circular(12)),
                                                   padding: EdgeInsets.all(12),
                                                   child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .center,
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    crossAxisAlignment: CrossAxisAlignment.center,
                                                     children: [
-                                                      ImageIcon(
-                                                          AssetImage(icCard),
+                                                      ImageIcon(AssetImage(icCard),
                                                           size: 20,
-                                                          color:
-                                                              isCashPayment ==
-                                                                      false
-                                                                  ? Colors.white
-                                                                  : Colors
-                                                                      .grey),
+                                                          color: isCashPayment == false ? Colors.white : Colors.grey),
                                                       SizedBox(
                                                         width: 8,
                                                       ),
                                                       Text(
                                                         language.addMoney,
                                                         style: boldTextStyle(
-                                                            color:
-                                                                isCashPayment ==
-                                                                        false
-                                                                    ? Colors
-                                                                        .white
-                                                                    : Colors
-                                                                        .grey),
+                                                            color: isCashPayment == false ? Colors.white : Colors.grey),
                                                       ),
                                                     ],
                                                   ),
@@ -398,23 +347,16 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                                     ),
                                     SizedBox(height: 12),
                                     Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
                                       children: [
                                         Text("${language.note} ",
-                                            style: secondaryTextStyle(
-                                                color: Colors.red,
-                                                size: 14,
-                                                weight: FontWeight.bold)),
+                                            style: secondaryTextStyle(color: Colors.red, size: 14, weight: FontWeight.bold)),
                                         Expanded(
                                             child: Text(
                                           isCashPayment
                                               ? "${riderModel!.tips != null && payableAmount != null ? riderModel!.tips! + payableAmount! : payableAmount}${appStore.currencyCode} - ${language.fullCashPayment}"
                                               : "+$requiredAmount${appStore.currencyCode} ${language.moreMoneyForWalletPayment}",
-                                          style: secondaryTextStyle(
-                                              color: Colors.red,
-                                              size: 12,
-                                              weight: FontWeight.bold),
+                                          style: secondaryTextStyle(color: Colors.red, size: 12, weight: FontWeight.bold),
                                           maxLines: 1,
                                         )),
                                       ],
@@ -422,43 +364,27 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                                     SizedBox(height: 12),
                                     AppButtonWidget(
                                       width: context.width(),
-                                      text: isCashPayment == true
-                                          ? language.updatePaymentStatus
-                                          : language.continueD,
-                                      textStyle:
-                                          boldTextStyle(color: Colors.white),
+                                      text: isCashPayment == true ? language.updatePaymentStatus : language.continueD,
+                                      textStyle: boldTextStyle(color: Colors.white),
                                       color: primaryColor,
                                       onTap: () async {
                                         if (isCashPayment == false) {
                                           appStore.setLoading(true);
-                                          bool res = await launchScreen(
-                                              context,
-                                              PaymentScreen(
-                                                  amount: requiredAmount),
-                                              pageRouteAnimation:
-                                                  PageRouteAnimation
-                                                      .SlideBottomTop);
+                                          bool res = await launchScreen(context, WalletScreen(),
+                                              pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
                                           if (res == true) {
-                                            await getWalletList(page: 1)
-                                                .then((value) {
-                                              appStore.setLoading(false);
-                                              if (value.walletBalance != null)
-                                                balance = value.walletBalance!
-                                                    .totalAmount!;
-                                              payableAmount = currentData!
-                                                  .payment!.totalAmount!;
-                                              requiredAmount =
-                                                  payableAmount! - balance!;
-                                              requiredAmount =
-                                                  requiredAmount! + 1;
-                                              setState(() {});
-                                              isShow = false;
-                                              rideRequest();
-                                            }).catchError((error) {
-                                              appStore.setLoading(false);
-                                              log(error.toString());
-                                            });
+                                            // Refresh wallet balance using provider
+                                            final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+                                            await walletProvider.refresh();
+                                            balance = walletProvider.balance;
+                                            payableAmount = currentData!.payment!.totalAmount!;
+                                            requiredAmount = payableAmount! - (balance ?? 0);
+                                            requiredAmount = requiredAmount! + 1;
+                                            setState(() {});
+                                            isShow = false;
+                                            rideRequest();
                                           } else {
+                                            appStore.setLoading(false);
                                             toast("Add MONEY");
                                           }
                                         } else {
@@ -491,8 +417,7 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                             padding: EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius:
-                                  BorderRadius.circular(defaultRadius),
+                              borderRadius: BorderRadius.circular(defaultRadius),
                               boxShadow: [
                                 BoxShadow(
                                     color: primaryColor.withOpacity(0.4),
@@ -506,14 +431,10 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Lottie.asset(paymentSuccessful,
-                                    width: 120,
-                                    height: 120,
-                                    fit: BoxFit.contain),
+                                Lottie.asset(paymentSuccessful, width: 120, height: 120, fit: BoxFit.contain),
                                 Text(
                                   "${language.paymentSuccess}",
-                                  style: boldTextStyle(
-                                      color: Colors.green, size: 24),
+                                  style: boldTextStyle(color: AppColors.primary, size: 24),
                                 )
                               ],
                             )),
@@ -530,9 +451,7 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
               return SizedBox();
             }
           }),
-      bottomNavigationBar: currentData != null &&
-              currentData!.payment != null &&
-              isShow == false
+      bottomNavigationBar: currentData != null && currentData!.payment != null && isShow == false
           ? Padding(
               padding: EdgeInsets.all(16),
               child: AppButtonWidget(
@@ -542,8 +461,7 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                   if (currentData!.payment!.paymentStatus == COMPLETED) {
                     orderDetailApi();
                     // launchScreen(context, DashBoardScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
-                  } else if (currentData!.payment!.paymentStatus != COMPLETED &&
-                      currentData!.payment!.paymentType == CASH) {
+                  } else if (currentData!.payment!.paymentStatus != COMPLETED && currentData!.payment!.paymentType == CASH) {
                     toast(language.waitingForDriverConformation);
                   } else if (currentData!.payment!.paymentStatus != COMPLETED &&
                       currentData!.payment!.paymentType == WALLET) {
@@ -559,11 +477,9 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
   String? getButtonText() {
     if (currentData!.payment!.paymentStatus == COMPLETED) {
       return language.continueNewRide;
-    } else if (currentData!.payment!.paymentStatus != COMPLETED &&
-        currentData!.payment!.paymentType == CASH) {
+    } else if (currentData!.payment!.paymentStatus != COMPLETED && currentData!.payment!.paymentType == CASH) {
       return language.waitingForDriverConformation;
-    } else if (currentData!.payment!.paymentStatus != COMPLETED &&
-        currentData!.payment!.paymentType == WALLET) {
+    } else if (currentData!.payment!.paymentStatus != COMPLETED && currentData!.payment!.paymentType == WALLET) {
       return language.payToPayment;
     }
     return '';
@@ -576,8 +492,7 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.transparent,
-        border:
-            Border.all(color: dividerColor.withOpacity(0.5).withOpacity(0.5)),
+        border: Border.all(color: dividerColor.withAlpha(127).withAlpha(127)),
         borderRadius: radius(),
       ),
       padding: EdgeInsets.all(16),
@@ -589,14 +504,11 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
             children: [
               Row(
                 children: [
-                  Icon(Ionicons.calendar,
-                      color: textSecondaryColorGlobal, size: 16),
+                  Icon(Ionicons.calendar, color: textSecondaryColorGlobal, size: 16),
                   SizedBox(width: 4),
                   Padding(
                     padding: EdgeInsets.only(top: 2),
-                    child: Text(
-                        '${printDate(riderModel!.createdAt.validate())}',
-                        style: primaryTextStyle(size: 14)),
+                    child: Text('${printDate(riderModel!.createdAt.validate())}', style: primaryTextStyle(size: 14)),
                   ),
                 ],
               ),
@@ -610,8 +522,7 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
             ],
           ),
           SizedBox(height: 12),
-          Text(
-              '${language.lblDistance} ${riderModel!.distance!.toStringAsFixed(2)} ${riderModel!.distanceUnit.toString()}',
+          Text('${language.lblDistance} ${riderModel!.distance!.toStringAsFixed(2)} ${riderModel!.distanceUnit.toString()}',
               style: boldTextStyle(size: 14)),
           SizedBox(height: 12),
           Column(
@@ -620,21 +531,17 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
               SizedBox(height: 2),
               Row(
                 children: [
-                  Icon(Icons.near_me, color: Colors.green, size: 18),
+                  Icon(Icons.near_me, color: AppColors.primary, size: 18),
                   SizedBox(width: 4),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (riderModel!.startTime != null)
-                          Text(
-                              riderModel!.startTime != null
-                                  ? printDate(riderModel!.startTime!)
-                                  : '',
+                          Text(riderModel!.startTime != null ? printDate(riderModel!.startTime!) : '',
                               style: secondaryTextStyle(size: 12)),
                         if (riderModel!.startTime != null) SizedBox(height: 4),
-                        Text(riderModel!.startAddress.validate(),
-                            style: primaryTextStyle(size: 14)),
+                        Text(riderModel!.startAddress.validate(), style: primaryTextStyle(size: 14)),
                       ],
                     ),
                   ),
@@ -664,21 +571,16 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (riderModel!.endTime != null)
-                          Text(
-                              riderModel!.endTime != null
-                                  ? printDate(riderModel!.endTime!)
-                                  : '',
+                          Text(riderModel!.endTime != null ? printDate(riderModel!.endTime!) : '',
                               style: secondaryTextStyle(size: 12)),
                         if (riderModel!.endTime != null) SizedBox(height: 4),
-                        Text(riderModel!.endAddress.validate(),
-                            style: primaryTextStyle(size: 14)),
+                        Text(riderModel!.endAddress.validate(), style: primaryTextStyle(size: 14)),
                       ],
                     ),
                   ),
                 ],
               ),
-              if (riderModel!.multiDropLocation != null &&
-                  riderModel!.multiDropLocation!.isNotEmpty)
+              if (riderModel!.multiDropLocation != null && riderModel!.multiDropLocation!.isNotEmpty)
                 Row(
                   children: [
                     SizedBox(width: 8),
@@ -694,16 +596,14 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                     ),
                   ],
                 ),
-              if (riderModel!.multiDropLocation != null &&
-                  riderModel!.multiDropLocation!.isNotEmpty)
+              if (riderModel!.multiDropLocation != null && riderModel!.multiDropLocation!.isNotEmpty)
                 AppButtonWidget(
                   textColor: primaryColor,
                   color: Colors.white,
                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                   height: 30,
                   shapeBorder: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(defaultRadius),
-                      side: BorderSide(color: primaryColor)),
+                      borderRadius: BorderRadius.circular(defaultRadius), side: BorderSide(color: primaryColor)),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -756,8 +656,7 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.transparent,
-        border:
-            Border.all(color: dividerColor.withOpacity(0.5).withOpacity(0.5)),
+        border: Border.all(color: dividerColor.withAlpha(127).withAlpha(127)),
         borderRadius: radius(),
       ),
       padding: EdgeInsets.all(16),
@@ -770,8 +669,7 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(language.via, style: primaryTextStyle()),
-              Text(paymentStatus(riderModel!.paymentType.validate()),
-                  style: boldTextStyle()),
+              Text(paymentStatus(riderModel!.paymentType.validate()), style: boldTextStyle()),
             ],
           ),
           SizedBox(height: 8),
@@ -780,9 +678,7 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
             children: [
               Text(language.status, style: primaryTextStyle()),
               Text(paymentStatus(riderModel!.paymentStatus.validate()),
-                  style: boldTextStyle(
-                      color: paymentStatusColor(
-                          riderModel!.paymentStatus.validate()))),
+                  style: boldTextStyle(color: paymentStatusColor(riderModel!.paymentStatus.validate()))),
             ],
           ),
         ],
@@ -798,8 +694,7 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.transparent,
-        border:
-            Border.all(color: dividerColor.withOpacity(0.5).withOpacity(0.5)),
+        border: Border.all(color: dividerColor.withAlpha(127).withAlpha(127)),
         borderRadius: radius(),
       ),
       padding: EdgeInsets.all(16),
@@ -816,33 +711,25 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                         // riderModel!.subtotal!-riderModel!.surgeCharge!:riderModel!.subtotal!
                         riderModel!.totalAmount,
                     space: 8),
-                if (riderModel!.couponData != null &&
-                    riderModel!.couponDiscount != 0)
+                if (riderModel!.couponData != null && riderModel!.couponDiscount != 0)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(language.couponDiscount,
-                          style: secondaryTextStyle()),
+                      Text(language.couponDiscount, style: secondaryTextStyle()),
                       Row(
                         children: [
-                          Text("-",
-                              style:
-                                  boldTextStyle(color: Colors.green, size: 14)),
+                          Text("-", style: boldTextStyle(color: AppColors.primary, size: 14)),
                           printAmountWidget(
-                              amount:
-                                  '${riderModel!.couponDiscount!.toStringAsFixed(digitAfterDecimal)}',
-                              color: Colors.green,
+                              amount: '${riderModel!.couponDiscount!.toStringAsFixed(digitAfterDecimal)}',
+                              color: AppColors.primary,
                               size: 14,
                               weight: FontWeight.normal)
                         ],
                       ),
                     ],
                   ),
-                if (riderModel!.couponData != null &&
-                    riderModel!.couponDiscount != 0)
-                  SizedBox(height: 8),
-                if (riderModel!.tips != null)
-                  totalCount(title: language.tip, amount: riderModel!.tips),
+                if (riderModel!.couponData != null && riderModel!.couponDiscount != 0) SizedBox(height: 8),
+                if (riderModel!.tips != null) totalCount(title: language.tip, amount: riderModel!.tips),
                 // if(riderModel!.surgeCharge != 0)
                 //   SizedBox(height: 8,),
                 // if (riderModel!.surgeCharge != null && riderModel!.surgeCharge! > 0) totalCount(title: language.fixedPrice, amount: riderModel!.surgeCharge, space: 0),
@@ -861,12 +748,8 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(e.key.validate().capitalizeFirstLetter(),
-                                  style: secondaryTextStyle()),
-                              printAmountWidget(
-                                  amount: e.value!
-                                      .toStringAsFixed(digitAfterDecimal),
-                                  size: 14)
+                              Text(e.key.validate().capitalizeFirstLetter(), style: secondaryTextStyle()),
+                              printAmountWidget(amount: e.value!.toStringAsFixed(digitAfterDecimal), size: 14)
                             ],
                           ),
                         );
@@ -883,19 +766,13 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                     //         ?
                     // totalCount(title: language.total, amount: riderModel!.subtotal! + riderModel!.tips! + riderModel!.extraChargesAmount!, isTotal: true)
                     //         :
-                    totalCount(
-                        title: language.total,
-                        amount: riderModel!.totalAmount! + riderModel!.tips!,
-                        isTotal: true)
+                    totalCount(title: language.total, amount: riderModel!.totalAmount! + riderModel!.tips!, isTotal: true)
                     :
                     // riderModel!.extraChargesAmount != null
                     //         ?
                     // totalCount(title: language.total, amount: riderModel!.subtotal! + riderModel!.extraChargesAmount!, isTotal: true)
                     //         :
-                    totalCount(
-                        title: language.total,
-                        amount: riderModel!.totalAmount,
-                        isTotal: true),
+                    totalCount(title: language.total, amount: riderModel!.totalAmount, isTotal: true),
               ],
             )
           : Column(
@@ -904,19 +781,11 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                 Text(language.priceDetail, style: boldTextStyle(size: 16)),
                 SizedBox(height: 12),
                 riderModel!.subtotal! <= riderModel!.minimumFare!
-                    ? totalCount(
-                        title: language.minimumFare,
-                        amount: riderModel!.minimumFare)
+                    ? totalCount(title: language.minimumFare, amount: riderModel!.minimumFare)
                     : Column(
                         children: [
-                          totalCount(
-                              title: language.basePrice,
-                              amount: riderModel!.baseFare,
-                              space: 8),
-                          totalCount(
-                              title: language.distancePrice,
-                              amount: riderModel!.perDistanceCharge,
-                              space: 8),
+                          totalCount(title: language.basePrice, amount: riderModel!.baseFare, space: 8),
+                          totalCount(title: language.distancePrice, amount: riderModel!.perDistanceCharge, space: 8),
                           totalCount(
                               title: language.minutePrice,
                               amount: riderModel!.perMinuteDriveCharge,
@@ -931,40 +800,28 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                               space: riderModel!.surgeCharge != 0 ? 8 : 0),
                         ],
                       ),
-                if (riderModel!.surgeCharge != null &&
-                    riderModel!.surgeCharge! > 0)
-                  totalCount(
-                      title: language.fixedPrice,
-                      amount: riderModel!.surgeCharge,
-                      space: 0),
+                if (riderModel!.surgeCharge != null && riderModel!.surgeCharge! > 0)
+                  totalCount(title: language.fixedPrice, amount: riderModel!.surgeCharge, space: 0),
                 SizedBox(height: 8),
-                if (riderModel!.couponData != null &&
-                    riderModel!.couponDiscount != 0)
+                if (riderModel!.couponData != null && riderModel!.couponDiscount != 0)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(language.couponDiscount,
-                          style: secondaryTextStyle()),
+                      Text(language.couponDiscount, style: secondaryTextStyle()),
                       Row(
                         children: [
-                          Text("-",
-                              style:
-                                  boldTextStyle(color: Colors.green, size: 14)),
+                          Text("-", style: boldTextStyle(color: AppColors.primary, size: 14)),
                           printAmountWidget(
-                              amount:
-                                  '${riderModel!.couponDiscount!.toStringAsFixed(digitAfterDecimal)}',
-                              color: Colors.green,
+                              amount: '${riderModel!.couponDiscount!.toStringAsFixed(digitAfterDecimal)}',
+                              color: AppColors.primary,
                               size: 14,
                               weight: FontWeight.normal)
                         ],
                       ),
                     ],
                   ),
-                if (riderModel!.couponData != null &&
-                    riderModel!.couponDiscount != 0)
-                  SizedBox(height: 8),
-                if (riderModel!.tips != null)
-                  totalCount(title: language.tip, amount: riderModel!.tips),
+                if (riderModel!.couponData != null && riderModel!.couponDiscount != 0) SizedBox(height: 8),
+                if (riderModel!.tips != null) totalCount(title: language.tip, amount: riderModel!.tips),
                 if (riderModel!.tips != null) SizedBox(height: 8),
                 if (riderModel!.extraCharges!.isNotEmpty)
                   Column(
@@ -975,22 +832,15 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                       ...riderModel!.extraCharges!.map((e) {
                         return Padding(
                           padding: EdgeInsets.only(top: 4, bottom: 4),
-                          child: totalCount(
-                              title: e.key.validate(), amount: e.value),
+                          child: totalCount(title: e.key.validate(), amount: e.value),
                         );
                       }).toList()
                     ],
                   ),
                 Divider(height: 16, thickness: 1),
                 riderModel!.tips != null
-                    ? totalCount(
-                        title: language.total,
-                        amount: riderModel!.totalAmount! + riderModel!.tips!,
-                        isTotal: true)
-                    : totalCount(
-                        title: language.total,
-                        amount: riderModel!.totalAmount,
-                        isTotal: true),
+                    ? totalCount(title: language.total, amount: riderModel!.totalAmount! + riderModel!.tips!, isTotal: true)
+                    : totalCount(title: language.total, amount: riderModel!.totalAmount, isTotal: true),
               ],
             ),
     );

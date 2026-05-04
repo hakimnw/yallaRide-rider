@@ -1,10 +1,12 @@
 import 'dart:developer' as dev;
+
 import 'package:flutter/material.dart';
 import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
 import '../main.dart';
 import '../utils/Constants.dart';
+import '../utils/constant/app_colors.dart';
 
 /// Professional ZegoService for managing Zego Cloud SDK
 class ZegoService {
@@ -27,24 +29,19 @@ class ZegoService {
   /// Initialize Zego Cloud SDK with professional debugging
   Future<bool> initializeZegoSDK() async {
     try {
-      _debugLog('🚀 Starting Zego Cloud SDK initialization...');
-      _debugLog('📋 App ID: $ZEGO_APP_ID');
-      _debugLog('📋 App Sign: ${ZEGO_APP_SIGN.substring(0, 10)}...');
-      _debugLog('📋 Scenario: $ZEGO_SCENARIO');
+      // Debug logs removed for production
 
       if (_isInitialized) {
-        _debugLog('✅ SDK already initialized, skipping...');
+        // Debug log removed for production
         return true;
       }
 
       // Validate credentials
       if (ZEGO_APP_ID <= 0 || ZEGO_APP_SIGN.isEmpty) {
-        throw StateError(
-            'Invalid Zego credentials. Check ZEGO_APP_ID and ZEGO_APP_SIGN in Constants.dart');
+        throw StateError('Invalid Zego credentials. Check ZEGO_APP_ID and ZEGO_APP_SIGN in Constants.dart');
       }
 
-      _debugLog(
-          '⚙️ Initializing Zego UIKit Prebuilt Call Invitation Service...');
+      // Debug log removed for production
 
       // Initialize call invitation service with real credentials
       try {
@@ -57,26 +54,23 @@ class ZegoService {
         );
 
         _isInitialized = true;
-        _debugLog('✅ Zego Cloud SDK initialization completed successfully!');
-        _debugLog('🔧 SDK State: Initialized and ready for user login');
+        // Debug logs removed for production
 
         return true;
       } catch (zegoError) {
-        _debugLog('❌ Zego SDK initialization failed: $zegoError');
+        // Debug log removed for production
 
         // Check common issues
         if (zegoError.toString().contains('network')) {
           throw StateError('Network error: Check internet connection');
-        } else if (zegoError.toString().contains('appID') ||
-            zegoError.toString().contains('appSign')) {
-          throw StateError(
-              'Invalid credentials: Check ZEGO_APP_ID and ZEGO_APP_SIGN');
+        } else if (zegoError.toString().contains('appID') || zegoError.toString().contains('appSign')) {
+          throw StateError('Invalid credentials: Check ZEGO_APP_ID and ZEGO_APP_SIGN');
         } else {
           throw StateError('Zego SDK initialization failed: $zegoError');
         }
       }
     } catch (error, stackTrace) {
-      _errorLog('❌ Failed to initialize Zego SDK', error, stackTrace);
+      _errorLog('❌ Failed to initialize Zego SDK', error, stackTrace); // Error log kept
       _isInitialized = false;
       return false;
     }
@@ -84,15 +78,10 @@ class ZegoService {
 
   /// Login user to Zego Cloud with professional debugging
   Future<bool> loginToZego({required String userID, String? userName}) async {
-    final loginStart = DateTime.now();
+    // final loginStart = DateTime.now();
 
     try {
-      _debugLog('🔐 STARTING ZEGO USER LOGIN');
-      _debugLog('═══════════════════════════════════════════════');
-      _debugLog('📋 Login Details:');
-      _debugLog('   👤 User ID: $userID');
-      _debugLog('   📝 User Name: ${userName ?? 'Not provided'}');
-      _debugLog('   🕐 Login Time: ${loginStart.toIso8601String()}');
+      // Debug logs removed for production
 
       // Validate input
       if (userID.trim().isEmpty) {
@@ -100,13 +89,10 @@ class ZegoService {
       }
 
       // Check SDK state
-      _debugLog('🔍 Pre-login checks:');
-      _debugLog('   ✓ SDK Initialized: $_isInitialized');
-      _debugLog('   ✓ Currently Logged In: $_isLoggedIn');
-      _debugLog('   ✓ Current User: $_currentUserID');
+      // Debug logs removed for production
 
       if (!_isInitialized) {
-        _debugLog('⚙️ SDK not initialized, initializing now...');
+        // Debug log removed for production
         final initResult = await initializeZegoSDK();
         if (!initResult) {
           throw StateError('Failed to initialize SDK before login');
@@ -114,34 +100,27 @@ class ZegoService {
       }
 
       if (_isLoggedIn && _currentUserID == userID) {
-        _debugLog('✅ User already logged in with same ID, skipping...');
-        final duration = DateTime.now().difference(loginStart);
-        _debugLog('⏱️ Login check completed in: ${duration.inMilliseconds}ms');
+        // Debug logs removed for production
         return true;
       }
 
       // Logout previous user if different
       if (_isLoggedIn && _currentUserID != userID) {
-        _debugLog('🔄 Different user detected, logging out previous user...');
+        // Debug log removed for production
         await logoutFromZego();
       }
 
       // Sanitize userID (remove special characters)
       final sanitizedUserID = userID.replaceAll(RegExp(r'[^\w\d]'), '');
-      final displayName =
-          userName?.isNotEmpty == true ? userName! : 'Rider_$sanitizedUserID';
+      final displayName = userName?.isNotEmpty == true ? userName! : 'Rider_$sanitizedUserID';
 
-      _debugLog('🔧 User data processing:');
-      _debugLog('   📱 Original ID: $userID');
-      _debugLog('   🆔 Sanitized ID: $sanitizedUserID');
-      _debugLog('   👤 Display Name: $displayName');
-      _debugLog('   🏢 App ID: $ZEGO_APP_ID');
+      // Debug logs removed for production
 
       if (sanitizedUserID.isEmpty) {
         throw ArgumentError('Sanitized user ID cannot be empty');
       }
 
-      _debugLog('🚀 Re-initializing Zego service with user credentials...');
+      // Debug log removed for production
 
       // Re-initialize with user credentials
       try {
@@ -158,25 +137,19 @@ class ZegoService {
         _currentUserID = sanitizedUserID;
         _currentUserName = displayName;
 
-        final loginEnd = DateTime.now();
-        final duration = loginEnd.difference(loginStart);
+        // final loginEnd = DateTime.now();
+        // final duration = loginEnd.difference(loginStart);
 
-        _debugLog('✅ ZEGO USER LOGIN COMPLETED SUCCESSFULLY!');
-        _debugLog('   ⏱️ Total Login Time: ${duration.inMilliseconds}ms');
-        _debugLog('   🆔 Logged in as: $sanitizedUserID');
-        _debugLog('   👤 Display Name: $displayName');
-        _debugLog('   🌐 Zego Status: Connected & Ready');
-        _debugLog('═══════════════════════════════════════════════');
+        // Debug logs removed for production
 
         return true;
       } catch (zegoError) {
-        _debugLog('❌ Zego login failed: $zegoError');
+        // Debug log removed for production
 
         // Handle specific error types
         if (zegoError.toString().contains('network')) {
           throw StateError('Network error: Check internet connection');
-        } else if (zegoError.toString().contains('token') ||
-            zegoError.toString().contains('sign')) {
+        } else if (zegoError.toString().contains('token') || zegoError.toString().contains('sign')) {
           throw StateError('Authentication error: Invalid credentials');
         } else if (zegoError.toString().contains('userID')) {
           throw StateError('Invalid user ID: $sanitizedUserID');
@@ -185,15 +158,12 @@ class ZegoService {
         }
       }
     } catch (error, stackTrace) {
-      final loginEnd = DateTime.now();
-      final duration = loginEnd.difference(loginStart);
+      // final loginEnd = DateTime.now();
+      // final duration = loginEnd.difference(loginStart);
 
-      _debugLog('❌ ZEGO LOGIN FAILED');
-      _debugLog('   ⏱️ Failed after: ${duration.inMilliseconds}ms');
-      _debugLog('   🚨 Error: $error');
-      _debugLog('═══════════════════════════════════════════════');
+      // Debug logs removed for production
 
-      _errorLog('Zego login failed', error, stackTrace);
+      _errorLog('Zego login failed', error, stackTrace); // Error log kept
 
       // Reset state on failure
       _isLoggedIn = false;
@@ -207,25 +177,24 @@ class ZegoService {
   /// Automatically login if user is authenticated in the app
   Future<bool> autoLoginIfAuthenticated() async {
     try {
-      _debugLog('🤖 Checking for auto-login...');
+      // Debug log removed for production
 
       if (!appStore.isLoggedIn) {
-        _debugLog('❌ User not authenticated in app');
+        // Debug log removed for production
         return false;
       }
 
       final userPhone = appStore.userPhone;
-      final userName =
-          appStore.userName.isNotEmpty ? appStore.userName : appStore.firstName;
+      final userName = appStore.userName.isNotEmpty ? appStore.userName : appStore.firstName;
 
       if (userPhone.isEmpty) {
-        _debugLog('❌ User phone number not available');
+        // Debug log removed for production
         return false;
       }
 
       return await loginToZego(userID: userPhone, userName: userName);
     } catch (error, stackTrace) {
-      _errorLog('❌ Auto-login failed', error, stackTrace);
+      _errorLog('❌ Auto-login failed', error, stackTrace); // Error log kept
       return false;
     }
   }
@@ -233,10 +202,10 @@ class ZegoService {
   /// Logout user from Zego Cloud
   Future<bool> logoutFromZego() async {
     try {
-      _debugLog('🚪 Starting Zego user logout...');
+      // Debug log removed for production
 
       if (!_isLoggedIn) {
-        _debugLog('✅ User already logged out');
+        // Debug log removed for production
         return true;
       }
 
@@ -247,10 +216,10 @@ class ZegoService {
       _currentUserID = null;
       _currentUserName = null;
 
-      _debugLog('✅ Zego user logout completed successfully!');
+      // Debug log removed for production
       return true;
     } catch (error, stackTrace) {
-      _errorLog('❌ Failed to logout from Zego', error, stackTrace);
+      _errorLog('❌ Failed to logout from Zego', error, stackTrace); // Error log kept
       return false;
     }
   }
@@ -290,40 +259,20 @@ class ZegoService {
     String? targetName,
     required bool isVideoCall,
   }) async {
-    final startTime = DateTime.now();
+    // final startTime = DateTime.now();
     final callId = '${DateTime.now().millisecondsSinceEpoch}';
 
     try {
-      final callType = isVideoCall ? 'VIDEO' : 'VOICE';
+      // final callType = isVideoCall ? 'VIDEO' : 'VOICE';
 
-      _debugLog('═══════════════════════════════════════════════');
-      _debugLog('📞 INITIATING $callType CALL [ID: $callId]');
-      _debugLog('═══════════════════════════════════════════════');
-
-      _debugLog('🎯 Target Details:');
-      _debugLog('   📱 Phone: $targetPhoneNumber');
-      _debugLog('   👤 Name: ${targetName ?? 'Unknown'}');
-      _debugLog('   🕐 Time: ${startTime.toIso8601String()}');
-
-      // Pre-flight checks
-      _debugLog('🔍 Pre-flight checks:');
-      _debugLog('   ✓ SDK Initialized: $_isInitialized');
-      _debugLog('   ✓ User Logged In: $_isLoggedIn');
-      _debugLog('   ✓ Current User ID: $_currentUserID');
-      _debugLog('   ✓ Current User Name: $_currentUserName');
-      _debugLog('   ✓ App Store Logged In: ${appStore.isLoggedIn}');
-      _debugLog('   ✓ App User Phone: ${appStore.userPhone}');
+      // Debug logs removed for production
 
       if (!_isInitialized) {
-        _debugLog('❌ SDK not initialized, attempting to initialize...');
         final initResult = await initializeZegoSDK();
-        if (!initResult) {
-          throw StateError('Failed to initialize Zego SDK');
-        }
+        if (!initResult) throw StateError('Failed to initialize Zego SDK');
       }
 
       if (!_isLoggedIn) {
-        _debugLog('❌ User not logged in to Zego, attempting auto-login...');
         final loginResult = await autoLoginIfAuthenticated();
         if (!loginResult) {
           throw StateError('User must be logged in to make calls');
@@ -332,18 +281,13 @@ class ZegoService {
 
       // Sanitize and prepare target user data
       final targetUserID = targetPhoneNumber.replaceAll(RegExp(r'[^\w\d]'), '');
-      final displayTargetName =
-          targetName?.isNotEmpty == true ? targetName! : 'Driver_$targetUserID';
+      final displayTargetName = targetName?.isNotEmpty == true ? targetName! : 'Driver_$targetUserID';
 
-      _debugLog('🔧 Processing target data:');
-      _debugLog('   📱 Original Phone: $targetPhoneNumber');
-      _debugLog('   🆔 Sanitized ID: $targetUserID');
-      _debugLog('   👤 Display Name: $displayTargetName');
+      // Debug logs removed for production
 
       // Validate target user ID
       if (targetUserID.isEmpty) {
-        throw ArgumentError(
-            'Target user ID cannot be empty after sanitization');
+        throw ArgumentError('Target user ID cannot be empty after sanitization');
       }
 
       if (targetUserID == _currentUserID) {
@@ -355,15 +299,9 @@ class ZegoService {
         ZegoCallUser(targetUserID, displayTargetName),
       ];
 
-      _debugLog('📋 Call invitation details:');
-      _debugLog(
-          '   👥 Invitees: ${invitees.map((e) => '${e.name}(${e.id})').join(', ')}');
-      _debugLog('   🎥 Video Call: $isVideoCall');
-      _debugLog('   📞 Call Type: $callType');
-      _debugLog('   🏢 App ID: $ZEGO_APP_ID');
-      _debugLog('   🔑 App Sign: ${ZEGO_APP_SIGN.substring(0, 10)}...');
+      // Debug logs removed for production
 
-      _debugLog('🚀 Sending call invitation via Zego Cloud...');
+      // Debug log removed for production
 
       // Send call invitation with error handling
       try {
@@ -372,30 +310,23 @@ class ZegoService {
           isVideoCall: isVideoCall,
         );
 
-        final endTime = DateTime.now();
-        final duration = endTime.difference(startTime);
+        // final endTime = DateTime.now();
+        // final duration = endTime.difference(startTime);
 
-        _debugLog('✅ CALL INVITATION SENT SUCCESSFULLY!');
-        _debugLog('   ⏱️ Processing Time: ${duration.inMilliseconds}ms');
-        _debugLog('   🎯 Target: $displayTargetName ($targetUserID)');
-        _debugLog('   📞 Type: $callType');
-        _debugLog('   🆔 Call ID: $callId');
-        _debugLog('   🌐 Zego Connection: Active');
-        _debugLog('═══════════════════════════════════════════════');
+        // Debug logs removed for production
 
         // Show success feedback
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content:
-                  Text('✅ تم إرسال دعوة المكالمة بنجاح إلى $displayTargetName'),
-              backgroundColor: Colors.green,
+              content: Text('✅ تم إرسال دعوة المكالمة بنجاح إلى $displayTargetName'),
+              backgroundColor: AppColors.primary,
               duration: Duration(seconds: 3),
               action: SnackBarAction(
                 label: 'عرض التفاصيل',
                 textColor: Colors.white,
                 onPressed: () {
-                  _debugLog('User viewed call details for Call ID: $callId');
+                  // Debug log removed for production
                 },
               ),
             ),
@@ -404,21 +335,16 @@ class ZegoService {
 
         return true;
       } catch (zegoError) {
-        _debugLog('❌ Zego send call failed: $zegoError');
+        // Debug log removed for production
         throw zegoError;
       }
     } catch (error, stackTrace) {
-      final endTime = DateTime.now();
-      final duration = endTime.difference(startTime);
+      // final endTime = DateTime.now();
+      // final duration = endTime.difference(startTime);
 
-      _debugLog('❌ CALL INITIATION FAILED [ID: $callId]');
-      _debugLog('   ⏱️ Failed after: ${duration.inMilliseconds}ms');
-      _debugLog('   🚨 Error Type: ${error.runtimeType}');
-      _debugLog('   💬 Error Message: $error');
-      _debugLog('   📍 Stack Trace: Available in logs');
-      _debugLog('═══════════════════════════════════════════════');
+      // Debug logs removed for production
 
-      _errorLog('Call initiation failed [ID: $callId]', error, stackTrace);
+      _errorLog('Call initiation failed [ID: $callId]', error, stackTrace); // Error log kept
 
       if (context.mounted) {
         String userFriendlyMessage = 'فشل في إجراء المكالمة';
@@ -440,7 +366,7 @@ class ZegoService {
               label: 'محاولة مرة أخرى',
               textColor: Colors.white,
               onPressed: () {
-                _debugLog('User requested retry for Call ID: $callId');
+                // Debug log removed for production
               },
             ),
           ),
@@ -459,9 +385,9 @@ class ZegoService {
   }
 
   /// Debug logging helper
-  void _debugLog(String message) {
-    dev.log(message, name: _logTag);
-  }
+  // void _debugLog(String message) {
+  //   // Debug log removed for production
+  // }
 
   /// Error logging helper
   void _errorLog(String message, Object error, StackTrace? stackTrace) {

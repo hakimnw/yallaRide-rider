@@ -1,45 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:provider/provider.dart';
 import 'package:taxi_booking/screens/NotificationScreen.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:taxi_booking/utils/core/widget/appbar/home_screen_app_bar.dart';
-import 'package:taxi_booking/utils/core/utils/responsive_vertical_space.dart';
 import 'package:taxi_booking/screens/settings/help/app_bar/search_field.dart';
+import 'package:taxi_booking/screens/settings/wallet_screens/presentation/providers/wallet_provider.dart';
+import 'package:taxi_booking/utils/core/utils/responsive_vertical_space.dart';
+import 'package:taxi_booking/utils/core/widget/appbar/home_screen_app_bar.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../main.dart';
-import '../model/SettingModel.dart';
 import '../model/DriverRatting.dart';
+import '../model/RiderModel.dart';
+import '../model/SettingModel.dart';
 import '../network/RestApis.dart';
 import '../utils/Colors.dart';
 import '../utils/Common.dart';
 import '../utils/Constants.dart';
+import '../utils/Extensions/ConformationDialog.dart';
 import '../utils/Extensions/LiveStream.dart';
 import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/ConformationDialog.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
+import '../utils/constant/app_colors.dart';
 import 'AboutScreen.dart';
 import 'ChangePasswordScreen.dart';
+import 'ComplaintScreen.dart';
 import 'DeleteAccountScreen.dart';
 import 'EditProfileScreen.dart';
 import 'LanguageScreen.dart';
-import 'SignInScreen.dart';
-import 'TermsConditionScreen.dart';
 import 'PrivacyPolicyScreen.dart';
-import 'ComplaintScreen.dart';
-import '../components/ModernAppBar.dart';
-import '../model/RiderModel.dart';
-import 'dart:developer';
-import 'WalletScreen.dart';
+import 'TermsAndConditionsScreen.dart';
+import 'settings/wallet_screens/presentation/pages/WalletScreen.dart';
 
 class SettingScreen extends StatefulWidget {
   @override
   SettingScreenState createState() => SettingScreenState();
 }
 
-class SettingScreenState extends State<SettingScreen>
-    with TickerProviderStateMixin {
+class SettingScreenState extends State<SettingScreen> with TickerProviderStateMixin {
   SettingModel settingModel = SettingModel();
   String? privacyPolicy;
   String? termsCondition;
@@ -49,7 +47,7 @@ class SettingScreenState extends State<SettingScreen>
   late AnimationController _pulseController;
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
-  late Animation<double> _pulseAnimation;
+  // late Animation<double> _pulseAnimation;
   late Animation<Offset> _slideAnimation;
 
   // Track which setting is being pressed
@@ -91,9 +89,9 @@ class SettingScreenState extends State<SettingScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
 
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
+    // _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+    //   CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    // );
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
@@ -139,19 +137,12 @@ class SettingScreenState extends State<SettingScreen>
       int currentPage = 1;
       bool hasMorePages = true;
 
-      // Fetch wallet info
-      try {
-        final walletInfo = await getWalletData();
-        if (walletInfo.walletData != null) {
-          walletBalance = walletInfo.walletData!.totalAmount ?? 0;
-        }
-      } catch (e) {
-        log('Error fetching wallet data: ${e.toString()}');
-      }
+      // Fetch wallet info using provider
+      final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+      walletBalance = walletProvider.balance ?? 0;
 
       while (hasMorePages) {
-        final pageValue = await getRiderRequestList(
-            page: currentPage, status: COMPLETED, riderId: userId);
+        final pageValue = await getRiderRequestList(page: currentPage, status: COMPLETED, riderId: userId);
 
         if (pageValue.data != null && pageValue.data!.isNotEmpty) {
           allRides.addAll(pageValue.data!);
@@ -186,8 +177,7 @@ class SettingScreenState extends State<SettingScreen>
       }).length;
 
       // Calculate total savings
-      totalSavings =
-          allRides.fold(0, (sum, ride) => sum + (ride.couponDiscount ?? 0));
+      totalSavings = allRides.fold(0, (sum, ride) => sum + (ride.couponDiscount ?? 0));
 
       // Calculate average rating
       try {
@@ -235,9 +225,7 @@ class SettingScreenState extends State<SettingScreen>
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: _isDarkMode
-                    ? [Color(0xFF1E1E1E), Color(0xFF121212)]
-                    : [Colors.white, Colors.grey.shade100],
+                colors: _isDarkMode ? [Color(0xFF1E1E1E), Color(0xFF121212)] : [Colors.white, Colors.grey.shade100],
               ),
             ),
           ),
@@ -264,8 +252,7 @@ class SettingScreenState extends State<SettingScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildSectionTitle("💰 المحفظة ",
-                              color: Colors.green),
+                          _buildSectionTitle("💰 المحفظة ", color: AppColors.primary),
                           _buildWalletSection(),
                           SizedBox(height: 24),
                           _buildSectionTitle("👤 الحساب والملف الشخصي"),
@@ -278,8 +265,7 @@ class SettingScreenState extends State<SettingScreen>
                           _buildSectionTitle("📋 القانونية والدعم"),
                           _buildLegalSection(),
                           SizedBox(height: 24),
-                          _buildSectionTitle("⚠️ إجراءات الحساب",
-                              isDanger: true),
+                          _buildSectionTitle("⚠️ إجراءات الحساب", isDanger: true),
                           _buildDangerSection(),
                           SizedBox(height: 20),
                           //_buildAppInfo(),
@@ -303,15 +289,12 @@ class SettingScreenState extends State<SettingScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: _isPremiumUser
-              ? [Color(0xFFFFD700), Color(0xFFDAA520)]
-              : [Color(0xFF0C9869), Color(0xFF1E7145)],
+          colors: _isPremiumUser ? [Color(0xFFFFD700), Color(0xFFDAA520)] : [AppColors.primary, AppColors.darkPrimary],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color:
-                (_isPremiumUser ? Colors.amber : primaryColor).withOpacity(0.3),
+            color: (_isPremiumUser ? Colors.amber : primaryColor).withAlpha(76),
             blurRadius: 20,
             offset: Offset(0, 8),
           ),
@@ -336,10 +319,7 @@ class SettingScreenState extends State<SettingScreen>
                             padding: EdgeInsets.all(3),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                colors: [
-                                  Colors.white,
-                                  Colors.white.withOpacity(0.8)
-                                ],
+                                colors: [Colors.white, Colors.white.withAlpha(201)],
                               ),
                               shape: BoxShape.circle,
                             ),
@@ -348,35 +328,27 @@ class SettingScreenState extends State<SettingScreen>
                               child: Container(
                                 width: 65,
                                 height: 65,
-                                child:
-                                    sharedPref.getString(USER_PROFILE_PHOTO) !=
-                                                null &&
-                                            sharedPref
-                                                .getString(USER_PROFILE_PHOTO)!
-                                                .isNotEmpty
-                                        ? commonCachedNetworkImage(
-                                            sharedPref
-                                                .getString(USER_PROFILE_PHOTO)!,
-                                            fit: BoxFit.cover,
-                                            height: 65,
-                                            width: 65,
-                                          )
-                                        : Container(
-                                            decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                colors: [
-                                                  Colors.grey.shade300,
-                                                  Colors.grey.shade400
-                                                ],
-                                              ),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: Icon(
-                                              MaterialCommunityIcons.account,
-                                              color: Colors.grey.shade700,
-                                              size: 32,
-                                            ),
+                                child: sharedPref.getString(USER_PROFILE_PHOTO) != null &&
+                                        sharedPref.getString(USER_PROFILE_PHOTO)!.isNotEmpty
+                                    ? commonCachedNetworkImage(
+                                        sharedPref.getString(USER_PROFILE_PHOTO)!,
+                                        fit: BoxFit.cover,
+                                        height: 65,
+                                        width: 65,
+                                      )
+                                    : Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [Colors.grey.shade300, Colors.grey.shade400],
                                           ),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          MaterialCommunityIcons.account,
+                                          color: Colors.grey.shade700,
+                                          size: 32,
+                                        ),
+                                      ),
                               ),
                             ),
                           ),
@@ -392,7 +364,7 @@ class SettingScreenState extends State<SettingScreen>
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.blue.withOpacity(0.3),
+                                    color: Colors.blue.withAlpha(76),
                                     blurRadius: 8,
                                     offset: Offset(0, 2),
                                   ),
@@ -419,13 +391,9 @@ class SettingScreenState extends State<SettingScreen>
                                 child: Text(
                                   appStore.userName.isEmpty
                                       ? (appStore.firstName.isNotEmpty)
-                                          ? "${appStore.firstName} ${sharedPref.getString(LAST_NAME) ?? ''}"
-                                              .trim()
-                                          : (sharedPref.getString(FIRST_NAME) !=
-                                                      null &&
-                                                  sharedPref
-                                                      .getString(FIRST_NAME)!
-                                                      .isNotEmpty)
+                                          ? "${appStore.firstName} ${sharedPref.getString(LAST_NAME) ?? ''}".trim()
+                                          : (sharedPref.getString(FIRST_NAME) != null &&
+                                                  sharedPref.getString(FIRST_NAME)!.isNotEmpty)
                                               ? "${sharedPref.getString(FIRST_NAME) ?? ''} ${sharedPref.getString(LAST_NAME) ?? ''}"
                                                   .trim()
                                               : language.guest
@@ -445,15 +413,12 @@ class SettingScreenState extends State<SettingScreen>
                           SizedBox(height: 4),
                           Text(
                             appStore.userEmail.isEmpty
-                                ? (sharedPref.getString(USER_EMAIL) != null &&
-                                        sharedPref
-                                            .getString(USER_EMAIL)!
-                                            .isNotEmpty)
+                                ? (sharedPref.getString(USER_EMAIL) != null && sharedPref.getString(USER_EMAIL)!.isNotEmpty)
                                     ? sharedPref.getString(USER_EMAIL)!
                                     : language.guest
                                 : appStore.userEmail,
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withAlpha(226),
                               fontSize: 12,
                               fontFamily: 'Poppins',
                               fontWeight: FontWeight.w500,
@@ -476,17 +441,13 @@ class SettingScreenState extends State<SettingScreen>
                               SizedBox(width: 12),
                               _buildQuickActionButton(
                                 icon: Icons.drive_eta,
-                                label: isLoading
-                                    ? "..."
-                                    : totalRidesCount.toString(),
+                                label: isLoading ? "..." : totalRidesCount.toString(),
                                 onTap: () {},
                               ),
                               SizedBox(width: 12),
                               _buildQuickActionButton(
                                 icon: Icons.wallet,
-                                label: isLoading
-                                    ? "..."
-                                    : "\$${walletBalance.toStringAsFixed(2)}",
+                                label: isLoading ? "..." : "\$${walletBalance.toStringAsFixed(2)}",
                                 onTap: () {},
                               ),
                             ],
@@ -514,9 +475,9 @@ class SettingScreenState extends State<SettingScreen>
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 5, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withAlpha(51),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.3)),
+          border: Border.all(color: Colors.white.withAlpha(76)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -544,31 +505,21 @@ class SettingScreenState extends State<SettingScreen>
         children: [
           Expanded(
               child: _buildStatCard(
-                  "إجمالي الرحلات",
-                  isLoading ? "..." : totalRidesCount.toString(),
-                  Icons.directions_car,
-                  Colors.blue)),
+                  "إجمالي الرحلات", isLoading ? "..." : totalRidesCount.toString(), Icons.directions_car, Colors.blue)),
           SizedBox(width: 12),
           Expanded(
               child: _buildStatCard(
-                  "هذا الشهر",
-                  isLoading ? "..." : thisMonthRidesCount.toString(),
-                  Icons.calendar_month,
-                  Colors.green)),
+                  "هذا الشهر", isLoading ? "..." : thisMonthRidesCount.toString(), Icons.calendar_month, AppColors.primary)),
           SizedBox(width: 12),
           Expanded(
               child: _buildStatCard(
-                  "موفر",
-                  isLoading ? "..." : "\$${totalSavings.toStringAsFixed(2)}",
-                  Icons.savings,
-                  Colors.orange)),
+                  "موفر", isLoading ? "..." : "\$${totalSavings.toStringAsFixed(2)}", Icons.savings, Colors.orange)),
         ],
       ),
     );
   }
 
-  Widget _buildStatCard(
-      String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -576,7 +527,7 @@ class SettingScreenState extends State<SettingScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 10,
             offset: Offset(0, 4),
           ),
@@ -614,13 +565,10 @@ class SettingScreenState extends State<SettingScreen>
         _buildModernSettingItem(
           icon: MaterialCommunityIcons.wallet,
           title: "محفظتي",
-          subtitle: isLoading
-              ? "جاري التحميل..."
-              : "الرصيد: \$${walletBalance.toStringAsFixed(2)}",
-          color: Colors.green,
+          subtitle: isLoading ? "جاري التحميل..." : "الرصيد: \$${walletBalance.toStringAsFixed(2)}",
+          color: AppColors.primary,
           onTap: () {
-            launchScreen(context, WalletScreen(),
-                pageRouteAnimation: PageRouteAnimation.Slide);
+            launchScreen(context, WalletScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
           },
           index: 0,
         ),
@@ -642,8 +590,7 @@ class SettingScreenState extends State<SettingScreen>
                 title: "تحديث ملفك",
                 subtitle: "تحديث معلوماتك الشخصية",
                 onTap: () {
-                  launchScreen(context, EditProfileScreen(),
-                      pageRouteAnimation: PageRouteAnimation.Slide);
+                  launchScreen(context, EditProfileScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
                 },
                 index: 3,
               ),
@@ -661,8 +608,7 @@ class SettingScreenState extends State<SettingScreen>
                 title: language.changePassword,
                 subtitle: "تحديث كلمة مرور الحساب",
                 onTap: () {
-                  launchScreen(context, ChangePasswordScreen(),
-                      pageRouteAnimation: PageRouteAnimation.Slide);
+                  launchScreen(context, ChangePasswordScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
                 },
                 index: 4,
               ),
@@ -687,8 +633,7 @@ class SettingScreenState extends State<SettingScreen>
                 title: "اللغة",
                 subtitle: "اختر لغتك المفضلة",
                 onTap: () {
-                  launchScreen(context, LanguageScreen(),
-                      pageRouteAnimation: PageRouteAnimation.Slide);
+                  launchScreen(context, LanguageScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
                 },
                 index: 6,
               ),
@@ -701,8 +646,7 @@ class SettingScreenState extends State<SettingScreen>
           subtitle: "تخصيص تفضيلات الإشعارات",
           color: Colors.orange,
           onTap: () {
-            launchScreen(context, NotificationScreen(),
-                pageRouteAnimation: PageRouteAnimation.Slide);
+            launchScreen(context, NotificationScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
           },
           index: 7,
         ),
@@ -717,7 +661,7 @@ class SettingScreenState extends State<SettingScreen>
           icon: MaterialCommunityIcons.credit_card,
           title: "طرق الدفع",
           subtitle: "إدارة البطاقات، المحافظ الرقمية",
-          color: Colors.green,
+          color: AppColors.primary,
           onTap: () {},
           index: 11,
         ),
@@ -775,37 +719,25 @@ class SettingScreenState extends State<SettingScreen>
           title: language.privacyPolicy,
           subtitle: "اقرأ سياسة الخصوصية الخاصة بنا",
           onTap: () {
-            launchScreen(context, PrivacyPolicyScreen(),
-                pageRouteAnimation: PageRouteAnimation.Slide);
+            launchScreen(context, PrivacyPolicyScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
           },
           index: 15,
         ),
-        if (appStore.termsCondition == null)
-          _buildModernSettingItem(
-            icon: MaterialCommunityIcons.file_document_outline,
-            title: language.termsConditions,
-            subtitle: "الشروط والأحكام",
-            onTap: () {
-              if (appStore.termsCondition == null) {
-                launchScreen(
-                    context,
-                    TermsConditionScreen(
-                        title: language.termsConditions,
-                        subtitle: appStore.termsCondition),
-                    pageRouteAnimation: PageRouteAnimation.Slide);
-              } else {
-                toast(language.txtURLEmpty);
-              }
-            },
-            index: 16,
-          ),
+        _buildModernSettingItem(
+          icon: MaterialCommunityIcons.file_document_outline,
+          title: language.termsConditions,
+          subtitle: "الشروط والأحكام",
+          onTap: () {
+            launchScreen(context, TermsAndConditionsScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
+          },
+          index: 16,
+        ),
         _buildModernSettingItem(
           icon: MaterialCommunityIcons.information_outline,
           title: "  الدعم الفني   ",
           subtitle: "  الدعم الفني للمستخدمين  ",
           onTap: () {
-            launchScreen(
-                context, AboutScreen(settingModel: appStore.settingModel),
+            launchScreen(context, AboutScreen(settingModel: appStore.settingModel),
                 pageRouteAnimation: PageRouteAnimation.Slide);
           },
           index: 17,
@@ -849,8 +781,7 @@ class SettingScreenState extends State<SettingScreen>
                 subtitle: "حذف حسابك نهائياً",
                 color: Colors.red,
                 onTap: () {
-                  launchScreen(context, DeleteAccountScreen(),
-                      pageRouteAnimation: PageRouteAnimation.Slide);
+                  launchScreen(context, DeleteAccountScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
                 },
                 index: 19,
               ),
@@ -861,8 +792,7 @@ class SettingScreenState extends State<SettingScreen>
     );
   }
 
-  Widget _buildSectionTitle(String title,
-      {bool isDanger = false, Color? color}) {
+  Widget _buildSectionTitle(String title, {bool isDanger = false, Color? color}) {
     return Padding(
       padding: EdgeInsets.only(left: 15, right: 15, bottom: 12),
       child: Row(
@@ -950,7 +880,7 @@ class SettingScreenState extends State<SettingScreen>
                 Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: itemColor.withOpacity(0.1),
+                    color: itemColor.withAlpha(25),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -969,8 +899,7 @@ class SettingScreenState extends State<SettingScreen>
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color:
-                              _isDarkMode ? Colors.white : Colors.grey.shade800,
+                          color: _isDarkMode ? Colors.white : Colors.grey.shade800,
                         ),
                       ),
                       if (subtitle != null) ...[
@@ -979,9 +908,7 @@ class SettingScreenState extends State<SettingScreen>
                           subtitle,
                           style: TextStyle(
                             fontSize: 13,
-                            color: _isDarkMode
-                                ? Colors.grey.shade400
-                                : Colors.grey.shade600,
+                            color: _isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
                           ),
                         ),
                       ],
@@ -992,15 +919,13 @@ class SettingScreenState extends State<SettingScreen>
                     Container(
                       padding: EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: _isDarkMode
-                            ? Colors.grey.shade700
-                            : Colors.grey.shade100,
+                        color: _isDarkMode ? Colors.grey.shade700 : Colors.grey.shade100,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         MaterialCommunityIcons.chevron_right,
                         size: 16,
-                        color: itemColor.withOpacity(0.7),
+                        color: itemColor.withAlpha(178),
                       ),
                     ),
               ],
@@ -1031,12 +956,12 @@ class SettingScreenState extends State<SettingScreen>
     );
   }
 
-  // Helper methods
-  int _getUserLevel() {
-    return 5;
-  }
+  // // Helper methods
+  // int _getUserLevel() {
+  //   return 5;
+  // }
 
-  String _getUserWalletBalance() {
-    return "45.50";
-  }
+  // String _getUserWalletBalance() {
+  //   return "45.50";
+  // }
 }

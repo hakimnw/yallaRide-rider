@@ -9,7 +9,14 @@ class AppSettingModel {
   PrivacyPolicyModel? privacyPolicyModel;
   PrivacyPolicyModel? termsCondition;
 
-  AppSettingModel({this.region, this.rideSetting, this.walletSetting, this.currencySetting, this.settingModel, this.privacyPolicyModel, this.termsCondition});
+  AppSettingModel(
+      {this.region,
+      this.rideSetting,
+      this.walletSetting,
+      this.currencySetting,
+      this.settingModel,
+      this.privacyPolicyModel,
+      this.termsCondition});
 
   AppSettingModel.fromJson(Map<String, dynamic> json) {
     region = json['region'] != null ? new Region.fromJson(json['region']) : null;
@@ -185,27 +192,27 @@ class CurrencySetting {
 
 class PrivacyPolicyModel {
   int? id;
-  String? key;
-  String? type;
-  String? value;
+  String? title;
+  String? content;
+  String? updatedAt;
 
-  PrivacyPolicyModel({this.id, this.key, this.type, this.value});
+  PrivacyPolicyModel({this.id, this.title, this.content, this.updatedAt});
 
   factory PrivacyPolicyModel.fromJson(Map<String, dynamic> json) {
     return PrivacyPolicyModel(
       id: json['id'],
-      key: json['key'],
-      type: json['type'],
-      value: json['value'],
+      title: json['title'],
+      content: json['content'],
+      updatedAt: json['updated_at'],
     );
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['id'] = this.id;
-    data['key'] = this.key;
-    data['type'] = this.type;
-    data['value'] = this.value;
+    data['title'] = this.title;
+    data['content'] = this.content;
+    data['updated_at'] = this.updatedAt;
     return data;
   }
 }

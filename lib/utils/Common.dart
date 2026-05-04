@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -16,9 +15,7 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../main.dart';
-import '../model/LoginResponse.dart';
 import '../network/RestApis.dart';
-import '../screens/ChatScreen.dart';
 import '../screens/RideDetailScreen.dart';
 import '../utils/Colors.dart';
 import '../utils/Constants.dart';
@@ -26,6 +23,7 @@ import '../utils/Extensions/dataTypeExtensions.dart';
 import '../utils/images.dart';
 import 'Extensions/Loader.dart';
 import 'Extensions/app_common.dart';
+import 'constant/app_colors.dart';
 
 Widget dotIndicator(list, i) {
   return SizedBox(
@@ -41,7 +39,7 @@ Widget dotIndicator(list, i) {
             width: 8,
             margin: EdgeInsets.all(4),
             decoration: BoxDecoration(
-                color: i == ind ? Colors.white : Colors.grey.withOpacity(0.5),
+                color: i == ind ? Colors.white : Colors.grey.withAlpha(127),
                 borderRadius: BorderRadius.circular(defaultRadius)),
           );
         },
@@ -51,33 +49,23 @@ Widget dotIndicator(list, i) {
 }
 
 InputDecoration inputDecoration(BuildContext context,
-    {String? label,
-    Widget? prefixIcon,
-    Widget? suffixIcon,
-    bool? alignWithHint = true,
-    String? counterText}) {
+    {String? label, Widget? prefixIcon, Widget? suffixIcon, bool? alignWithHint = true, String? counterText}) {
   return InputDecoration(
     focusColor: primaryColor,
     prefixIcon: prefixIcon,
     counterText: counterText,
-    border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(defaultRadius),
-        borderSide: BorderSide(color: dividerColor)),
-    focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(defaultRadius),
-        borderSide: BorderSide(color: dividerColor)),
-    disabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(defaultRadius),
-        borderSide: BorderSide(color: dividerColor)),
-    focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(defaultRadius),
-        borderSide: BorderSide(color: Colors.black)),
-    enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(defaultRadius),
-        borderSide: BorderSide(color: dividerColor)),
-    errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(defaultRadius),
-        borderSide: BorderSide(color: Colors.red)),
+    border:
+        OutlineInputBorder(borderRadius: BorderRadius.circular(defaultRadius), borderSide: BorderSide(color: dividerColor)),
+    focusedErrorBorder:
+        OutlineInputBorder(borderRadius: BorderRadius.circular(defaultRadius), borderSide: BorderSide(color: dividerColor)),
+    disabledBorder:
+        OutlineInputBorder(borderRadius: BorderRadius.circular(defaultRadius), borderSide: BorderSide(color: dividerColor)),
+    focusedBorder:
+        OutlineInputBorder(borderRadius: BorderRadius.circular(defaultRadius), borderSide: BorderSide(color: Colors.black)),
+    enabledBorder:
+        OutlineInputBorder(borderRadius: BorderRadius.circular(defaultRadius), borderSide: BorderSide(color: dividerColor)),
+    errorBorder:
+        OutlineInputBorder(borderRadius: BorderRadius.circular(defaultRadius), borderSide: BorderSide(color: Colors.red)),
     alignLabelWithHint: alignWithHint,
     filled: false,
     isDense: true,
@@ -90,10 +78,8 @@ InputDecoration inputDecoration(BuildContext context,
 InputDecoration searchInputDecoration({String? hint}) {
   return InputDecoration(
       contentPadding: EdgeInsets.symmetric(vertical: 8),
-      enabledBorder:
-          UnderlineInputBorder(borderSide: BorderSide(color: primaryColor)),
-      focusedBorder:
-          UnderlineInputBorder(borderSide: BorderSide(color: primaryColor)),
+      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: primaryColor)),
+      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: primaryColor)),
       border: UnderlineInputBorder(borderSide: BorderSide(color: primaryColor)),
       focusColor: primaryColor,
       isDense: true,
@@ -130,12 +116,7 @@ Widget commonCachedNetworkImage(String? url,
     bool usePlaceholderIfUrlEmpty = true,
     double? radius}) {
   if (url != null && url.isEmpty) {
-    return placeHolderWidget(
-        height: height,
-        width: width,
-        fit: fit,
-        alignment: alignment,
-        radius: radius);
+    return placeHolderWidget(height: height, width: width, fit: fit, alignment: alignment, radius: radius);
   } else if (url.validate().startsWith('http')) {
     return CachedNetworkImage(
       imageUrl: url!,
@@ -144,43 +125,21 @@ Widget commonCachedNetworkImage(String? url,
       fit: fit,
       alignment: alignment as Alignment? ?? Alignment.center,
       errorWidget: (_, s, d) {
-        return placeHolderWidget(
-            height: height,
-            width: width,
-            fit: fit,
-            alignment: alignment,
-            radius: radius);
+        return placeHolderWidget(height: height, width: width, fit: fit, alignment: alignment, radius: radius);
       },
       placeholder: (_, s) {
         if (!usePlaceholderIfUrlEmpty) return SizedBox();
-        return placeHolderWidget(
-            height: height,
-            width: width,
-            fit: fit,
-            alignment: alignment,
-            radius: radius);
+        return placeHolderWidget(height: height, width: width, fit: fit, alignment: alignment, radius: radius);
       },
     );
   } else {
-    return Image.network(url!,
-        height: height,
-        width: width,
-        fit: fit,
-        alignment: alignment ?? Alignment.center);
+    return Image.network(url!, height: height, width: width, fit: fit, alignment: alignment ?? Alignment.center);
   }
 }
 
-Widget placeHolderWidget(
-    {double? height,
-    double? width,
-    BoxFit? fit,
-    AlignmentGeometry? alignment,
-    double? radius}) {
+Widget placeHolderWidget({double? height, double? width, BoxFit? fit, AlignmentGeometry? alignment, double? radius}) {
   return Image.asset(placeholder,
-      height: height,
-      width: width,
-      fit: fit ?? BoxFit.cover,
-      alignment: alignment ?? Alignment.center);
+      height: height, width: width, fit: fit ?? BoxFit.cover, alignment: alignment ?? Alignment.center);
 }
 
 List<BoxShadow> defaultBoxShadow({
@@ -191,7 +150,7 @@ List<BoxShadow> defaultBoxShadow({
 }) {
   return [
     BoxShadow(
-      color: shadowColor ?? Colors.grey.withOpacity(0.2),
+      color: shadowColor ?? Colors.grey.withAlpha(51),
       blurRadius: blurRadius ?? 4.0,
       spreadRadius: spreadRadius ?? 1.0,
       offset: offset,
@@ -223,11 +182,7 @@ Widget loaderWidget() {
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
-          BoxShadow(
-              color: Colors.grey.withOpacity(0.4),
-              blurRadius: 10,
-              spreadRadius: 0,
-              offset: Offset(0.0, 0.0)),
+          BoxShadow(color: Colors.grey.withOpacity(0.4), blurRadius: 10, spreadRadius: 0, offset: Offset(0.0, 0.0)),
         ],
       ),
       width: 50,
@@ -238,8 +193,7 @@ Widget loaderWidget() {
 }
 
 void afterBuildCreated(Function()? onCreated) {
-  makeNullable(SchedulerBinding.instance)!
-      .addPostFrameCallback((_) => onCreated?.call());
+  makeNullable(SchedulerBinding.instance)!.addPostFrameCallback((_) => onCreated?.call());
 }
 
 T? makeNullable<T>(T? value) => value;
@@ -274,8 +228,7 @@ String statusTypeIcon({String? type}) {
   return icon;
 }
 
-Widget scheduleOptionWidget(
-    BuildContext context, bool isSelected, String imagePath, String title) {
+Widget scheduleOptionWidget(BuildContext context, bool isSelected, String imagePath, String title) {
   return Container(
     padding: EdgeInsets.all(16),
     decoration: BoxDecoration(
@@ -288,8 +241,7 @@ Widget scheduleOptionWidget(
     ),
     child: Row(
       children: [
-        ImageIcon(AssetImage(imagePath),
-            size: 20, color: isSelected ? primaryColor : Colors.grey),
+        ImageIcon(AssetImage(imagePath), size: 20, color: isSelected ? primaryColor : Colors.grey),
         SizedBox(width: 16),
         Text(title, style: boldTextStyle()),
       ],
@@ -297,8 +249,7 @@ Widget scheduleOptionWidget(
   );
 }
 
-Widget totalCount(
-    {String? title, num? amount, bool? isTotal = false, double? space}) {
+Widget totalCount({String? title, num? amount, bool? isTotal = false, double? space}) {
   if (amount! > 0) {
     return Padding(
       padding: EdgeInsets.only(bottom: space ?? 0),
@@ -308,13 +259,11 @@ Widget totalCount(
         children: [
           Expanded(
               child: Text(title!,
-                  style: isTotal == true
-                      ? boldTextStyle(color: Colors.green, size: 18)
-                      : secondaryTextStyle())),
+                  style: isTotal == true ? boldTextStyle(color: AppColors.primary, size: 18) : secondaryTextStyle())),
           printAmountWidget(
               amount: '${amount.toStringAsFixed(digitAfterDecimal)}',
               size: isTotal == true ? 18 : 14,
-              color: isTotal == true ? Colors.green : textPrimaryColorGlobal)
+              color: isTotal == true ? AppColors.primary : textPrimaryColorGlobal)
         ],
       ),
     );
@@ -324,17 +273,12 @@ Widget totalCount(
 }
 
 Widget printAmountWidget(
-    {required String amount,
-    double? size,
-    Color? color,
-    FontWeight? weight,
-    TextDecoration? textDecoration}) {
+    {required String amount, double? size, Color? color, FontWeight? weight, TextDecoration? textDecoration}) {
   return Row(
     mainAxisSize: MainAxisSize.min,
     // mainAxisAlignment: MainAxisAlignment.start,
     // crossAxisAlignment: CrossAxisAlignment.center,
-    children: appStore.currencyPosition.toString().toLowerCase().trim() ==
-            LEFT.toLowerCase().trim()
+    children: appStore.currencyPosition.toString().toLowerCase().trim() == LEFT.toLowerCase().trim()
         ? [
             Text(
               "${appStore.currencyCode} ",
@@ -388,17 +332,14 @@ Future<bool> checkPermission() async {
   // Request app level location permission
   LocationPermission locationPermission = await Geolocator.requestPermission();
 
-  if (locationPermission == LocationPermission.whileInUse ||
-      locationPermission == LocationPermission.always) {
+  if (locationPermission == LocationPermission.whileInUse || locationPermission == LocationPermission.always) {
     await Geolocator.getCurrentPosition().then((value) {
       sharedPref.setDouble(LATITUDE, value.latitude);
       sharedPref.setDouble(LONGITUDE, value.longitude);
     });
     // Check system level location permission
     if (!await Geolocator.isLocationServiceEnabled()) {
-      return await Geolocator.openLocationSettings()
-          .then((value) => false)
-          .catchError((e) => false);
+      return await Geolocator.openLocationSettings().then((value) => false).catchError((e) => false);
     } else {
       return true;
     }
@@ -441,7 +382,7 @@ Widget snapWidgetHelper<T>(
 }
 
 Future<bool> setValue(String key, dynamic value, {bool print1 = true}) async {
-  if (print1) print('${value.runtimeType} - $key - $value');
+  // Debug log removed for production
 
   if (value is String) {
     return await sharedPref.setString(key, value.validate());
@@ -535,7 +476,6 @@ String getMessageFromErrorCode(FirebaseException error) {
     case "operation-not-allowed":
       return "Too many requests to log into this account.";
     case "ERROR_OPERATION_NOT_ALLOWED":
-    case "operation-not-allowed":
       return "Server error, please try again later.";
     case "ERROR_INVALID_EMAIL":
     case "invalid-email":
@@ -546,24 +486,21 @@ String getMessageFromErrorCode(FirebaseException error) {
 }
 
 Widget socialWidget({String? image, String? text}) {
-  return Image.asset(image.validate(),
-      fit: BoxFit.cover, height: 30, width: 30);
+  return Image.asset(image.validate(), fit: BoxFit.cover, height: 30, width: 30);
 }
 
-void scheduleFunction(
-    {required DateTime scheduledTime, required Function function}) {
-  var d1 =
-      DateTime.parse(DateTime.now().toUtc().toString().replaceAll("Z", ""));
+void scheduleFunction({required DateTime scheduledTime, required Function function}) {
+  var d1 = DateTime.parse(DateTime.now().toUtc().toString().replaceAll("Z", ""));
   Duration delay = scheduledTime.difference(d1);
-  print("CheckDelay:::${delay.inSeconds}");
+  // Debug log removed for production
   if (delay.isNegative) {
-    print("Scheduled time is in the past.");
+    // Debug log removed for production
     return;
   }
   Timer(delay, () {
     function();
   });
-  print("Function scheduled to run at $scheduledTime");
+  // Debug log removed for production
 }
 
 oneSignalSettings() async {
@@ -573,25 +510,27 @@ oneSignalSettings() async {
   OneSignal.consentRequired(false);
 
   OneSignal.initialize(mOneSignalAppIdRider);
-
+  OneSignal.login(sharedPref.getString(CONTACT_NUMBER).validate());
   OneSignal.Notifications.addForegroundWillDisplayListener((event) {
     event.preventDefault();
     event.notification.display();
   });
 
   saveOneSignalPlayerId();
+
+  // تسجيل رقم الهاتف كـ External User ID في OneSignal
   if (appStore.isLoggedIn) {
     updatePlayerId();
+    setPhoneAsExternalUserId();
   }
   OneSignal.Notifications.addClickListener((notification) async {
     var notId = notification.notification.additionalData!["id"];
-    log("$notId---" +
-        notification.notification.additionalData!['type'].toString());
+    log("$notId---" + notification.notification.additionalData!['type'].toString());
     var notType = notification.notification.additionalData!['type'];
     if (notId != null) {
       if (notId.toString().contains('CHAT')) {
-        LoginResponse user = await getUserDetail(
-            userId: int.parse(notId.toString().replaceAll("CHAT_", "")));
+        // LoginResponse user = await getUserDetail(
+        //     userId: int.parse(notId.toString().replaceAll("CHAT_", "")));
         /*   launchScreen(
             getContext,
             ChatScreen(
@@ -600,36 +539,32 @@ oneSignalSettings() async {
             ),
             isNewTask: true); */
       } else if (notType == SUCCESS) {
-        launchScreen(getContext, RideDetailScreen(orderId: notId),
-            isNewTask: true);
+        launchScreen(getContext, RideDetailScreen(orderId: notId), isNewTask: true);
       }
     }
   });
 }
 
 Future<void> saveOneSignalPlayerId() async {
-  // await OneSignal.shared.getDeviceState().then((value) async {
-  // });
-  OneSignal.User.pushSubscription.addObserver((state) async {
-    if (OneSignal.User.pushSubscription.id.validate().isNotEmpty)
-      await sharedPref.setString(
-          PLAYER_ID, OneSignal.User.pushSubscription.id.validate());
-  });
+  // i want that function to save the phone nmber cause i will use it instead of player id
+  String? phoneNumber = sharedPref.getString(CONTACT_NUMBER);
+  if (phoneNumber != null && phoneNumber.isNotEmpty) {
+    await sharedPref.setString(PLAYER_ID, phoneNumber);
+  }
 }
 
-Future<void> exportedLog(
-    {required String logMessage, required String file_name}) async {
+Future<void> exportedLog({required String logMessage, required String file_name}) async {
   return;
-  final downloadsDirectory = Directory('/storage/emulated/0/Download');
-  if (!await downloadsDirectory.exists()) {
-    await downloadsDirectory.create(recursive: true);
-  }
-  final filePath =
-      '${downloadsDirectory.path}/${file_name + "${DateTime.now().hour}_${DateTime.now().minute}"}.txt';
-  final file = File(filePath);
-  try {
-    await file.writeAsString(logMessage, mode: FileMode.append);
-  } catch (e) {}
+  // final downloadsDirectory = Directory('/storage/emulated/0/Download');
+  // if (!await downloadsDirectory.exists()) {
+  //   await downloadsDirectory.create(recursive: true);
+  // }
+  // final filePath =
+  //     '${downloadsDirectory.path}/${file_name + "${DateTime.now().hour}_${DateTime.now().minute}"}.txt';
+  // final file = File(filePath);
+  // try {
+  //   await file.writeAsString(logMessage, mode: FileMode.append);
+  // } catch (e) {}
 }
 
 Color paymentStatusColor(String paymentStatus) {
@@ -637,7 +572,7 @@ Color paymentStatusColor(String paymentStatus) {
 
   switch (paymentStatus) {
     case PAYMENT_PAID:
-      color = Colors.green;
+      color = AppColors.primary;
     case PAYMENT_FAILED:
       color = Colors.red;
     case PAYMENT_PENDING:
@@ -646,30 +581,63 @@ Color paymentStatusColor(String paymentStatus) {
   return color;
 }
 
+// دالة مساعدة لطباعة Player ID
+void printPlayerIdInfo() {
+  // Debug log removed for production
+}
+
+// دالة لتسجيل رقم الهاتف كـ External User ID في OneSignal
+Future<void> setPhoneAsExternalUserId() async {
+  String? phoneNumber = sharedPref.getString(CONTACT_NUMBER);
+  if (phoneNumber != null && phoneNumber.isNotEmpty) {
+    try {
+      await OneSignal.login(phoneNumber);
+      // Success log removed for production
+    } catch (e) {
+      // Error log can be added here if needed
+    }
+  } else {
+    // Debug log removed for production
+  }
+}
+
+// دالة اختبار لإرسال إشعار تجريبي بناءً على رقم الهاتف
+Future<void> testPhoneBasedNotification(String receiverPhone) async {
+  // Debug log removed for production
+  try {
+    await notificationService.sendPushNotificationByPhone("اختبار الإشعار", "هذا إشعار تجريبي مرسل بناءً على رقم الهاتف",
+        receiverPhoneNumber: receiverPhone);
+    // Success log removed for production
+  } catch (e) {
+    // Error log can be added here if needed
+  }
+}
+
+// دالة لطباعة معلومات النظام الحالي
+void printNotificationSystemInfo() {
+  // Debug log removed for production
+}
+
 Future<void> getAppSettingsData() async {
   // appStore.setisBidEnable(element.value ?? "0");
   await getAppSetting().then((value) {
     if (value.walletSetting != null) {
       value.walletSetting!.forEach((element) {
         if (element.key == PRESENT_TOPUP_AMOUNT) {
-          appStore.setWalletPresetTopUpAmount(
-              element.value ?? PRESENT_TOP_UP_AMOUNT_CONST);
+          appStore.setWalletPresetTopUpAmount(element.value ?? PRESENT_TOP_UP_AMOUNT_CONST);
         }
         if (element.key == MIN_AMOUNT_TO_ADD) {
-          if (element.value != null)
-            appStore.setMinAmountToAdd(num.parse(element.value!).round());
+          if (element.value != null) appStore.setMinAmountToAdd(num.parse(element.value!).round());
         }
         if (element.key == MAX_AMOUNT_TO_ADD) {
-          if (element.value != null)
-            appStore.setMaxAmountToAdd(num.parse(element.value!).round());
+          if (element.value != null) appStore.setMaxAmountToAdd(num.parse(element.value!).round());
         }
       });
     }
     if (value.rideSetting != null) {
       value.rideSetting!.forEach((element) {
         if (element.key == PRESENT_TIP_AMOUNT) {
-          appStore
-              .setWalletTipAmount(element.value ?? PRESENT_TIP_AMOUNT_CONST);
+          appStore.setWalletTipAmount(element.value ?? PRESENT_TIP_AMOUNT_CONST);
         }
         if (element.key == RIDE_FOR_OTHER) {
           appStore.setIsRiderForAnother(element.value ?? "0");
@@ -691,20 +659,17 @@ Future<void> getAppSettingsData() async {
     }
     if (value.currencySetting != null) {
       appStore.setCurrencyCode(value.currencySetting!.symbol ?? currencySymbol);
-      appStore
-          .setCurrencyName(value.currencySetting!.code ?? currencyNameConst);
+      appStore.setCurrencyName(value.currencySetting!.code ?? currencyNameConst);
       appStore.setCurrencyPosition(value.currencySetting!.position ?? LEFT);
     }
     if (value.settingModel != null) {
       appStore.settingModel = value.settingModel!;
-      if (value.settingModel!.helpSupportUrl != null)
-        appStore.mHelpAndSupport = value.settingModel!.helpSupportUrl!;
+      if (value.settingModel!.helpSupportUrl != null) appStore.mHelpAndSupport = value.settingModel!.helpSupportUrl!;
     }
-    if (value.privacyPolicyModel != null &&
-        value.privacyPolicyModel!.value != null)
-      appStore.privacyPolicy = value.privacyPolicyModel!.value!;
-    if (value.termsCondition != null && value.termsCondition!.value != null)
-      appStore.termsCondition = value.termsCondition!.value!;
+    if (value.privacyPolicyModel != null && value.privacyPolicyModel!.content != null)
+      appStore.privacyPolicy = value.privacyPolicyModel!.content!;
+    if (value.termsCondition != null && value.termsCondition!.content != null)
+      appStore.termsCondition = value.termsCondition!.content!;
   }).catchError((error, stack) {
     // FirebaseCrashlytics.instance.recordError("setting_update_issue::" + error.toString(), stack, fatal: true);
     log('${error.toString()} STack:::${stack}');

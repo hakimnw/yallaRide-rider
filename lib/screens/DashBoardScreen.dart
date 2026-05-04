@@ -1,57 +1,53 @@
 import 'dart:async';
+import 'dart:convert'; // Added for json.decode
 import 'dart:io';
 import 'dart:ui' as ui;
-import 'dart:convert'; // Added for json.decode
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:lottie/lottie.dart' as lt;
+import 'package:provider/provider.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import '../components/SearchLocationComponent.dart';
 import '../main.dart';
 import '../model/CurrentRequestModel.dart';
 import '../model/NearByDriverListModel.dart';
 import '../network/RestApis.dart';
+import '../screens/MainScreen.dart';
 import '../screens/ReviewScreen.dart';
 import '../screens/RidePaymentDetailScreen.dart';
-import '../screens/MainScreen.dart';
 import '../service/RideService.dart';
 import '../service/VersionServices.dart';
-import '../utils/constant/app_colors.dart';
 import '../utils/Common.dart';
 import '../utils/Constants.dart';
 import '../utils/Extensions/LiveStream.dart';
 import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/app_textfield.dart';
 import '../utils/Extensions/context_extension.dart';
 import '../utils/Extensions/dataTypeExtensions.dart';
+import '../utils/constant/app_colors.dart';
 import '../utils/images.dart';
 import 'BidingScreen.dart';
 import 'LocationPermissionScreen.dart';
 import 'NewEstimateRideListWidget.dart';
-import 'NotificationScreen.dart';
 import 'ScheduleRideListScreen.dart';
+import 'settings/wallet_screens/presentation/providers/wallet_provider.dart';
 
-class DashBoardScreen extends StatefulWidget {
+// ignore: must_be_immutable
+class DashboardScreen extends StatefulWidget {
   @override
-  DashBoardScreenState createState() => DashBoardScreenState();
+  DashboardScreenState createState() => DashboardScreenState();
   String? cancelReason;
 
-  DashBoardScreen({this.cancelReason});
+  DashboardScreen({this.cancelReason});
 }
 
-class DashBoardScreenState extends State<DashBoardScreen>
-    with TickerProviderStateMixin {
+class DashboardScreenState extends State<DashboardScreen> with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   RideService rideService = RideService();
   List<Marker> markers = [];
@@ -81,8 +77,8 @@ class DashBoardScreenState extends State<DashBoardScreen>
   late Animation<Offset> _quickActionSlideAnimation;
 
   late AnimationController _headerAnimationController;
-  late Animation<double> _headerFadeAnimation;
-  late Animation<Offset> _headerSlideAnimation;
+  // late Animation<double> _headerFadeAnimation;
+  // late Animation<Offset> _headerSlideAnimation;
 
   // Location state management
   bool isMapReady = false;
@@ -151,25 +147,25 @@ class DashBoardScreenState extends State<DashBoardScreen>
       duration: Duration(milliseconds: 1000),
     );
 
-    _headerFadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _headerAnimationController,
-        curve: Interval(0.0, 0.6, curve: Curves.easeOut),
-      ),
-    );
+    // _headerFadeAnimation = Tween<double>(
+    //   begin: 0.0,
+    //   end: 1.0,
+    // ).animate(
+    //   CurvedAnimation(
+    //     parent: _headerAnimationController,
+    //     curve: Interval(0.0, 0.6, curve: Curves.easeOut),
+    //   ),
+    // );
 
-    _headerSlideAnimation = Tween<Offset>(
-      begin: Offset(0, -0.5),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _headerAnimationController,
-        curve: Interval(0.0, 0.7, curve: Curves.easeOut),
-      ),
-    );
+    // _headerSlideAnimation = Tween<Offset>(
+    //   begin: Offset(0, -0.5),
+    //   end: Offset.zero,
+    // ).animate(
+    //   CurvedAnimation(
+    //     parent: _headerAnimationController,
+    //     curve: Interval(0.0, 0.7, curve: Curves.easeOut),
+    //   ),
+    // );
 
     // Start animations
     Future.delayed(Duration(milliseconds: 150), () {
@@ -228,8 +224,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
         print("🔐 Permission after request: $permission");
       }
 
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
         print("❌ Location permission denied or denied forever");
         setState(() {
           currentLocationAddress = "موقعك الحالي";
@@ -265,16 +260,13 @@ class DashBoardScreenState extends State<DashBoardScreen>
           ),
           Platform.isIOS ? SourceIOSIcon : SourceIcon);
       driverIcon = await BitmapDescriptor.fromAssetImage(
-          ImageConfiguration(devicePixelRatio: 2.5),
-          Platform.isIOS ? DriverIOSIcon : MultipleDriver);
+          ImageConfiguration(devicePixelRatio: 2.5), Platform.isIOS ? DriverIOSIcon : MultipleDriver);
       print("✅ Icons loaded successfully");
     } catch (e) {
       print("⚠️ Error loading icons: $e");
       // Use default markers if icons fail to load
-      riderIcon =
-          BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
-      driverIcon =
-          BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+      riderIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
+      driverIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
       print("✅ Using default icons");
     }
 
@@ -287,15 +279,13 @@ class DashBoardScreenState extends State<DashBoardScreen>
 
     if (savedLat != null && savedLng != null) {
       sourceLocation = LatLng(savedLat, savedLng);
-      print(
-          "✅ Using saved location: ${sourceLocation!.latitude}, ${sourceLocation!.longitude}");
+      print("✅ Using saved location: ${sourceLocation!.latitude}, ${sourceLocation!.longitude}");
       setState(() {});
     } else {
       // Set default location if no saved location
       sourceLocation = LatLng(24.7136, 46.6753); // Default to Riyadh
       polylineSource = sourceLocation!;
-      print(
-          "⚠️ Using default location: ${sourceLocation!.latitude}, ${sourceLocation!.longitude}");
+      print("⚠️ Using default location: ${sourceLocation!.latitude}, ${sourceLocation!.longitude}");
     }
 
     // Then get current location to update if needed
@@ -305,8 +295,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
     // إذا كان لدينا إحداثيات، احصل على العنوان تلقائياً
     if (sourceLocation != null) {
       print("🔍 Auto-filling address on screen load...");
-      String autoAddress = await _getFullAddressFromCoordinates(
-          sourceLocation!.latitude, sourceLocation!.longitude);
+      String autoAddress = await _getFullAddressFromCoordinates(sourceLocation!.latitude, sourceLocation!.longitude);
       setState(() {
         currentLocationAddress = autoAddress;
         sourceLocationTitle = autoAddress;
@@ -324,8 +313,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
     polylinePoints = PolylinePoints();
     print("✅ init() completed successfully");
     print("📊 Final state:");
-    print(
-        "  - sourceLocation: ${sourceLocation?.latitude}, ${sourceLocation?.longitude}");
+    print("  - sourceLocation: ${sourceLocation?.latitude}, ${sourceLocation?.longitude}");
     print("  - currentLocationAddress: '$currentLocationAddress'");
     print("  - sourceLocationTitle: '$sourceLocationTitle'");
   }
@@ -335,8 +323,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
     print("🔐 Current permission: ${permissionData?.toString() ?? 'NULL'}");
 
     // Check permission first
-    if (permissionData == LocationPermission.denied ||
-        permissionData == LocationPermission.deniedForever) {
+    if (permissionData == LocationPermission.denied || permissionData == LocationPermission.deniedForever) {
       print("❌ Location permission denied");
       setState(() {
         currentLocationAddress = "موقعك الحالي";
@@ -348,10 +335,8 @@ class DashBoardScreenState extends State<DashBoardScreen>
 
     // If we already have a saved location, use it initially
     if (sourceLocation != null) {
-      print(
-          "📍 Using existing location: ${sourceLocation!.latitude}, ${sourceLocation!.longitude}");
-      polylineSource =
-          LatLng(sourceLocation!.latitude, sourceLocation!.longitude);
+      print("📍 Using existing location: ${sourceLocation!.latitude}, ${sourceLocation!.longitude}");
+      polylineSource = LatLng(sourceLocation!.latitude, sourceLocation!.longitude);
       addMarker();
       startLocationTracking();
       await getNearByDriver();
@@ -411,8 +396,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
       }
 
       sourceLocation = LatLng(geoPosition.latitude, geoPosition.longitude);
-      print(
-          "📍 Final location: ${geoPosition.latitude}, ${geoPosition.longitude}");
+      print("📍 Final location: ${geoPosition.latitude}, ${geoPosition.longitude}");
 
       // Save to SharedPreferences for future use
       sharedPref.setDouble(LATITUDE, geoPosition.latitude);
@@ -427,12 +411,10 @@ class DashBoardScreenState extends State<DashBoardScreen>
       }
 
       try {
-        print(
-            "🔍 Getting address from coordinates: ${geoPosition.latitude}, ${geoPosition.longitude}");
+        print("🔍 Getting address from coordinates: ${geoPosition.latitude}, ${geoPosition.longitude}");
 
         // استخدام الدالة الجديدة للحصول على العنوان الكامل
-        String fullAddress = await _getFullAddressFromCoordinates(
-            geoPosition.latitude, geoPosition.longitude);
+        String fullAddress = await _getFullAddressFromCoordinates(geoPosition.latitude, geoPosition.longitude);
 
         await getNearByDriver();
 
@@ -480,104 +462,103 @@ class DashBoardScreenState extends State<DashBoardScreen>
   }
 
   // دالة جديدة لتنسيق العنوان بشكل أفضل
-  String _formatAddress(Placemark place) {
-    List<String> addressParts = [];
+  // String _formatAddress(Placemark place) {
+  //   List<String> addressParts = [];
 
-    // إضافة اسم الشارع أولاً (الأهم للمستخدم)
-    if (place.thoroughfare != null && place.thoroughfare!.isNotEmpty) {
-      addressParts.add(place.thoroughfare!);
-    }
+  //   // إضافة اسم الشارع أولاً (الأهم للمستخدم)
+  //   if (place.thoroughfare != null && place.thoroughfare!.isNotEmpty) {
+  //     addressParts.add(place.thoroughfare!);
+  //   }
 
-    // إضافة الحي أو المنطقة
-    if (place.subLocality != null && place.subLocality!.isNotEmpty) {
-      addressParts.add(place.subLocality!);
-    }
+  //   // إضافة الحي أو المنطقة
+  //   if (place.subLocality != null && place.subLocality!.isNotEmpty) {
+  //     addressParts.add(place.subLocality!);
+  //   }
 
-    // إضافة المدينة
-    if (place.locality != null && place.locality!.isNotEmpty) {
-      addressParts.add(place.locality!);
-    }
+  //   // إضافة المدينة
+  //   if (place.locality != null && place.locality!.isNotEmpty) {
+  //     addressParts.add(place.locality!);
+  //   }
 
-    // إضافة المحافظة إذا كانت مختلفة عن المدينة
-    if (place.administrativeArea != null &&
-        place.administrativeArea!.isNotEmpty &&
-        place.administrativeArea != place.locality) {
-      addressParts.add(place.administrativeArea!);
-    }
+  //   // إضافة المحافظة إذا كانت مختلفة عن المدينة
+  //   if (place.administrativeArea != null &&
+  //       place.administrativeArea!.isNotEmpty &&
+  //       place.administrativeArea != place.locality) {
+  //     addressParts.add(place.administrativeArea!);
+  //   }
 
-    // إزالة القيم المكررة وتنسيق العنوان
-    addressParts = addressParts.toSet().toList();
+  //   // إزالة القيم المكررة وتنسيق العنوان
+  //   addressParts = addressParts.toSet().toList();
 
-    // إذا كان العنوان فارغاً، محاولة الحصول على اسم المكان
-    if (addressParts.isEmpty) {
-      if (place.name != null && place.name!.isNotEmpty) {
-        return place.name!;
-      }
-      return "موقعك الحالي";
-    }
+  //   // إذا كان العنوان فارغاً، محاولة الحصول على اسم المكان
+  //   if (addressParts.isEmpty) {
+  //     if (place.name != null && place.name!.isNotEmpty) {
+  //       return place.name!;
+  //     }
+  //     return "موقعك الحالي";
+  //   }
 
-    // تحديد طول العنوان المناسب
-    String formattedAddress = addressParts.join(', ');
+  //   // تحديد طول العنوان المناسب
+  //   String formattedAddress = addressParts.join(', ');
 
-    // إذا كان العنوان طويلاً جداً، اختصره
-    if (formattedAddress.length > 50) {
-      // استخدام أول عنصرين فقط
-      List<String> shortAddress = addressParts.take(2).toList();
-      formattedAddress = shortAddress.join(', ');
-    }
+  //   // إذا كان العنوان طويلاً جداً، اختصره
+  //   if (formattedAddress.length > 50) {
+  //     // استخدام أول عنصرين فقط
+  //     List<String> shortAddress = addressParts.take(2).toList();
+  //     formattedAddress = shortAddress.join(', ');
+  //   }
 
-    return formattedAddress;
-  }
+  //   return formattedAddress;
+  // }
 
-  // دالة مساعدة لتنظيف وتحسين العنوان المعروض
-  String _cleanAndFormatAddress(String address) {
-    if (address.isEmpty) {
-      return "موقعك الحالي";
-    }
+  // // دالة مساعدة لتنظيف وتحسين العنوان المعروض
+  // String _cleanAndFormatAddress(String address) {
+  //   if (address.isEmpty) {
+  //     return "موقعك الحالي";
+  //   }
 
-    // إزالة الأرقام والرموز غير المرغوب فيها من بداية العنوان
-    String cleaned = address.replaceAll(RegExp(r'^[\d\+\-\,\s]+'), '').trim();
+  //   // إزالة الأرقام والرموز غير المرغوب فيها من بداية العنوان
+  //   String cleaned = address.replaceAll(RegExp(r'^[\d\+\-\,\s]+'), '').trim();
 
-    // إزالة الأرقام والرموز من نهاية العنوان
-    cleaned = cleaned.replaceAll(RegExp(r'[\d\+\-\,\s]+$'), '').trim();
+  //   // إزالة الأرقام والرموز من نهاية العنوان
+  //   cleaned = cleaned.replaceAll(RegExp(r'[\d\+\-\,\s]+$'), '').trim();
 
-    // إزالة الفواصل المزدوجة
-    cleaned = cleaned.replaceAll(RegExp(r',\s*,'), ', ');
+  //   // إزالة الفواصل المزدوجة
+  //   cleaned = cleaned.replaceAll(RegExp(r',\s*,'), ', ');
 
-    // إزالة الفواصل من البداية والنهاية
-    cleaned = cleaned.replaceAll(RegExp(r'^,\s*|,\s*$'), '').trim();
+  //   // إزالة الفواصل من البداية والنهاية
+  //   cleaned = cleaned.replaceAll(RegExp(r'^,\s*|,\s*$'), '').trim();
 
-    // إذا كان العنوان فارغاً بعد التنظيف
-    if (cleaned.isEmpty) {
-      return "موقعك الحالي";
-    }
+  //   // إذا كان العنوان فارغاً بعد التنظيف
+  //   if (cleaned.isEmpty) {
+  //     return "موقعك الحالي";
+  //   }
 
-    // تحديد الطول المناسب للعرض
-    if (cleaned.length > 60) {
-      List<String> parts = cleaned.split(', ');
-      if (parts.length > 2) {
-        return '${parts[0]}, ${parts[1]}';
-      } else if (cleaned.length > 60) {
-        return '${cleaned.substring(0, 57)}...';
-      }
-    }
+  //   // تحديد الطول المناسب للعرض
+  //   if (cleaned.length > 60) {
+  //     List<String> parts = cleaned.split(', ');
+  //     if (parts.length > 2) {
+  //       return '${parts[0]}, ${parts[1]}';
+  //     } else if (cleaned.length > 60) {
+  //       return '${cleaned.substring(0, 57)}...';
+  //     }
+  //   }
 
-    return cleaned;
-  }
+  //   return cleaned;
+  // }
 
   // دالة مساعدة لضمان عرض العنوان بشكل صحيح
   String _getDisplayAddress() {
     print("🔍 DEBUG _getDisplayAddress:");
     print("  - currentLocationAddress: '$currentLocationAddress'");
     print("  - sourceLocationTitle: '$sourceLocationTitle'");
-    print(
-        "  - sourceLocation: ${sourceLocation?.latitude}, ${sourceLocation?.longitude}");
+    print("  - sourceLocation: ${sourceLocation?.latitude}, ${sourceLocation?.longitude}");
 
     String address = "";
     if (currentLocationAddress != null && currentLocationAddress!.isNotEmpty) {
       print("  ✅ Using currentLocationAddress: '$currentLocationAddress'");
       address = currentLocationAddress!;
-    } else if (sourceLocationTitle != null && sourceLocationTitle.isNotEmpty) {
+    } else if (sourceLocationTitle.isNotEmpty) {
       print("  ✅ Using sourceLocationTitle: '$sourceLocationTitle'");
       address = sourceLocationTitle;
     } else {
@@ -649,15 +630,12 @@ class DashBoardScreenState extends State<DashBoardScreen>
         }
 
         // إضافة الشارع الفرعي
-        if (place.subThoroughfare != null &&
-            place.subThoroughfare!.isNotEmpty) {
+        if (place.subThoroughfare != null && place.subThoroughfare!.isNotEmpty) {
           addressParts.add(place.subThoroughfare!);
         }
 
         // إضافة اسم المكان
-        if (place.name != null &&
-            place.name!.isNotEmpty &&
-            place.name != place.thoroughfare) {
+        if (place.name != null && place.name!.isNotEmpty && place.name != place.thoroughfare) {
           addressParts.add(place.name!);
         }
 
@@ -672,8 +650,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
         }
 
         // إضافة المحافظة
-        if (place.administrativeArea != null &&
-            place.administrativeArea!.isNotEmpty) {
+        if (place.administrativeArea != null && place.administrativeArea!.isNotEmpty) {
           addressParts.add(place.administrativeArea!);
         }
 
@@ -691,8 +668,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
             return place.name!;
           } else if (place.locality != null && place.locality!.isNotEmpty) {
             return place.locality!;
-          } else if (place.administrativeArea != null &&
-              place.administrativeArea!.isNotEmpty) {
+          } else if (place.administrativeArea != null && place.administrativeArea!.isNotEmpty) {
             return place.administrativeArea!;
           }
         }
@@ -716,8 +692,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
 
     try {
       // استخدام Google Geocoding API مع المفتاح الصحيح
-      String url =
-          'https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lng&key=$GOOGLE_MAP_API_KEY&language=ar';
+      String url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lng&key=$GOOGLE_MAP_API_KEY&language=ar';
 
       final response = await http.get(Uri.parse(url));
 
@@ -1023,10 +998,8 @@ class DashBoardScreenState extends State<DashBoardScreen>
           (e) => e.schedule_datetime,
         );
 
-        var d1 = DateTime.parse(
-            DateTime.now().toUtc().toString().replaceAll("Z", ""));
-        var d2 = DateTime.parse(
-            schedule_ride_request.first.schedule_datetime.toString());
+        var d1 = DateTime.parse(DateTime.now().toUtc().toString().replaceAll("Z", ""));
+        var d2 = DateTime.parse(schedule_ride_request.first.schedule_datetime.toString());
 
         print("CheckBothDate:::D1:::$d1 ===>D2: $d2");
         print("CHecking148");
@@ -1036,9 +1009,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
           servicesListData = schedule_ride_request.first;
           print("CHecking161:::${servicesListData!.toJson()}");
         } else {
-          scheduleFunction(
-              scheduledTime: d2.add(Duration(seconds: 5)),
-              function: () => getCurrentRequest());
+          scheduleFunction(scheduledTime: d2.add(Duration(seconds: 5)), function: () => getCurrentRequest());
         }
       }
       if (servicesListData == null) {
@@ -1050,15 +1021,12 @@ class DashBoardScreenState extends State<DashBoardScreen>
       if (servicesListData != null) {
         print("171");
         if ((value.ride_has_bids == 1) &&
-            (servicesListData!.status == NEW_RIDE_REQUESTED ||
-                servicesListData!.status == "bid_rejected")) {
+            (servicesListData!.status == NEW_RIDE_REQUESTED || servicesListData!.status == "bid_rejected")) {
           launchScreen(
             context,
             isNewTask: true,
             Bidingscreen(
-              dt: servicesListData!.isSchedule == 1
-                  ? servicesListData!.schedule_datetime
-                  : servicesListData!.datetime,
+              dt: servicesListData!.isSchedule == 1 ? servicesListData!.schedule_datetime : servicesListData!.datetime,
               ride_id: servicesListData!.id!,
               source: {},
               endLocation: {},
@@ -1067,33 +1035,25 @@ class DashBoardScreenState extends State<DashBoardScreen>
             ),
             pageRouteAnimation: PageRouteAnimation.SlideBottomTop,
           );
-        } else if (servicesListData!.status != COMPLETED &&
-            servicesListData!.status != CANCELED) {
+        } else if (servicesListData!.status != COMPLETED && servicesListData!.status != CANCELED) {
           int x = 0;
           if (value.rideRequest == null && value.onRideRequest == null) {
             x = servicesListData!.id!;
           } else {
-            x = value.rideRequest != null
-                ? value.rideRequest!.id!
-                : value.onRideRequest!.id!;
+            x = value.rideRequest != null ? value.rideRequest!.id! : value.onRideRequest!.id!;
           }
-          QuerySnapshot<Object?> b =
-              await rideService.checkIsRideExist(rideId: x);
+          QuerySnapshot<Object?> b = await rideService.checkIsRideExist(rideId: x);
           if (b.docs.length > 0) {
             //   Check Condition so screen looping issue not occur
             //   if Ride Not exist in firebase than don't navigate to next screen
             launchScreen(
               getContext,
               NewEstimateRideListWidget(
-                dt: servicesListData!.isSchedule == 1
-                    ? servicesListData!.schedule_datetime
-                    : servicesListData!.datetime,
-                sourceLatLog: LatLng(
-                    double.parse(servicesListData!.startLatitude!),
-                    double.parse(servicesListData!.startLongitude!)),
-                destinationLatLog: LatLng(
-                    double.parse(servicesListData!.endLatitude!),
-                    double.parse(servicesListData!.endLongitude!)),
+                dt: servicesListData!.isSchedule == 1 ? servicesListData!.schedule_datetime : servicesListData!.datetime,
+                sourceLatLog:
+                    LatLng(double.parse(servicesListData!.startLatitude!), double.parse(servicesListData!.startLongitude!)),
+                destinationLatLog:
+                    LatLng(double.parse(servicesListData!.endLatitude!), double.parse(servicesListData!.endLongitude!)),
                 sourceTitle: servicesListData!.startAddress!,
                 destinationTitle: servicesListData!.endAddress!,
                 isCurrentRequest: true,
@@ -1103,35 +1063,38 @@ class DashBoardScreenState extends State<DashBoardScreen>
               pageRouteAnimation: PageRouteAnimation.SlideBottomTop,
             );
           } else {
-            if (value.schedule_ride_request != null &&
-                value.schedule_ride_request!.isNotEmpty) {
+            if (value.schedule_ride_request != null && value.schedule_ride_request!.isNotEmpty) {
               if (value.schedule_ride_request!.first.id == x) {
                 return;
               }
             }
             return toast(rideNotFound);
           }
-        } else if (servicesListData!.status == COMPLETED &&
-            servicesListData!.isRiderRated == 0) {
+        } else if (servicesListData!.status == COMPLETED && servicesListData!.isRiderRated == 0) {
+          // Refresh wallet balance when ride is completed
+          final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+          walletProvider.refresh().catchError((error) {
+            log('Error refreshing wallet after ride completion: $error');
+          });
+
           Future.delayed(
             Duration(seconds: 1),
             () {
-              launchScreen(
-                  getContext,
-                  ReviewScreen(
-                      rideRequest: servicesListData!, driverData: value.driver),
-                  pageRouteAnimation: PageRouteAnimation.SlideBottomTop,
-                  isNewTask: true);
+              launchScreen(getContext, ReviewScreen(rideRequest: servicesListData!, driverData: value.driver),
+                  pageRouteAnimation: PageRouteAnimation.SlideBottomTop, isNewTask: true);
             },
           );
+        } else if (servicesListData!.status == CANCELED) {
+          // Refresh wallet balance when ride is cancelled (in case of refunds)
+          final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+          walletProvider.refresh().catchError((error) {
+            log('Error refreshing wallet after ride cancellation: $error');
+          });
         }
-      } else if (value.payment != null &&
-          value.payment!.paymentStatus != "paid") {
+      } else if (value.payment != null && value.payment!.paymentStatus != "paid") {
         print("222");
-        launchScreen(getContext,
-            RidePaymentDetailScreen(rideId: value.payment!.rideRequestId),
-            pageRouteAnimation: PageRouteAnimation.SlideBottomTop,
-            isNewTask: true);
+        launchScreen(getContext, RidePaymentDetailScreen(rideId: value.payment!.rideRequestId),
+            pageRouteAnimation: PageRouteAnimation.SlideBottomTop, isNewTask: true);
       }
     }).catchError((error, s) {
       log(error.toString() + "::$s");
@@ -1148,8 +1111,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
         currentLocationAddress = "خدمة الموقع غير مفعلة";
         sourceLocationTitle = "خدمة الموقع غير مفعلة";
       });
-      launchScreen(navigatorKey.currentState!.overlay!.context,
-          LocationPermissionScreen());
+      launchScreen(navigatorKey.currentState!.overlay!.context, LocationPermissionScreen());
       return;
     }
 
@@ -1163,8 +1125,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
           currentLocationAddress = "تم رفض أذونات الموقع";
           sourceLocationTitle = "تم رفض أذونات الموقع";
         });
-        launchScreen(navigatorKey.currentState!.overlay!.context,
-            LocationPermissionScreen());
+        launchScreen(navigatorKey.currentState!.overlay!.context, LocationPermissionScreen());
         return;
       }
     }
@@ -1175,8 +1136,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
         currentLocationAddress = "أذونات الموقع مرفوضة نهائياً";
         sourceLocationTitle = "أذونات الموقع مرفوضة نهائياً";
       });
-      launchScreen(navigatorKey.currentState!.overlay!.context,
-          LocationPermissionScreen());
+      launchScreen(navigatorKey.currentState!.overlay!.context, LocationPermissionScreen());
       return;
     }
 
@@ -1184,11 +1144,9 @@ class DashBoardScreenState extends State<DashBoardScreen>
     permissionData = permission;
     await getCurrentUserLocation();
 
-    serviceStatusStream =
-        Geolocator.getServiceStatusStream().listen((ServiceStatus status) {
+    serviceStatusStream = Geolocator.getServiceStatusStream().listen((ServiceStatus status) {
       if (status == ServiceStatus.disabled) {
-        launchScreen(navigatorKey.currentState!.overlay!.context,
-            LocationPermissionScreen());
+        launchScreen(navigatorKey.currentState!.overlay!.context, LocationPermissionScreen());
       } else if (status == ServiceStatus.enabled) {
         getCurrentUserLocation();
         if (locationScreenKey.currentContext != null) {
@@ -1213,8 +1171,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
           position: sourceLocation!,
           draggable: true,
           infoWindow: InfoWindow(title: sourceLocationTitle, snippet: ''),
-          icon: riderIcon ??
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          icon: riderIcon,
         ),
       );
     }
@@ -1240,8 +1197,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
     print("OPERATION222");
     final ui.FrameInfo frameInfo = await codec.getNextFrame();
     print("OPERATION232");
-    final ByteData? byteData =
-        await frameInfo.image.toByteData(format: ui.ImageByteFormat.png);
+    final ByteData? byteData = await frameInfo.image.toByteData(format: ui.ImageByteFormat.png);
     print("OPERATION232");
     final Uint8List resizedBytes = byteData!.buffer.asUint8List();
 
@@ -1253,33 +1209,23 @@ class DashBoardScreenState extends State<DashBoardScreen>
       value.data!.forEach((element) async {
         print("CHECKIMAGE:::${element}");
         try {
-          var driverIcon1 =
-              await getNetworkImageMarker(element.service_marker.validate());
+          var driverIcon1 = await getNetworkImageMarker(element.service_marker.validate());
           markers.add(
             Marker(
               markerId: MarkerId('Driver${element.id}'),
-              position: LatLng(double.parse(element.latitude!.toString()),
-                  double.parse(element.longitude!.toString())),
-              infoWindow: InfoWindow(
-                  title: '${element.firstName} ${element.lastName}',
-                  snippet: ''),
+              position: LatLng(double.parse(element.latitude!.toString()), double.parse(element.longitude!.toString())),
+              infoWindow: InfoWindow(title: '${element.firstName} ${element.lastName}', snippet: ''),
               icon: driverIcon1,
             ),
           );
           setState(() {});
-        } catch (e, s) {
+        } catch (e) {
           markers.add(
             Marker(
-              markerId: MarkerId('Driver${element.id}'),
-              position: LatLng(double.parse(element.latitude!.toString()),
-                  double.parse(element.longitude!.toString())),
-              infoWindow: InfoWindow(
-                  title: '${element.firstName} ${element.lastName}',
-                  snippet: ''),
-              icon: driverIcon ??
-                  BitmapDescriptor.defaultMarkerWithHue(
-                      BitmapDescriptor.hueRed),
-            ),
+                markerId: MarkerId('Driver${element.id}'),
+                position: LatLng(double.parse(element.latitude!.toString()), double.parse(element.longitude!.toString())),
+                infoWindow: InfoWindow(title: '${element.firstName} ${element.lastName}', snippet: ''),
+                icon: driverIcon),
           );
           setState(() {});
         }
@@ -1297,8 +1243,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
     }
 
     // Get the full formatted address for current location
-    String currentLocationFullAddress =
-        currentLocationAddress ?? sourceLocationTitle ?? "موقعك الحالي";
+    String currentLocationFullAddress = currentLocationAddress ?? sourceLocationTitle;
 
     // Show destination selection modal
     final result = await showModalBottomSheet<Map<String, dynamic>>(
@@ -1362,9 +1307,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
         body: Stack(
           children: [
             // Map as primary element with loading state
-            sourceLocation == null &&
-                    (sharedPref.getDouble(LATITUDE) == null ||
-                        sharedPref.getDouble(LONGITUDE) == null)
+            sourceLocation == null && (sharedPref.getDouble(LATITUDE) == null || sharedPref.getDouble(LONGITUDE) == null)
                 ? Container(
                     color: Colors.grey[300],
                     child: Center(
@@ -1373,8 +1316,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
                         children: [
                           if (isLocationLoading)
                             CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppColors.primary),
+                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                             )
                           else
                             Icon(
@@ -1384,9 +1326,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
                             ),
                           SizedBox(height: 16),
                           Text(
-                            isLocationLoading
-                                ? 'جاري تحديد موقعك...'
-                                : _getDisplayAddress(),
+                            isLocationLoading ? 'جاري تحديد موقعك...' : _getDisplayAddress(),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -1418,8 +1358,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 12),
+                                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                               ),
                               child: Text(
                                 'إعادة المحاولة',
@@ -1464,8 +1403,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
                       if (sourceLocation != null) {
                         await Future.delayed(Duration(milliseconds: 500));
                         await controller.animateCamera(
-                          CameraUpdate.newLatLngZoom(
-                              sourceLocation!, cameraZoom),
+                          CameraUpdate.newLatLngZoom(sourceLocation!, cameraZoom),
                         );
                       }
                     },
@@ -1502,11 +1440,10 @@ class DashBoardScreenState extends State<DashBoardScreen>
                             Container(
                               padding: EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
+                                color: AppColors.primary.withAlpha(25),
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(Icons.location_on,
-                                  color: AppColors.primary, size: 22),
+                              child: Icon(Icons.location_on, color: AppColors.primary, size: 22),
                             ),
                             SizedBox(width: 16),
                             Expanded(
@@ -1525,10 +1462,9 @@ class DashBoardScreenState extends State<DashBoardScreen>
                                   Text(
                                     _getDisplayAddress(),
                                     style: TextStyle(
-                                      color:
-                                          _getDisplayAddress() == "موقعك الحالي"
-                                              ? Colors.grey.shade500
-                                              : Colors.grey.shade700,
+                                      color: _getDisplayAddress() == "موقعك الحالي"
+                                          ? Colors.grey.shade500
+                                          : Colors.grey.shade700,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
                                       height: 1.3,
@@ -1545,8 +1481,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      AppColors.primary),
+                                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                                 ),
                               ),
                           ],
@@ -1580,17 +1515,15 @@ class DashBoardScreenState extends State<DashBoardScreen>
                                 Container(
                                   padding: EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: AppColors.primary.withOpacity(0.1),
+                                    color: AppColors.primary.withAlpha(25),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Icon(Icons.search,
-                                      color: AppColors.primary, size: 22),
+                                  child: Icon(Icons.search, color: AppColors.primary, size: 22),
                                 ),
                                 SizedBox(width: 16),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'الوجهة',
@@ -1602,17 +1535,11 @@ class DashBoardScreenState extends State<DashBoardScreen>
                                       ),
                                       SizedBox(height: 4),
                                       Text(
-                                        selectedDestination ??
-                                            language.enterYourDestination,
+                                        selectedDestination ?? language.enterYourDestination,
                                         style: TextStyle(
-                                          color: selectedDestination != null
-                                              ? Colors.grey.shade800
-                                              : Colors.grey.shade500,
+                                          color: selectedDestination != null ? Colors.grey.shade800 : Colors.grey.shade500,
                                           fontSize: 16,
-                                          fontWeight:
-                                              selectedDestination != null
-                                                  ? FontWeight.w600
-                                                  : FontWeight.w500,
+                                          fontWeight: selectedDestination != null ? FontWeight.w600 : FontWeight.w500,
                                           height: 1.3,
                                         ),
                                         maxLines: 2,
@@ -1624,7 +1551,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
                                 Container(
                                   padding: EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: AppColors.primary.withOpacity(0.1),
+                                    color: AppColors.primary.withAlpha(25),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -1662,7 +1589,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withAlpha(25),
                             blurRadius: 10,
                             offset: Offset(0, 2),
                           ),
@@ -1687,69 +1614,53 @@ class DashBoardScreenState extends State<DashBoardScreen>
 
                               try {
                                 // First try with high accuracy
-                                geoPosition =
-                                    await Geolocator.getCurrentPosition(
+                                geoPosition = await Geolocator.getCurrentPosition(
                                   timeLimit: Duration(seconds: 10),
                                   desiredAccuracy: LocationAccuracy.high,
                                 );
-                                print(
-                                    "✅ Manual refresh: Got high accuracy position");
+                                print("✅ Manual refresh: Got high accuracy position");
                               } catch (e) {
-                                print(
-                                    "⚠️ Manual refresh: High accuracy failed, trying medium: $e");
+                                print("⚠️ Manual refresh: High accuracy failed, trying medium: $e");
                                 try {
                                   // Fallback to medium accuracy
-                                  geoPosition =
-                                      await Geolocator.getCurrentPosition(
+                                  geoPosition = await Geolocator.getCurrentPosition(
                                     timeLimit: Duration(seconds: 8),
                                     desiredAccuracy: LocationAccuracy.medium,
                                   );
-                                  print(
-                                      "✅ Manual refresh: Got medium accuracy position");
+                                  print("✅ Manual refresh: Got medium accuracy position");
                                 } catch (e2) {
-                                  print(
-                                      "⚠️ Manual refresh: Medium failed, trying last known: $e2");
+                                  print("⚠️ Manual refresh: Medium failed, trying last known: $e2");
                                   // Try last known position
-                                  Position? lastPosition =
-                                      await Geolocator.getLastKnownPosition();
+                                  Position? lastPosition = await Geolocator.getLastKnownPosition();
                                   if (lastPosition != null) {
                                     geoPosition = lastPosition;
-                                    print(
-                                        "✅ Manual refresh: Got last known position");
+                                    print("✅ Manual refresh: Got last known position");
                                   } else {
                                     throw Exception("No location available");
                                   }
                                 }
                               }
 
-                              final currentLocation = LatLng(
-                                  geoPosition.latitude, geoPosition.longitude);
-                              print(
-                                  "📍 Manual refresh: New location: ${geoPosition.latitude}, ${geoPosition.longitude}");
+                              final currentLocation = LatLng(geoPosition.latitude, geoPosition.longitude);
+                              print("📍 Manual refresh: New location: ${geoPosition.latitude}, ${geoPosition.longitude}");
 
                               // Update global sourceLocation
                               sourceLocation = currentLocation;
 
                               // Save to SharedPreferences
-                              sharedPref.setDouble(
-                                  LATITUDE, geoPosition.latitude);
-                              sharedPref.setDouble(
-                                  LONGITUDE, geoPosition.longitude);
+                              sharedPref.setDouble(LATITUDE, geoPosition.latitude);
+                              sharedPref.setDouble(LONGITUDE, geoPosition.longitude);
 
                               // Get updated address
                               try {
                                 print("🔍 Manual refresh: Getting address...");
                                 String fullAddress =
-                                    await _getFullAddressFromCoordinates(
-                                        geoPosition.latitude,
-                                        geoPosition.longitude);
-                                print(
-                                    "📍 Manual refresh: New address: $fullAddress");
+                                    await _getFullAddressFromCoordinates(geoPosition.latitude, geoPosition.longitude);
+                                print("📍 Manual refresh: New address: $fullAddress");
                                 currentLocationAddress = fullAddress;
                                 sourceLocationTitle = fullAddress;
                               } catch (e) {
-                                print(
-                                    "❌ Manual refresh: Error getting placemark: $e");
+                                print("❌ Manual refresh: Error getting placemark: $e");
                                 currentLocationAddress = "موقعك الحالي";
                                 sourceLocationTitle = "موقعك الحالي";
                               }
@@ -1757,8 +1668,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
                               // Move map camera
                               if (mapController != null) {
                                 await mapController!.animateCamera(
-                                  CameraUpdate.newLatLngZoom(
-                                      currentLocation, cameraZoom),
+                                  CameraUpdate.newLatLngZoom(currentLocation, cameraZoom),
                                 );
                                 print("🗺️ Manual refresh: Map camera updated");
                               }
@@ -1777,18 +1687,15 @@ class DashBoardScreenState extends State<DashBoardScreen>
 
                               // Don't show error message, just use default location
                               if (sourceLocation == null) {
-                                sourceLocation = LatLng(
-                                    24.7136, 46.6753); // Default to Riyadh
+                                sourceLocation = LatLng(24.7136, 46.6753); // Default to Riyadh
                                 polylineSource = sourceLocation!;
                                 addMarker();
                               }
 
                               // Fallback to existing location if available
-                              if (sourceLocation != null &&
-                                  mapController != null) {
+                              if (sourceLocation != null && mapController != null) {
                                 mapController!.animateCamera(
-                                  CameraUpdate.newLatLngZoom(
-                                      sourceLocation!, cameraZoom),
+                                  CameraUpdate.newLatLngZoom(sourceLocation!, cameraZoom),
                                 );
                               }
                             }
@@ -1799,12 +1706,10 @@ class DashBoardScreenState extends State<DashBoardScreen>
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        AppColors.primary),
+                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                                   ),
                                 )
-                              : Icon(Icons.my_location,
-                                  color: AppColors.primary),
+                              : Icon(Icons.my_location, color: AppColors.primary),
                         ),
                       ),
                     ),
@@ -1828,8 +1733,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
                         launchScreen(context, ScheduleRideListScreen());
                       },
                       child: Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
@@ -1847,11 +1751,10 @@ class DashBoardScreenState extends State<DashBoardScreen>
                             Container(
                               padding: EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
+                                color: AppColors.primary.withAlpha(25),
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(Icons.schedule,
-                                  color: AppColors.primary, size: 24),
+                              child: Icon(Icons.schedule, color: AppColors.primary, size: 24),
                             ),
                             SizedBox(width: 16),
                             Expanded(
@@ -1880,11 +1783,10 @@ class DashBoardScreenState extends State<DashBoardScreen>
                             Container(
                               padding: EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
+                                color: AppColors.primary.withAlpha(25),
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(Icons.arrow_forward,
-                                  color: AppColors.primary, size: 20),
+                              child: Icon(Icons.arrow_forward, color: AppColors.primary, size: 20),
                             ),
                           ],
                         ),
@@ -1934,8 +1836,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
                     color: Colors.grey.shade200,
                     shape: BoxShape.circle,
                   ),
-                  child:
-                      Icon(Icons.close, size: 20, color: Colors.grey.shade700),
+                  child: Icon(Icons.close, size: 20, color: Colors.grey.shade700),
                 ),
               ),
             ],
@@ -2017,9 +1918,8 @@ class DashBoardScreenState extends State<DashBoardScreen>
     _panelAnimationController.dispose();
     _quickActionAnimationController.dispose();
     _headerAnimationController.dispose();
-    if (serviceStatusStream != null) {
-      serviceStatusStream.cancel();
-    }
+    serviceStatusStream.cancel();
+
     super.dispose();
   }
 }

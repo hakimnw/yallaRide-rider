@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taxi_booking/utils/Constants.dart';
+import 'package:taxi_booking/main.dart';
 import 'package:taxi_booking/utils/core/constant/app_colors.dart';
 import 'package:taxi_booking/utils/core/constant/styles/app_text_style.dart';
 import 'package:taxi_booking/utils/core/widget/app_input_fields/app_text_form_field.dart';
 import 'package:taxi_booking/utils/core/widget/appbar/back_app_bar.dart';
 import 'package:taxi_booking/utils/core/widget/buttons/app_buttons.dart';
-import 'package:taxi_booking/main.dart';
+
 import '../../../../../utils/core/utils/responsive_vertical_space.dart';
 
 class AccountEmailScreen extends StatefulWidget {
@@ -61,7 +61,7 @@ class _AccountNameScreenState extends State<AccountEmailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('تم تحديث البريد الإلكتروني بنجاح'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.primary,
           ),
         );
         Navigator.pop(context);

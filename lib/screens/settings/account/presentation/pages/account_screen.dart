@@ -4,9 +4,6 @@ import 'package:taxi_booking/screens/settings/account/presentation/widgets/accou
 import 'package:taxi_booking/utils/core/constant/app_colors.dart';
 import 'package:taxi_booking/utils/core/utils/responsive_vertical_space.dart';
 import 'package:taxi_booking/utils/core/widget/appbar/home_screen_app_bar.dart';
-import 'package:taxi_booking/utils/core/widget/shared/custom_navigation_bar.dart';
-
-import '../../../help/app_bar/search_field.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});

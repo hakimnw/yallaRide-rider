@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:http/http.dart' as http;
-import 'package:internet_file/internet_file.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+
 // import 'package:pdfx/pdfx.dart' as pdf;
 // import 'package:pdfx/pdfx.dart';
 
@@ -61,14 +61,12 @@ class _PDFViewerState extends State<PDFViewer> {
         } else {
           path = "/storage/emulated/0/Download";
         }
-        String fileName = widget.filename.validate().isEmpty
-            ? "invoice"
-            : widget.filename.validate();
+        String fileName = widget.filename.validate().isEmpty ? "invoice" : widget.filename.validate();
         File file = File('${path}/${fileName}.pdf');
         await file.writeAsBytes(bytes, flush: true);
         appStore.setLoading(false);
         toast("invoice downloaded at ${file.path}");
-        final url = 'content://${file.path}';
+        // final url = 'content://${file.path}';
         final filef = File(file.path);
         if (await filef.exists()) {
           OpenFile.open(file.path);
@@ -130,18 +128,15 @@ class _PDFViewerState extends State<PDFViewer> {
                 children: [
                   Icon(Icons.picture_as_pdf, size: 80, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text("لا يوجد عرض PDF متاح حالياً.",
-                      style: boldTextStyle(size: 18)),
+                  Text("لا يوجد عرض PDF متاح حالياً.", style: boldTextStyle(size: 18)),
                   SizedBox(height: 8),
-                  Text("يرجى استخدام زر التحميل لعرض الفاتورة.",
-                      style: primaryTextStyle()),
+                  Text("يرجى استخدام زر التحميل لعرض الفاتورة.", style: primaryTextStyle()),
                 ],
               ),
             ),
             Observer(
-                builder: (context) => Visibility(
-                    visible: appStore.isLoading,
-                    child: Positioned.fill(child: loaderWidget()))),
+                builder: (context) =>
+                    Visibility(visible: appStore.isLoading, child: Positioned.fill(child: loaderWidget()))),
           ],
         ));
   }

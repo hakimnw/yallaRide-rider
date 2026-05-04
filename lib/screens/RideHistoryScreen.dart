@@ -58,7 +58,10 @@ class RideHistoryScreenState extends State<RideHistoryScreen> {
               indicator: Container(
                 padding: EdgeInsets.all(8),
                 child: ImageIcon(AssetImage(statusTypeIcon(type: mData.historyType)), color: Colors.black),
-                decoration: BoxDecoration(color: Colors.transparent, border: Border.all(color: dividerColor.withOpacity(0.5)), borderRadius: radius()),
+                decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    border: Border.all(color: dividerColor.withAlpha(127)),
+                    borderRadius: radius()),
               ),
             ),
             afterLineStyle: LineStyle(color: primaryColor, thickness: 1),

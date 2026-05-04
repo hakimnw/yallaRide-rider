@@ -5,10 +5,7 @@ import 'package:taxi_booking/screens/ChangePasswordScreen.dart';
 import 'package:taxi_booking/screens/settings/account/presentation/pages/account_Phone_screen.dart';
 import 'package:taxi_booking/screens/settings/account/presentation/pages/account_email_screen.dart';
 import 'package:taxi_booking/screens/settings/account/presentation/pages/account_name_screen.dart';
-import 'package:taxi_booking/screens/settings/account/presentation/pages/account_password_screen.dart';
 import 'package:taxi_booking/screens/settings/settings_screen/presentation/widgets/list_title_widget.dart';
-import 'package:taxi_booking/utils/core/app_routes/navigation_service.dart';
-import 'package:taxi_booking/utils/core/app_routes/router_names.dart';
 import 'package:taxi_booking/utils/core/constant/app_icons.dart';
 import 'package:taxi_booking/utils/core/constant/styles/app_text_style.dart';
 import 'package:taxi_booking/utils/core/utils/responsive_vertical_space.dart';
@@ -44,8 +41,7 @@ class AccountMainContent extends StatelessWidget {
                 title: "الاسم",
                 leading: SvgPicture.asset(AppIcons.teenyId),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const AccountNameScreen()));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const AccountNameScreen()));
                 },
               ),
               const Divider(
@@ -55,8 +51,7 @@ class AccountMainContent extends StatelessWidget {
               ),
               CustomListTitleWidget(
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const AccountPhoneScreen()));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const AccountPhoneScreen()));
                 },
                 title: "رقم الهاتف",
                 leading: SvgPicture.asset(AppIcons.phone),
@@ -68,8 +63,7 @@ class AccountMainContent extends StatelessWidget {
               ),
               CustomListTitleWidget(
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const AccountEmailScreen()));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const AccountEmailScreen()));
                 },
                 title: "البريد الالكتروني",
                 leading: Icon(
@@ -87,8 +81,7 @@ class AccountMainContent extends StatelessWidget {
                 title: "الرقم السري",
                 leading: SvgPicture.asset(AppIcons.lockPassword),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => ChangePasswordScreen()));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChangePasswordScreen()));
                 },
               ),
               const Divider(
@@ -100,8 +93,7 @@ class AccountMainContent extends StatelessWidget {
                 title: "تعديل الصوره",
                 leading: SvgPicture.asset(AppIcons.user),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => EditProfileScreen()));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => EditProfileScreen()));
                 },
               )
             ],

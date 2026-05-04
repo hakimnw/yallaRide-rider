@@ -11,7 +11,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
+import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
 import '/model/FileModel.dart';
 import '../network/RestApis.dart';
@@ -24,6 +27,7 @@ import 'languageConfiguration/LanguageDefaultJson.dart';
 import 'languageConfiguration/ServerLanguageResponse.dart';
 import 'screens/NoInternetScreen.dart';
 import 'screens/SplashScreen.dart';
+import 'screens/settings/wallet_screens/presentation/providers/wallet_provider.dart';
 import 'service/ChatMessagesService.dart';
 import 'service/NotificationService.dart';
 import 'service/UserServices.dart';
@@ -33,8 +37,6 @@ import 'utils/Colors.dart';
 import 'utils/Common.dart';
 import 'utils/Constants.dart';
 import 'utils/Extensions/app_common.dart';
-import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
-import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
 LanguageJsonData? selectedServerLanguageData;
 List<LanguageJsonData>? defaultServerLanguageData = [];
@@ -89,18 +91,13 @@ void main() async {
     }
   }
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  appStore.setLanguage(
-      sharedPref.getString(SELECTED_LANGUAGE_CODE) ?? defaultLanguageCode);
-  await appStore.setLoggedIn(sharedPref.getBool(IS_LOGGED_IN) ?? false,
-      isInitializing: true);
-  await appStore.setUserEmail(sharedPref.getString(USER_EMAIL) ?? '',
-      isInitialization: true);
-  await appStore.setUserName(sharedPref.getString(USER_NAME) ?? '',
-      isInitialization: true);
+  appStore.setLanguage(sharedPref.getString(SELECTED_LANGUAGE_CODE) ?? defaultLanguageCode);
+  await appStore.setLoggedIn(sharedPref.getBool(IS_LOGGED_IN) ?? false, isInitializing: true);
+  await appStore.setUserEmail(sharedPref.getString(USER_EMAIL) ?? '', isInitialization: true);
+  await appStore.setUserName(sharedPref.getString(USER_NAME) ?? '', isInitialization: true);
   await appStore.setFirstName(sharedPref.getString(FIRST_NAME) ?? '');
   await appStore.setUserProfile(sharedPref.getString(USER_PROFILE_PHOTO) ?? '');
-  await appStore.setUserPhone(sharedPref.getString(CONTACT_NUMBER) ?? '',
-      isInitialization: true);
+  await appStore.setUserPhone(sharedPref.getString(CONTACT_NUMBER) ?? '', isInitialization: true);
   try {
     initJsonFile();
   } catch (e) {}
@@ -110,33 +107,15 @@ void main() async {
 
   // Initialize Zego Cloud SDK for video/voice calling with proper setup
   try {
-    print("${DateTime.now()}: Setting up Zego Cloud SDK...");
-
-    // Call useSystemCallingUI as per official documentation
+    // Zego Cloud SDK setup (logs removed for production)
     ZegoUIKitPrebuiltCallInvitationService().useSystemCallingUI(
       [ZegoUIKitSignalingPlugin()],
     );
-
-    print("${DateTime.now()}: Zego system calling UI enabled");
-
-    // Initialize the SDK
     final zegoInitSuccess = await zegoService.initializeZegoSDK();
     if (zegoInitSuccess) {
-      print("${DateTime.now()}: Zego SDK initialized successfully");
-
-      // Auto-login if user is already authenticated
       if (appStore.isLoggedIn) {
-        print(
-            "${DateTime.now()}: User is authenticated, attempting Zego auto-login...");
-        final zegoLoginSuccess = await zegoService.autoLoginIfAuthenticated();
-        if (zegoLoginSuccess) {
-          print("${DateTime.now()}: Zego auto-login successful");
-        } else {
-          print("${DateTime.now()}: Zego auto-login failed");
-        }
+        await zegoService.autoLoginIfAuthenticated();
       }
-    } else {
-      print("${DateTime.now()}: Zego SDK initialization failed");
     }
   } catch (e) {
     print("${DateTime.now()}: Error initializing Zego: $e");
@@ -158,19 +137,31 @@ void main() async {
     //   runApp(CustomErrorView(details));
     // }
   };
-  print("CheckPlayerID:::${sharedPref.getString(PLAYER_ID)}");
+  // print("CheckPlayerID:::${sharedPref.getString(PLAYER_ID)}"); // Debug log removed
   runApp(MyApp());
 }
 
 Future<void> updatePlayerId() async {
-  Map req = {
-    "player_id": sharedPref.getString(PLAYER_ID),
-  };
-  updateStatus(req).then((value) {
-    //
-  }).catchError((error) {
-    //
-  });
+  try {
+    Map req = {
+      "player_id": sharedPref.getString(PLAYER_ID),
+    };
+    await updateStatus(req).timeout(
+      Duration(seconds: 45),
+      onTimeout: () {
+        // Only log on error
+        print("UpdatePlayerId: Timeout after 45s, will retry in background");
+        Future.delayed(Duration(seconds: 60), () {
+          updatePlayerId();
+        });
+        throw TimeoutException('Player ID update timeout');
+      },
+    );
+    // Success log removed for production
+  } catch (error) {
+    print("UpdatePlayerId: Error - $error (non-critical, will retry later)");
+    // Non-critical error, app continues normally
+  }
 }
 
 class MyApp extends StatefulWidget {
@@ -197,8 +188,7 @@ class _MyAppState extends State<MyApp> {
     connectivitySubscription = Connectivity().onConnectivityChanged.listen((e) {
       if (e.contains(ConnectivityResult.none)) {
         log('not connected');
-        launchScreen(
-            navigatorKey.currentState!.overlay!.context, NoInternetScreen());
+        launchScreen(navigatorKey.currentState!.overlay!.context, NoInternetScreen());
       } else {
         if (netScreenKey.currentContext != null) {
           if (Navigator.canPop(navigatorKey.currentState!.overlay!.context)) {
@@ -214,28 +204,32 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return Observer(builder: (context) {
       return zegoService.getCallInvitationWidget(
-        child: MaterialApp(
-          navigatorKey: navigatorKey,
-          debugShowCheckedModeBanner: false,
-          title: mAppName,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: appStore.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-          builder: (context, child) {
-            return ScrollConfiguration(behavior: MyBehavior(), child: child!);
-          },
-          home: SplashScreen(),
-          supportedLocales: getSupportedLocales(),
-          locale: Locale(
-              appStore.selectedLanguage.validate(value: defaultLanguageCode)),
-          localizationsDelegates: [
-            AppLocalizations(),
-            CountryLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
+        child: MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => WalletProvider()..fetchWallet()),
           ],
-          localeResolutionCallback: (locale, supportedLocales) => locale,
+          child: MaterialApp(
+            navigatorKey: navigatorKey,
+            debugShowCheckedModeBanner: false,
+            title: mAppName,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: appStore.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            builder: (context, child) {
+              return ScrollConfiguration(behavior: MyBehavior(), child: child!);
+            },
+            home: SplashScreen(),
+            supportedLocales: getSupportedLocales(),
+            locale: Locale(appStore.selectedLanguage.validate(value: defaultLanguageCode)),
+            localizationsDelegates: [
+              AppLocalizations(),
+              CountryLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            localeResolutionCallback: (locale, supportedLocales) => locale,
+          ),
         ),
       );
     });
@@ -244,8 +238,10 @@ class _MyAppState extends State<MyApp> {
 
 class MyBehavior extends ScrollBehavior {
   @override
-  Widget buildOverscrollIndicator(
-      BuildContext context, Widget child, ScrollableDetails details) {
+  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
     return child;
   }
 }
+
+// show the price of the selected option only
+// الشروط والأحكام

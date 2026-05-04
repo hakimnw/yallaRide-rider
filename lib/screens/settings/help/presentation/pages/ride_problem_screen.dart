@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:taxi_booking/screens/settings/help/presentation/widgets/ride_problems_widget.dart';
 import 'package:taxi_booking/utils/core/constant/app_colors.dart';
 import 'package:taxi_booking/utils/core/widget/appbar/back_app_bar.dart';
-import 'package:taxi_booking/utils/core/widget/shared/custom_navigation_bar.dart';
-import 'package:taxi_booking/screens/settings/help/presentation/widgets/ride_problems_widget.dart';
 
 class RideProblemScreen extends StatelessWidget {
   const RideProblemScreen({super.key});

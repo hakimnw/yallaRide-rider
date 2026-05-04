@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../utils/constant/app_colors.dart';
+
 class DriverAcceptanceNotification extends StatefulWidget {
   final String? driverName;
   final VoidCallback? onDismiss;
@@ -12,12 +14,10 @@ class DriverAcceptanceNotification extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _DriverAcceptanceNotificationState createState() =>
-      _DriverAcceptanceNotificationState();
+  _DriverAcceptanceNotificationState createState() => _DriverAcceptanceNotificationState();
 }
 
-class _DriverAcceptanceNotificationState
-    extends State<DriverAcceptanceNotification> with TickerProviderStateMixin {
+class _DriverAcceptanceNotificationState extends State<DriverAcceptanceNotification> with TickerProviderStateMixin {
   late AnimationController _slideController;
   late AnimationController _scaleController;
   late AnimationController _pulseController;
@@ -140,9 +140,8 @@ class _DriverAcceptanceNotificationState
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Color(0xFF4CAF50),
-                      Color(0xFF45A049),
-                      Color(0xFF2E7D32),
+                      AppColors.primary,
+                      AppColors.darkPrimary,
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -150,7 +149,7 @@ class _DriverAcceptanceNotificationState
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withAlpha(76),
                       blurRadius: 20,
                       spreadRadius: 2,
                       offset: Offset(0, 10),
@@ -175,7 +174,7 @@ class _DriverAcceptanceNotificationState
                             width: 60,
                             height: 60,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withAlpha(51),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -205,18 +204,17 @@ class _DriverAcceptanceNotificationState
                           Text(
                             "لقد قبل السائق طلبك",
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withAlpha(226),
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          if (widget.driverName != null &&
-                              widget.driverName!.isNotEmpty) ...[
+                          if (widget.driverName != null && widget.driverName!.isNotEmpty) ...[
                             SizedBox(height: 8),
                             Text(
                               "السائق: ${widget.driverName}",
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withAlpha(201),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w400,
                               ),
@@ -226,7 +224,7 @@ class _DriverAcceptanceNotificationState
                             Text(
                               "يرجى اختيار السائق المناسب لرحلتك",
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withAlpha(201),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w400,
                               ),
@@ -239,7 +237,7 @@ class _DriverAcceptanceNotificationState
                       onPressed: _dismiss,
                       icon: Icon(
                         Icons.close,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withAlpha(201),
                         size: 20,
                       ),
                     ),
@@ -300,7 +298,7 @@ void showDriverAcceptanceNotification(
     ),
   );
 
-  Overlay.of(context)?.insert(overlayEntry);
+  Overlay.of(context).insert(overlayEntry);
 
   // Auto remove after duration
   Future.delayed(duration, () {

@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../constant/app_colors.dart';
+
 class CustomTextField extends StatelessWidget {
-  const CustomTextField({
-    super.key,
-    required this.hintText,
-    this.icon,
-    this.margin,
-    this.padding,
-  });
+  const CustomTextField({super.key, required this.hintText, this.icon, this.margin, this.padding});
 
   final String hintText;
   final Widget? icon;
@@ -23,14 +19,7 @@ class CustomTextField extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x26000000),
-            blurRadius: 4,
-            offset: Offset(0, 0),
-            spreadRadius: 0,
-          ),
-        ],
+        boxShadow: const [BoxShadow(color: AppColors.black, blurRadius: 4, offset: Offset(0, 0), spreadRadius: 0)],
       ),
       child: TextField(
         onTap: null,
@@ -39,7 +28,7 @@ class CustomTextField extends StatelessWidget {
           border: InputBorder.none,
           hintText: hintText,
           hintStyle: const TextStyle(
-            color: Color(0xFFB0B0B0),
+            color: AppColors.gray,
             fontSize: 16,
             fontFamily: 'Tajawal',
             fontWeight: FontWeight.w400,

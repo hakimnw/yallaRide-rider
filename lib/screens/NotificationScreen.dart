@@ -52,19 +52,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import '../../main.dart';
 import '../../network/RestApis.dart';
-import '../../utils/constant/app_colors.dart';
 import '../../utils/Common.dart';
 import '../../utils/Extensions/app_common.dart';
+import '../../utils/constant/app_colors.dart';
 import '../model/NotificationListModel.dart';
 import '../screens/ComplaintListScreen.dart';
 import '../utils/Constants.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
 import 'RideDetailScreen.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -72,8 +69,7 @@ class NotificationScreen extends StatefulWidget {
   NotificationScreenState createState() => NotificationScreenState();
 }
 
-class NotificationScreenState extends State<NotificationScreen>
-    with TickerProviderStateMixin {
+class NotificationScreenState extends State<NotificationScreen> with TickerProviderStateMixin {
   ScrollController scrollController = ScrollController();
   int currentPage = 1;
   late AnimationController _fadeController;
@@ -105,8 +101,7 @@ class NotificationScreenState extends State<NotificationScreen>
 
     init();
     scrollController.addListener(() {
-      if (scrollController.position.pixels ==
-          scrollController.position.maxScrollExtent) {
+      if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
         if (!mIsLastPage) {
           appStore.setLoading(true);
           currentPage++;
@@ -199,8 +194,7 @@ class NotificationScreenState extends State<NotificationScreen>
                               child: SlideAnimation(
                                 horizontalOffset: 50.0,
                                 child: FadeInAnimation(
-                                  child: _buildNotificationItem(
-                                      filteredNotifications[index]),
+                                  child: _buildNotificationItem(filteredNotifications[index]),
                                 ),
                               ),
                             );
@@ -232,7 +226,7 @@ class NotificationScreenState extends State<NotificationScreen>
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 10,
             offset: Offset(0, 2),
           ),
@@ -244,11 +238,9 @@ class NotificationScreenState extends State<NotificationScreen>
           borderRadius: BorderRadius.circular(12),
           onTap: () {
             if (data.data!.type == COMPLAIN_COMMENT) {
-              launchScreen(context,
-                  ComplaintListScreen(complaint: data.data!.complaintId ?? 0));
+              launchScreen(context, ComplaintListScreen(complaint: data.data!.complaintId ?? 0));
             } else if (data.data!.subject == 'Completed') {
-              launchScreen(
-                  context, RideDetailScreen(orderId: data.data!.id ?? 0));
+              launchScreen(context, RideDetailScreen(orderId: data.data!.id ?? 0));
             }
           },
           child: Padding(
@@ -261,7 +253,7 @@ class NotificationScreenState extends State<NotificationScreen>
                   height: 70,
                   decoration: BoxDecoration(
                       /*     color: getNotificationIconColor(data.data?.type)
-                        .withOpacity(0.1), */
+                        .withAlpha(25), */
                       //borderRadius: BorderRadius.circular(15),
                       ),
                   child: ClipRRect(
@@ -356,7 +348,7 @@ class NotificationScreenState extends State<NotificationScreen>
       case NEW_RIDE_REQUESTED:
         return Colors.blue;
       case COMPLETED:
-        return Colors.green;
+        return AppColors.primary;
       case CANCELED:
         return Colors.red;
       case COMPLAIN_COMMENT:

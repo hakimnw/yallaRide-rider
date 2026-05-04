@@ -1,30 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:taxi_booking/screens/DashBoardScreen.dart';
 import 'package:taxi_booking/screens/MainScreen.dart';
 
-import '../components/SearchLocationComponent.dart';
-import '../components/ModernAppBar.dart';
 import '../main.dart';
-import '../model/ServiceModel.dart';
-import '../model/AppSettingModel.dart';
+import '../model/LoginResponse.dart';
 import '../model/RiderModel.dart';
+import '../model/ServiceModel.dart';
 import '../network/RestApis.dart';
+import '../screens/RideDetailScreen.dart';
 import '../utils/Constants.dart';
 import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/context_extension.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
-import '../utils/Common.dart';
 import '../utils/constant/app_colors.dart';
-import 'NewEstimateRideListWidget.dart';
-import 'NotificationScreen.dart';
 import 'ChatScreen.dart';
-import '../model/LoginResponse.dart';
-import '../screens/RideDetailScreen.dart';
+import 'NotificationScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -47,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _pulseAnimation;
-  late Animation<double> _floatingAnimation;
+  // late Animation<double> _floatingAnimation;
 
   @override
   void initState() {
@@ -110,15 +101,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ),
     );
 
-    _floatingAnimation = Tween<double>(
-      begin: -5.0,
-      end: 5.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _floatingController,
-        curve: Curves.easeInOut,
-      ),
-    );
+    // _floatingAnimation = Tween<double>(
+    //   begin: -5.0,
+    //   end: 5.0,
+    // ).animate(
+    //   CurvedAnimation(
+    //     parent: _floatingController,
+    //     curve: Curves.easeInOut,
+    //   ),
+    // );
   }
 
   @override
@@ -168,8 +159,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
       // جلب جميع الرحلات من جميع الصفحات
       while (hasMorePages) {
-        final pageValue = await getRiderRequestList(
-            page: currentPage, status: COMPLETED, riderId: userId);
+        final pageValue = await getRiderRequestList(page: currentPage, status: COMPLETED, riderId: userId);
 
         if (pageValue.data != null && pageValue.data!.isNotEmpty) {
           allRides.addAll(pageValue.data!);
@@ -271,8 +261,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               child: Padding(
                                 padding: EdgeInsets.fromLTRB(20, 30, 20, 16),
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       'العروض الخاصة',
@@ -291,7 +280,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       ),
                                       child: Icon(
                                         Icons.local_offer_rounded,
-                                        color: Color(0xFF43A047),
+                                        color: AppColors.primary,
                                         size: 18,
                                       ),
                                     ),
@@ -309,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     borderRadius: BorderRadius.circular(20),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
+                                        color: Colors.black.withAlpha(25),
                                         blurRadius: 15,
                                         offset: Offset(0, 5),
                                       ),
@@ -348,31 +337,31 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildEnhancedBackground() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.primary,
-            AppColors.primary.withOpacity(0.8),
-            Colors.white,
-          ],
-          stops: [0.0, 0.3, 0.6],
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/assets/images/backgroundFrame.png'),
-            fit: BoxFit.cover,
-            opacity: 0.1,
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildEnhancedBackground() {
+  //   return Container(
+  //     decoration: BoxDecoration(
+  //       gradient: LinearGradient(
+  //         begin: Alignment.topCenter,
+  //         end: Alignment.bottomCenter,
+  //         colors: [
+  //           AppColors.primary,
+  //           AppColors.primary.withAlpha(201),
+  //           Colors.white,
+  //         ],
+  //         stops: [0.0, 0.3, 0.6],
+  //       ),
+  //     ),
+  //     child: Container(
+  //       decoration: BoxDecoration(
+  //         image: DecorationImage(
+  //           image: AssetImage('assets/assets/images/backgroundFrame.png'),
+  //           fit: BoxFit.cover,
+  //           opacity: 0.1,
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildLoadingState() {
     return Container(
@@ -394,7 +383,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withAlpha(25),
                     blurRadius: 20,
                     spreadRadius: 5,
                   ),
@@ -403,8 +392,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               child: Column(
                 children: [
                   CircularProgressIndicator(
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                     strokeWidth: 3,
                   ),
                   SizedBox(height: 20),
@@ -461,7 +449,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.black.withAlpha(51),
                               blurRadius: 10,
                               offset: Offset(0, 3),
                             ),
@@ -471,8 +459,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           child: Image.network(
                             appStore.userProfile,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(
+                            errorBuilder: (context, error, stackTrace) => Container(
                               color: Colors.white,
                               child: Icon(
                                 Icons.person,
@@ -489,7 +476,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'اهلا بك في مسارك',
+                            'اهلا بك في YallahRide',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 14,
@@ -512,7 +499,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             'مرحباً بك',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withAlpha(226),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -562,7 +549,7 @@ class HomeScreenAppBar extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'اهلا بك في مسارك',
+                    'اهلا بك في YallahRide',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -606,15 +593,13 @@ class HomeScreenAppBar extends StatelessWidget {
                     animation: _pulseAnimation,
                     builder: (context, child) {
                       return Transform.scale(
-                        scale: unreadNotifications > 0
-                            ? _pulseAnimation.value
-                            : 1.0,
+                        scale: unreadNotifications > 0 ? _pulseAnimation.value : 1.0,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withAlpha(51),
                             borderRadius: BorderRadius.circular(15),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
+                              color: Colors.white.withAlpha(76),
                               width: 1,
                             ),
                           ),
@@ -683,117 +668,116 @@ class HomeScreenAppBar extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickStatsSection() {
-    return SliverToBoxAdapter(
-      child: Container(
-        margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-        child: Column(
-          children: [
-            // الصف الأول - إجمالي الرحلات ورحلات الشهر
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    'إجمالي رحلاتي',
-                    isLoading ? '...' : '$totalRidesCount',
-                    Icons.directions_car_rounded,
-                    Colors.blue,
-                  ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    'رحلات هذا الشهر',
-                    isLoading ? '...' : '$thisMonthRidesCount',
-                    Icons.calendar_month_rounded,
-                    Colors.purple,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 12),
-            // الصف الثاني - النقاط والمحفظة
-            /*  Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    'نقاطي',
-                    '0',
-                    Icons.stars_rounded,
-                    Colors.amber,
-                  ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    'محفظتي',
-                    '₹ 0',
-                    Icons.account_balance_wallet_rounded,
-                    Colors.green,
-                  ),
-                ),
-              ],
-            ), */
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _buildQuickStatsSection() {
+  //   return SliverToBoxAdapter(
+  //     child: Container(
+  //       margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+  //       child: Column(
+  //         children: [
+  //           // الصف الأول - إجمالي الرحلات ورحلات الشهر
+  //           Row(
+  //             children: [
+  //               Expanded(
+  //                 child: _buildStatCard(
+  //                   'إجمالي رحلاتي',
+  //                   isLoading ? '...' : '$totalRidesCount',
+  //                   Icons.directions_car_rounded,
+  //                   Colors.blue,
+  //                 ),
+  //               ),
+  //               SizedBox(width: 12),
+  //               Expanded(
+  //                 child: _buildStatCard(
+  //                   'رحلات هذا الشهر',
+  //                   isLoading ? '...' : '$thisMonthRidesCount',
+  //                   Icons.calendar_month_rounded,
+  //                   Colors.purple,
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //           SizedBox(height: 12),
+  //           // الصف الثاني - النقاط والمحفظة
+  //           /*  Row(
+  //             children: [
+  //               Expanded(
+  //                 child: _buildStatCard(
+  //                   'نقاطي',
+  //                   '0',
+  //                   Icons.stars_rounded,
+  //                   Colors.amber,
+  //                 ),
+  //               ),
+  //               SizedBox(width: 12),
+  //               Expanded(
+  //                 child: _buildStatCard(
+  //                   'محفظتي',
+  //                   '₹ 0',
+  //                   Icons.account_balance_wallet_rounded,
+  //                   AppColors.primary,
+  //                 ),
+  //               ),
+  //             ],
+  //           ), */
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  Widget _buildStatCard(
-      String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 20,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          SizedBox(height: 2),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  //   return Container(
+  //     padding: EdgeInsets.all(12),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(12),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.black.withAlpha(13),
+  //           blurRadius: 8,
+  //           offset: Offset(0, 2),
+  //         ),
+  //       ],
+  //     ),
+  //     child: Column(
+  //       children: [
+  //         Container(
+  //           padding: EdgeInsets.all(8),
+  //           decoration: BoxDecoration(
+  //             color: color.withAlpha(25),
+  //             shape: BoxShape.circle,
+  //           ),
+  //           child: Icon(
+  //             icon,
+  //             color: color,
+  //             size: 20,
+  //           ),
+  //         ),
+  //         SizedBox(height: 8),
+  //         Text(
+  //           value,
+  //           style: TextStyle(
+  //             fontSize: 16,
+  //             fontWeight: FontWeight.bold,
+  //             color: Colors.black87,
+  //           ),
+  //         ),
+  //         SizedBox(height: 2),
+  //         Text(
+  //           title,
+  //           style: TextStyle(
+  //             fontSize: 11,
+  //             color: Colors.grey[600],
+  //             fontWeight: FontWeight.w500,
+  //           ),
+  //           textAlign: TextAlign.center,
+  //           maxLines: 2,
+  //           overflow: TextOverflow.ellipsis,
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildSearchSection() {
     return SliverToBoxAdapter(
@@ -812,7 +796,7 @@ class HomeScreenAppBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withAlpha(25),
                       blurRadius: 20,
                       spreadRadius: 0,
                       offset: Offset(0, 5),
@@ -829,7 +813,7 @@ class HomeScreenAppBar extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => DashBoardScreen(),
+                          builder: (context) => DashboardScreen(),
                         ),
                       );
                     },
@@ -841,10 +825,7 @@ class HomeScreenAppBar extends StatelessWidget {
                             padding: EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                colors: [
-                                  AppColors.primary,
-                                  AppColors.primary.withOpacity(0.8)
-                                ],
+                                colors: [AppColors.primary, AppColors.primary.withAlpha(201)],
                               ),
                               shape: BoxShape.circle,
                             ),
@@ -939,8 +920,7 @@ class HomeScreenAppBar extends StatelessWidget {
                       itemCount: serviceList.length,
                       itemBuilder: (context, index) {
                         ServiceList service = serviceList[index];
-                        bool isSelected =
-                            selectedServiceId == service.id?.toInt();
+                        bool isSelected = selectedServiceId == service.id?.toInt();
 
                         return AnimationConfiguration.staggeredList(
                           position: index,
@@ -948,8 +928,7 @@ class HomeScreenAppBar extends StatelessWidget {
                           child: SlideAnimation(
                             horizontalOffset: 50.0,
                             child: FadeInAnimation(
-                              child: _buildEnhancedServiceCard(
-                                  service, isSelected),
+                              child: _buildEnhancedServiceCard(service, isSelected),
                             ),
                           ),
                         );
@@ -984,8 +963,7 @@ class HomeScreenAppBar extends StatelessWidget {
             ),
             backgroundColor: AppColors.primary,
             behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             margin: EdgeInsets.all(12),
           ),
         );
@@ -1005,9 +983,9 @@ class HomeScreenAppBar extends StatelessWidget {
                 /*  gradient: isSelected
                     ? LinearGradient(
                         colors: [
-                          AppColors.primary.withOpacity(0.8),
+                          AppColors.primary.withAlpha(201),
                           //AppColors.primary,
-                          AppColors.primary.withOpacity(0.3)
+                          AppColors.primary.withAlpha(76)
                         ],
                       )
                     : null, */
@@ -1016,15 +994,14 @@ class HomeScreenAppBar extends StatelessWidget {
                 /*     boxShadow: [
                   BoxShadow(
                     color: isSelected
-                        ? AppColors.primary.withOpacity(0.3)
+                        ? AppColors.primary.withAlpha(76)
                         : Colors.black.withOpacity(0.08),
                     blurRadius: isSelected ? 15 : 10,
                     offset: Offset(0, isSelected ? 8 : 4),
                   ),
                 ], */
                 border: Border.all(
-                  color:
-                      !isSelected ? Colors.grey.shade200 : Colors.grey.shade400,
+                  color: !isSelected ? Colors.grey.shade200 : Colors.grey.shade400,
                   width: 1,
                 ),
               ),
@@ -1175,7 +1152,7 @@ class HomeScreenAppBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 10,
             offset: Offset(0, 2),
           ),
@@ -1226,7 +1203,7 @@ class HomeScreenAppBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 10,
             offset: Offset(0, 2),
           ),
@@ -1259,10 +1236,9 @@ class HomeScreenAppBar extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withAlpha(25),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -1306,7 +1282,7 @@ class HomeScreenAppBar extends StatelessWidget {
                         Icon(
                           Icons.circle,
                           size: 12,
-                          color: Colors.green,
+                          color: AppColors.primary,
                         ),
                         Container(
                           width: 1,
@@ -1426,8 +1402,7 @@ class HomeScreenAppBar extends StatelessWidget {
                         firstName: "قسم",
                         lastName: "الشكاوى",
                         email: "support@admin.com",
-                        profileImage:
-                            "", // Add default support avatar if available
+                        profileImage: "", // Add default support avatar if available
                         uid: "admin_support",
                         playerId: "admin_support",
                       );
@@ -1453,15 +1428,14 @@ class HomeScreenAppBar extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickActionCard(
-      String title, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildQuickActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 10,
             offset: Offset(0, 2),
           ),
@@ -1483,7 +1457,7 @@ class HomeScreenAppBar extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withAlpha(25),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -1552,43 +1526,33 @@ class HomeScreenAppBar extends StatelessWidget {
     );
   }
  */
-  IconData _getLocationIcon(String address) {
-    String lowerAddress = address.toLowerCase();
-    if (lowerAddress.contains('منزل') ||
-        lowerAddress.contains('بيت') ||
-        lowerAddress.contains('home')) {
-      return Icons.home_rounded;
-    } else if (lowerAddress.contains('عمل') ||
-        lowerAddress.contains('شركة') ||
-        lowerAddress.contains('مكتب') ||
-        lowerAddress.contains('work')) {
-      return Icons.work_rounded;
-    } else if (lowerAddress.contains('مول') ||
-        lowerAddress.contains('سوق') ||
-        lowerAddress.contains('mall')) {
-      return Icons.shopping_bag_rounded;
-    } else if (lowerAddress.contains('مطار') ||
-        lowerAddress.contains('airport')) {
-      return Icons.flight_rounded;
-    } else if (lowerAddress.contains('مستشفى') ||
-        lowerAddress.contains('hospital')) {
-      return Icons.local_hospital_rounded;
-    }
-    return Icons.location_on_rounded;
-  }
+  // IconData _getLocationIcon(String address) {
+  //   String lowerAddress = address.toLowerCase();
+  //   if (lowerAddress.contains('منزل') || lowerAddress.contains('بيت') || lowerAddress.contains('home')) {
+  //     return Icons.home_rounded;
+  //   } else if (lowerAddress.contains('عمل') ||
+  //       lowerAddress.contains('شركة') ||
+  //       lowerAddress.contains('مكتب') ||
+  //       lowerAddress.contains('work')) {
+  //     return Icons.work_rounded;
+  //   } else if (lowerAddress.contains('مول') || lowerAddress.contains('سوق') || lowerAddress.contains('mall')) {
+  //     return Icons.shopping_bag_rounded;
+  //   } else if (lowerAddress.contains('مطار') || lowerAddress.contains('airport')) {
+  //     return Icons.flight_rounded;
+  //   } else if (lowerAddress.contains('مستشفى') || lowerAddress.contains('hospital')) {
+  //     return Icons.local_hospital_rounded;
+  //   }
+  //   return Icons.location_on_rounded;
+  // }
 
   String _formatDate(String dateString) {
     try {
       DateTime date = DateTime.parse(dateString);
       DateTime now = DateTime.now();
 
-      if (date.year == now.year &&
-          date.month == now.month &&
-          date.day == now.day) {
+      if (date.year == now.year && date.month == now.month && date.day == now.day) {
         return 'اليوم';
-      } else if (date.year == now.year &&
-          date.month == now.month &&
-          date.day == now.day - 1) {
+      } else if (date.year == now.year && date.month == now.month && date.day == now.day - 1) {
         return 'أمس';
       } else {
         return '${date.day}/${date.month}/${date.year}';

@@ -122,7 +122,7 @@ class _BottomNavBarState extends State<BottomNavBar>
         padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withOpacity(0.1)
+              ? AppColors.primary.withAlpha(25)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(15),
         ),

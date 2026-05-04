@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:lottie/lottie.dart';
 import 'package:taxi_booking/utils/Extensions/dataTypeExtensions.dart';
@@ -9,7 +8,6 @@ import 'package:taxi_booking/utils/images.dart';
 
 import '../main.dart';
 import '../network/RestApis.dart';
-import '../screens/NewEstimateRideListWidget.dart';
 import '../service/RideService.dart';
 import '../utils/Colors.dart';
 import '../utils/Constants.dart';
@@ -30,12 +28,9 @@ class BookingWidget extends StatefulWidget {
   BookingWidgetState createState() => BookingWidgetState();
 }
 
-class BookingWidgetState extends State<BookingWidget>
-    with TickerProviderStateMixin {
+class BookingWidgetState extends State<BookingWidget> with TickerProviderStateMixin {
   RideService rideService = RideService();
-  final int timerMaxSeconds = appStore.rideMinutes != null
-      ? int.parse(appStore.rideMinutes!) * 60
-      : 5 * 60;
+  final int timerMaxSeconds = appStore.rideMinutes != null ? int.parse(appStore.rideMinutes!) * 60 : 5 * 60;
 
   int currentSeconds = 0;
   int count = 0;
@@ -70,13 +65,10 @@ class BookingWidgetState extends State<BookingWidget>
     if (sharedPref.getString(IS_TIME) == null) {
       duration = timerMaxSeconds;
       startTimeout();
-      sharedPref.setString(IS_TIME,
-          DateTime.now().add(Duration(seconds: timerMaxSeconds)).toString());
+      sharedPref.setString(IS_TIME, DateTime.now().add(Duration(seconds: timerMaxSeconds)).toString());
       sharedPref.setString(REMAINING_TIME, timerMaxSeconds.toString());
     } else {
-      duration = DateTime.parse(sharedPref.getString(IS_TIME)!)
-          .difference(DateTime.now())
-          .inSeconds;
+      duration = DateTime.parse(sharedPref.getString(IS_TIME)!).difference(DateTime.now()).inSeconds;
       if (duration > 0) {
         startTimeout();
       } else {
@@ -97,8 +89,7 @@ class BookingWidgetState extends State<BookingWidget>
     statusCheckTimer = Timer.periodic(Duration(seconds: 1), (timer) async {
       try {
         final currentRequest = await getCurrentRideRequest();
-        final rideRequest =
-            currentRequest.rideRequest ?? currentRequest.onRideRequest;
+        final rideRequest = currentRequest.rideRequest ?? currentRequest.onRideRequest;
 
         if (rideRequest != null) {
           // Check for any acceptance status
@@ -152,8 +143,7 @@ class BookingWidgetState extends State<BookingWidget>
     try {
       // Get driver information for the notification
       final currentRequest = await getCurrentRideRequest();
-      final rideRequest =
-          currentRequest.rideRequest ?? currentRequest.onRideRequest;
+      final rideRequest = currentRequest.rideRequest ?? currentRequest.onRideRequest;
 
       String? driverName;
 
@@ -232,7 +222,7 @@ class BookingWidgetState extends State<BookingWidget>
       if (d1 != null) {
         setState(
           () {
-            d2 = d1!.add(Duration(seconds: timerMaxSeconds));
+            d2 = d1.add(Duration(seconds: timerMaxSeconds));
           },
         );
         print("CheckDateTimedafjfkljf:::${d2}");
@@ -240,48 +230,47 @@ class BookingWidgetState extends State<BookingWidget>
       }
     }
     return;
-    var duration2 = Duration(seconds: 1);
-    timer = Timer.periodic(duration2, (timer) {
-      setState(
-        () {
-          currentSeconds = timer.tick;
-          count++;
-          if (count >= 60) {
-            int data = int.parse(sharedPref.getString(REMAINING_TIME)!);
-            data = data - count;
-            Map req = {
-              'max_time_for_find_driver_for_ride_request': data,
-            };
-            rideRequestUpdate(request: req, rideId: widget.id).then((value) {
-              //
-            }).catchError((error) {
-              log(error.toString());
-            });
-            sharedPref.setString(REMAINING_TIME, data.toString());
-            count = 0;
-          }
-          if (timer.tick >= duration) {
-            timer.cancel();
-            Map req = {
-              'status': CANCELED,
-              'cancel_by': AUTO,
-              "reason": "Ride is auto cancelled",
-            };
-            appStore.setLoading(true);
-            rideRequestUpdate(request: req, rideId: widget.id)
-                .then((value) async {
-              appStore.setLoading(false);
-              toast(language.noNearByDriverFound);
-              sharedPref.remove(REMAINING_TIME);
-              sharedPref.remove(IS_TIME);
-            }).catchError((error) {
-              appStore.setLoading(false);
-              log(error.toString());
-            });
-          }
-        },
-      );
-    });
+    // var duration2 = Duration(seconds: 1);
+    // timer = Timer.periodic(duration2, (timer) {
+    //   setState(
+    //     () {
+    //       currentSeconds = timer.tick;
+    //       count++;
+    //       if (count >= 60) {
+    //         int data = int.parse(sharedPref.getString(REMAINING_TIME)!);
+    //         data = data - count;
+    //         Map req = {
+    //           'max_time_for_find_driver_for_ride_request': data,
+    //         };
+    //         rideRequestUpdate(request: req, rideId: widget.id).then((value) {
+    //           //
+    //         }).catchError((error) {
+    //           log(error.toString());
+    //         });
+    //         sharedPref.setString(REMAINING_TIME, data.toString());
+    //         count = 0;
+    //       }
+    //       if (timer.tick >= duration) {
+    //         timer.cancel();
+    //         Map req = {
+    //           'status': CANCELED,
+    //           'cancel_by': AUTO,
+    //           "reason": "Ride is auto cancelled",
+    //         };
+    //         appStore.setLoading(true);
+    //         rideRequestUpdate(request: req, rideId: widget.id).then((value) async {
+    //           appStore.setLoading(false);
+    //           toast(language.noNearByDriverFound);
+    //           sharedPref.remove(REMAINING_TIME);
+    //           sharedPref.remove(IS_TIME);
+    //         }).catchError((error) {
+    //           appStore.setLoading(false);
+    //           log(error.toString());
+    //         });
+    //       }
+    //     },
+    //   );
+    // });
   }
 
   Future<void> cancelRequest(String? reason) async {
@@ -291,8 +280,7 @@ class BookingWidgetState extends State<BookingWidget>
       "status": CANCELED,
       "reason": reason,
     };
-    await rideRequestUpdate(request: req, rideId: widget.id)
-        .then((value) async {
+    await rideRequestUpdate(request: req, rideId: widget.id).then((value) async {
       toast(value.message);
     }).catchError((error) {
       log(error.toString());
@@ -334,24 +322,17 @@ class BookingWidgetState extends State<BookingWidget>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(language.lookingForNearbyDrivers,
-                      style: boldTextStyle()),
+                  Text(language.lookingForNearbyDrivers, style: boldTextStyle()),
                   if (d2 != null)
                     Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                            color: primaryColor, borderRadius: radius(8)),
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(color: primaryColor, borderRadius: radius(8)),
                         child: StreamBuilder(
                           stream: Stream.periodic(Duration(seconds: 1)),
-                          builder: (BuildContext context,
-                              AsyncSnapshot<dynamic> snapshot) {
+                          builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
                             if (d2 != null &&
                                 d2!
-                                    .difference(DateTime.parse(DateTime.now()
-                                        .toUtc()
-                                        .toString()
-                                        .replaceAll("Z", "")))
+                                    .difference(DateTime.parse(DateTime.now().toUtc().toString().replaceAll("Z", "")))
                                     .isNegative) {
                               Map req = {
                                 'status': CANCELED,
@@ -361,8 +342,7 @@ class BookingWidgetState extends State<BookingWidget>
                               d2 = null;
                               print("AutoCancelFunctionCall:::::");
                               appStore.setLoading(true);
-                              rideRequestUpdate(request: req, rideId: widget.id)
-                                  .then((value) async {
+                              rideRequestUpdate(request: req, rideId: widget.id).then((value) async {
                                 appStore.setLoading(false);
                                 toast(language.noNearByDriverFound);
                                 sharedPref.remove(REMAINING_TIME);
@@ -374,23 +354,13 @@ class BookingWidgetState extends State<BookingWidget>
                             }
                             if (d2 != null &&
                                 d2!
-                                    .difference(DateTime.parse(DateTime.now()
-                                        .toUtc()
-                                        .toString()
-                                        .replaceAll("Z", "")))
-                                    .isNegative)
-                              return Text("--:--",
-                                  style: boldTextStyle(color: Colors.white));
-                            if (d2 == null)
-                              return Text("--:--",
-                                  style: boldTextStyle(color: Colors.white));
+                                    .difference(DateTime.parse(DateTime.now().toUtc().toString().replaceAll("Z", "")))
+                                    .isNegative) return Text("--:--", style: boldTextStyle(color: Colors.white));
+                            if (d2 == null) return Text("--:--", style: boldTextStyle(color: Colors.white));
                             return Text(
                                 (d2!
-                                                .difference(DateTime.parse(
-                                                    DateTime.now()
-                                                        .toUtc()
-                                                        .toString()
-                                                        .replaceAll("Z", "")))
+                                                .difference(
+                                                    DateTime.parse(DateTime.now().toUtc().toString().replaceAll("Z", "")))
                                                 .inSeconds /
                                             60)
                                         .toInt()
@@ -398,11 +368,8 @@ class BookingWidgetState extends State<BookingWidget>
                                         .padLeft(2, "0") +
                                     ":" +
                                     (d2!
-                                                .difference(DateTime.parse(
-                                                    DateTime.now()
-                                                        .toUtc()
-                                                        .toString()
-                                                        .replaceAll("Z", "")))
+                                                .difference(
+                                                    DateTime.parse(DateTime.now().toUtc().toString().replaceAll("Z", "")))
                                                 .inSeconds %
                                             60)
                                         .toString()
@@ -414,10 +381,7 @@ class BookingWidgetState extends State<BookingWidget>
                 ],
               ),
               SizedBox(height: 8),
-              Lottie.asset(bookingAnim,
-                  height: 100,
-                  width: MediaQuery.of(context).size.width,
-                  fit: BoxFit.contain),
+              Lottie.asset(bookingAnim, height: 100, width: MediaQuery.of(context).size.width, fit: BoxFit.contain),
               SizedBox(height: 20),
               Text(language.weAreLookingForNearDriversAcceptsYourRide,
                   style: primaryTextStyle(), textAlign: TextAlign.center),

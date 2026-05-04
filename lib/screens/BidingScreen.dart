@@ -20,8 +20,10 @@ import '../utils/Common.dart';
 import '../utils/Constants.dart';
 import '../utils/Extensions/AppButtonWidget.dart';
 import '../utils/Extensions/app_common.dart';
+import '../utils/constant/app_colors.dart';
 import 'DashBoardScreen.dart';
 
+// ignore: must_be_immutable
 class Bidingscreen extends StatefulWidget {
   Map? multiDropLocationNamesObj, multiDropObj, endLocation, source;
   final String? dt;
@@ -51,9 +53,7 @@ class BidingscreenState extends State<Bidingscreen> {
   int count = 0;
 
   // String get timerText => '${((duration - currentSeconds) ~/ 60).toString().padLeft(2, '0')}: ${((duration - currentSeconds) % 60).toString().padLeft(2, '0')}';
-  final int timerMaxSeconds = appStore.rideMinutes != null
-      ? int.parse(appStore.rideMinutes!) * 60
-      : 5 * 60;
+  final int timerMaxSeconds = appStore.rideMinutes != null ? int.parse(appStore.rideMinutes!) * 60 : 5 * 60;
   bool called = false;
 
   @override
@@ -76,7 +76,7 @@ class BidingscreenState extends State<Bidingscreen> {
         setState(
           () {
             // d2 = d1.toUtc().add(Duration(seconds: timerMaxSeconds));
-            d2 = d1!.add(Duration(seconds: timerMaxSeconds));
+            d2 = d1.add(Duration(seconds: timerMaxSeconds));
           },
         );
         print("CheckDateTimedafjfkljf:::${d2}");
@@ -174,7 +174,7 @@ class BidingscreenState extends State<Bidingscreen> {
     ).then((value) async {
       appStore.setLoading(false);
       toast(value.message);
-      launchScreen(context, DashBoardScreen(), isNewTask: true);
+      launchScreen(context, DashboardScreen(), isNewTask: true);
     }).catchError((error, s) {
       appStore.setLoading(false);
       try {} catch (e) {}
@@ -186,13 +186,11 @@ class BidingscreenState extends State<Bidingscreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(language.bid_for_ride,
-            style: boldTextStyle(color: appTextPrimaryColorWhite)),
+        title: Text(language.bid_for_ride, style: boldTextStyle(color: appTextPrimaryColorWhite)),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(language.lblRide + " #${widget.ride_id}",
-                style: primaryTextStyle(color: appTextPrimaryColorWhite)),
+            child: Text(language.lblRide + " #${widget.ride_id}", style: primaryTextStyle(color: appTextPrimaryColorWhite)),
           )
         ],
       ),
@@ -204,8 +202,7 @@ class BidingscreenState extends State<Bidingscreen> {
             textColor: primaryColor,
             color: Colors.white,
             shapeBorder: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(defaultRadius),
-                side: BorderSide(color: primaryColor)),
+                borderRadius: BorderRadius.circular(defaultRadius), side: BorderSide(color: primaryColor)),
             onTap: () {
               showModalBottomSheet(
                   context: context,
@@ -245,15 +242,11 @@ class BidingscreenState extends State<Bidingscreen> {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.near_me,
-                                    color: Colors.green, size: 18),
+                                Icon(Icons.near_me, color: AppColors.primary, size: 18),
                                 SizedBox(width: 8),
                                 Expanded(
-                                    child: Text(
-                                        dataModel!.startAddress ??
-                                            ''.validate(),
-                                        style: primaryTextStyle(size: 14),
-                                        maxLines: 2)),
+                                    child: Text(dataModel!.startAddress ?? ''.validate(),
+                                        style: primaryTextStyle(size: 14), maxLines: 2)),
                               ],
                             ),
                             Row(
@@ -273,17 +266,14 @@ class BidingscreenState extends State<Bidingscreen> {
                             ),
                             Row(
                               children: [
-                                Icon(Icons.location_on,
-                                    color: Colors.red, size: 18),
+                                Icon(Icons.location_on, color: Colors.red, size: 18),
                                 SizedBox(width: 8),
                                 Expanded(
-                                    child: Text(dataModel!.endAddress ?? '',
-                                        style: primaryTextStyle(size: 14),
-                                        maxLines: 2)),
+                                    child:
+                                        Text(dataModel!.endAddress ?? '', style: primaryTextStyle(size: 14), maxLines: 2)),
                               ],
                             ),
-                            if (widget.multiDropObj != null &&
-                                widget.multiDropObj!.isNotEmpty)
+                            if (widget.multiDropObj != null && widget.multiDropObj!.isNotEmpty)
                               Row(
                                 children: [
                                   SizedBox(width: 8),
@@ -299,17 +289,14 @@ class BidingscreenState extends State<Bidingscreen> {
                                   ),
                                 ],
                               ),
-                            if (widget.multiDropObj != null &&
-                                widget.multiDropObj!.isNotEmpty)
+                            if (widget.multiDropObj != null && widget.multiDropObj!.isNotEmpty)
                               AppButtonWidget(
                                 textColor: primaryColor,
                                 color: Colors.white,
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 0),
+                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                                 height: 30,
                                 shapeBorder: RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(defaultRadius),
+                                    borderRadius: BorderRadius.circular(defaultRadius),
                                     side: BorderSide(color: primaryColor)),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -345,68 +332,46 @@ class BidingscreenState extends State<Bidingscreen> {
                                 Row(
                                   children: [
                                     Text(language.bids, style: boldTextStyle()),
-                                    if (dataModel != null &&
-                                        dataModel!.data != null &&
-                                        dataModel!.data!.length > 0)
+                                    if (dataModel != null && dataModel!.data != null && dataModel!.data!.length > 0)
                                       Container(
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
                                             color: primaryColor,
                                           ),
-                                          margin: EdgeInsets.symmetric(
-                                              horizontal: 8),
+                                          margin: EdgeInsets.symmetric(horizontal: 8),
                                           alignment: Alignment.center,
                                           padding: EdgeInsets.all(6),
-                                          child: Text(
-                                              "${dataModel!.data!.length}",
-                                              style: boldTextStyle(
-                                                  size: 12,
-                                                  color: Colors.white))),
+                                          child: Text("${dataModel!.data!.length}",
+                                              style: boldTextStyle(size: 12, color: Colors.white))),
                                   ],
                                 ),
                                 if (d2 != null)
                                   Container(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                          color: primaryColor,
-                                          borderRadius: radius(8)),
+                                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(color: primaryColor, borderRadius: radius(8)),
                                       child: StreamBuilder(
-                                        stream: Stream.periodic(
-                                            Duration(seconds: 1)),
-                                        builder: (BuildContext context,
-                                            AsyncSnapshot<dynamic> snapshot) {
+                                        stream: Stream.periodic(Duration(seconds: 1)),
+                                        builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
                                           if (d2 != null &&
                                               d2!
-                                                  .difference(DateTime.parse(
-                                                      DateTime.now()
-                                                          .toUtc()
-                                                          .toString()
-                                                          .replaceAll("Z", "")))
+                                                  .difference(
+                                                      DateTime.parse(DateTime.now().toUtc().toString().replaceAll("Z", "")))
                                                   .isNegative) {
                                             // print("CheckDateTImeIssue++++++++++123186:${d2!.difference(DateTime.now().toUtc())}");
                                             Map req = {
                                               'status': CANCELED,
                                               'cancel_by': AUTO,
-                                              "reason":
-                                                  "Ride is auto cancelled",
+                                              "reason": "Ride is auto cancelled",
                                             };
                                             d2 = null;
-                                            print(
-                                                "AutoCancelFunctionCall:::::");
+                                            print("AutoCancelFunctionCall:::::");
                                             appStore.setLoading(true);
-                                            rideRequestUpdate(
-                                                    request: req,
-                                                    rideId: widget.ride_id)
-                                                .then((value) async {
+                                            rideRequestUpdate(request: req, rideId: widget.ride_id).then((value) async {
                                               appStore.setLoading(false);
-                                              toast(
-                                                  language.noNearByDriverFound);
+                                              toast(language.noNearByDriverFound);
                                               sharedPref.remove(REMAINING_TIME);
                                               sharedPref.remove(IS_TIME);
-                                              launchScreen(
-                                                  context, DashBoardScreen(),
-                                                  isNewTask: true);
+                                              launchScreen(context, DashboardScreen(), isNewTask: true);
                                             }).catchError((error) {
                                               appStore.setLoading(false);
                                               log(error.toString());
@@ -414,28 +379,15 @@ class BidingscreenState extends State<Bidingscreen> {
                                           }
                                           if (d2 != null &&
                                               d2!
-                                                  .difference(DateTime.parse(
-                                                      DateTime.now()
-                                                          .toUtc()
-                                                          .toString()
-                                                          .replaceAll("Z", "")))
+                                                  .difference(
+                                                      DateTime.parse(DateTime.now().toUtc().toString().replaceAll("Z", "")))
                                                   .isNegative)
-                                            return Text("--:--",
-                                                style: boldTextStyle(
-                                                    color: Colors.white));
-                                          if (d2 == null)
-                                            return Text("--:--",
-                                                style: boldTextStyle(
-                                                    color: Colors.white));
+                                            return Text("--:--", style: boldTextStyle(color: Colors.white));
+                                          if (d2 == null) return Text("--:--", style: boldTextStyle(color: Colors.white));
                                           return Text(
                                               (d2!
                                                               .difference(DateTime.parse(
-                                                                  DateTime.now()
-                                                                      .toUtc()
-                                                                      .toString()
-                                                                      .replaceAll(
-                                                                          "Z",
-                                                                          "")))
+                                                                  DateTime.now().toUtc().toString().replaceAll("Z", "")))
                                                               .inSeconds /
                                                           60)
                                                       .toInt()
@@ -444,19 +396,13 @@ class BidingscreenState extends State<Bidingscreen> {
                                                   ":" +
                                                   (d2!
                                                               .difference(DateTime.parse(
-                                                                  DateTime.now()
-                                                                      .toUtc()
-                                                                      .toString()
-                                                                      .replaceAll(
-                                                                          "Z",
-                                                                          "")))
+                                                                  DateTime.now().toUtc().toString().replaceAll("Z", "")))
                                                               .inSeconds %
                                                           60)
                                                       .toString()
                                                       .padLeft(2, "0")
                                                       .toString(),
-                                              style: boldTextStyle(
-                                                  color: Colors.white));
+                                              style: boldTextStyle(color: Colors.white));
                                         },
                                       )
                                       // Text(timerText, style: boldTextStyle(color: Colors.white)),
@@ -465,29 +411,24 @@ class BidingscreenState extends State<Bidingscreen> {
                             ),
                             Divider(),
                             StreamBuilder(
-                              stream:
-                                  rideService.fetchRide(rideId: widget.ride_id),
+                              stream: rideService.fetchRide(rideId: widget.ride_id),
                               builder: (context, snap) {
                                 if (snap.hasData) {
                                   List<FRideBookingModel> data = snap.data!.docs
-                                      .map((e) => FRideBookingModel.fromJson(
-                                          e.data() as Map<String, dynamic>))
+                                      .map((e) => FRideBookingModel.fromJson(e.data() as Map<String, dynamic>))
                                       .toList();
                                   if (data.isNotEmpty) {
                                     if (data[0].onRiderStreamApiCall == 0) {
                                       updateData();
-                                      rideService.updateStatusOfRide(
-                                          rideID: widget.ride_id,
-                                          req: {'on_rider_stream_api_call': 1});
+                                      rideService
+                                          .updateStatusOfRide(rideID: widget.ride_id, req: {'on_rider_stream_api_call': 1});
                                     }
                                   }
                                 }
                                 return SizedBox();
                               },
                             ),
-                            if ((dataModel != null &&
-                                    dataModel!.data != null &&
-                                    dataModel!.data!.isEmpty) ||
+                            if ((dataModel != null && dataModel!.data != null && dataModel!.data!.isEmpty) ||
                                 dataModel == null)
                               emptyView(),
                             ListView.builder(
@@ -498,116 +439,73 @@ class BidingscreenState extends State<Bidingscreen> {
                                 return Padding(
                                   padding: EdgeInsets.only(top: 8),
                                   child: Container(
-                                      padding:
-                                          EdgeInsets.only(left: 8, bottom: 8),
+                                      padding: EdgeInsets.only(left: 8, bottom: 8),
                                       decoration: BoxDecoration(
                                           color: Colors.white,
                                           // border: Border.all(color: Colors.grey.shade300),
-                                          boxShadow: [
-                                            BoxShadow(
-                                                color: Colors.black45,
-                                                spreadRadius: 1,
-                                                blurRadius: 1)
-                                          ],
-                                          borderRadius:
-                                              BorderRadius.circular(14)),
+                                          boxShadow: [BoxShadow(color: Colors.black45, spreadRadius: 1, blurRadius: 1)],
+                                          borderRadius: BorderRadius.circular(14)),
                                       // decoration: BoxDecoration(border: Border.all(color: dividerColor), borderRadius: BorderRadius.circular(defaultRadius)),
                                       child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.start,
                                         children: [
                                           Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
                                               Expanded(
                                                 child: Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                  mainAxisAlignment: MainAxisAlignment.start,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
-                                                    printAmountWidget(
-                                                        amount: dataModel!
-                                                            .data![index]
-                                                            .bidAmount),
+                                                    printAmountWidget(amount: dataModel!.data![index].bidAmount),
                                                     Text(
-                                                        dataModel!.data![index]
-                                                            .driverName,
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style:
-                                                            secondaryTextStyle()),
+                                                      dataModel!.data![index].driverName,
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: secondaryTextStyle(),
+                                                    ),
                                                   ],
                                                 ),
                                               ),
                                               Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
                                                   IconButton(
                                                     onPressed: () {
                                                       d2 = null;
-                                                      acceptBid(
-                                                          driverId: dataModel!
-                                                              .data![index]
-                                                              .driverId
-                                                              .toString());
+                                                      acceptBid(driverId: dataModel!.data![index].driverId.toString());
                                                     },
                                                     icon: Icon(
                                                       Icons.check_circle,
                                                       size: 35,
                                                     ),
-                                                    color: Colors.green,
+                                                    color: AppColors.primary,
                                                   ),
                                                   IconButton(
                                                     onPressed: () {
-                                                      rejectBid(
-                                                          driverId: dataModel!
-                                                              .data![index]
-                                                              .driverId
-                                                              .toString());
+                                                      rejectBid(driverId: dataModel!.data![index].driverId.toString());
                                                     },
-                                                    icon: Icon(
-                                                      Icons.cancel,
-                                                      size: 35,
-                                                    ),
+                                                    icon: Icon(Icons.cancel, size: 35),
                                                     color: Colors.red,
                                                   ),
                                                 ],
                                               ),
                                             ],
                                           ),
-                                          SizedBox(
-                                            height: 8,
-                                          ),
-                                          if (dataModel!
-                                              .data![index].notes.isNotEmpty)
+                                          SizedBox(height: 8),
+                                          if (dataModel!.data![index].notes.isNotEmpty)
                                             Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              crossAxisAlignment: CrossAxisAlignment.start,
                                               mainAxisSize: MainAxisSize.max,
                                               children: [
                                                 Expanded(
                                                   child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
                                                     children: [
-                                                      Text(
-                                                          dataModel!
-                                                              .data![index]
-                                                              .notes,
-                                                          style:
-                                                              secondaryTextStyle()),
+                                                      Text(dataModel!.data![index].notes, style: secondaryTextStyle()),
                                                     ],
                                                   ),
                                                 ),
@@ -626,8 +524,7 @@ class BidingscreenState extends State<Bidingscreen> {
                   ),
                 ),
                 Observer(builder: (context) {
-                  return Visibility(
-                      visible: appStore.isLoading, child: loaderWidget());
+                  return Visibility(visible: appStore.isLoading, child: loaderWidget());
                 }),
               ],
             ),
@@ -642,26 +539,17 @@ class BidingscreenState extends State<Bidingscreen> {
 
   void acceptBid({required String driverId}) async {
     appStore.setLoading(true);
-    Map req = {
-      "id": "${widget.ride_id}",
-      "driver_id": "$driverId",
-      "is_bid_accept": "1"
-    };
+    Map req = {"id": "${widget.ride_id}", "driver_id": "$driverId", "is_bid_accept": "1"};
     try {
-      var b = await responseBidListing(req);
+       await responseBidListing(req);
     } catch (e) {}
     appStore.setLoading(false);
-    await rideService.updateStatusOfRide(
-        rideID: widget.ride_id, req: {"on_stream_api_call": 0});
-    launchScreen(context, DashBoardScreen(), isNewTask: true);
+    await rideService.updateStatusOfRide(rideID: widget.ride_id, req: {"on_stream_api_call": 0});
+    launchScreen(context, DashboardScreen(), isNewTask: true);
   }
 
   void rejectBid({required String driverId}) async {
-    Map req = {
-      "id": "${widget.ride_id}",
-      "driver_id": "$driverId",
-      "is_bid_accept": "2"
-    };
+    Map req = {"id": "${widget.ride_id}", "driver_id": "$driverId", "is_bid_accept": "2"};
     appStore.setLoading(true);
     LDBaseResponse b = await responseBidListing(req);
     appStore.setLoading(false);
@@ -674,10 +562,7 @@ class BidingscreenState extends State<Bidingscreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Lottie.asset(bookingAnim,
-            height: 100,
-            width: MediaQuery.of(context).size.width,
-            fit: BoxFit.contain),
+        Lottie.asset(bookingAnim, height: 100, width: MediaQuery.of(context).size.width, fit: BoxFit.contain),
         SizedBox(
           height: 16,
         ),

@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taxi_booking/screens/settings/wallet_screens/presentation/pages/wallet_add_paymentMethod_screen.dart';
-import 'package:taxi_booking/screens/settings/wallet_screens/presentation/pages/wallet_charged_screen.dart';
-import 'package:taxi_booking/utils/core/app_routes/navigation_service.dart';
-import 'package:taxi_booking/utils/core/app_routes/router_names.dart';
+import 'package:provider/provider.dart';
+// imports removed: wallet_add_paymentMethod_screen.dart, wallet_charged_screen.dart
+import 'package:taxi_booking/screens/settings/wallet_screens/presentation/providers/wallet_provider.dart';
 import 'package:taxi_booking/utils/core/constant/app_colors.dart';
-import 'package:taxi_booking/utils/core/constant/app_image.dart';
 import 'package:taxi_booking/utils/core/constant/styles/app_text_style.dart';
 import 'package:taxi_booking/utils/core/widget/buttons/app_buttons.dart';
 
+import '../../../../screens/settings/wallet_screens/presentation/pages/WalletScreen.dart';
+
 class WalletWidget extends StatelessWidget {
-  final bool walletCharged;
-  final bool addCharged;
-  const WalletWidget(
-      {super.key, this.walletCharged = false, this.addCharged = false});
+  final bool walletCharged, addCharged, showButton;
+  const WalletWidget({super.key, this.walletCharged = false, this.addCharged = false, this.showButton = true});
 
   @override
   Widget build(BuildContext context) {
+    final walletProvider = context.watch<WalletProvider>();
     return Container(
       width: double.infinity,
       height: 156.h,
@@ -37,31 +36,47 @@ class WalletWidget extends StatelessWidget {
             style: AppTextStyles.sMedium16(color: AppColors.white),
           ),
           Text(
-            (walletCharged || addCharged) ? '1200 ريال سعودي' : 'لا يوجد محفظه',
+            (walletCharged || addCharged)
+                ? (walletProvider.isLoading ? 'جاري التحميل...' : walletProvider.formattedBalance)
+                : 'لا يوجد محفظه',
             style: AppTextStyles.sMedium16(color: AppColors.white),
           ),
+          // if (walletCharged || addCharged) ...[
+          //   SizedBox(height: 8),
+          //   InkWell(
+          //     onTap: () {
+          //       Navigator.pushNamed(context, RouterNames.manageCardsScreen);
+          //     },
+          //     child: Container(
+          //       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          //       decoration: BoxDecoration(
+          //         color: Colors.white.withAlpha(51),
+          //         borderRadius: BorderRadius.circular(12),
+          //       ),
+          //       child: Text(
+          //         'إدارة البطاقات',
+          //         style: AppTextStyles.sSemiBold14(color: AppColors.white),
+          //       ),
+          //     ),
+          //   ),
+          // ],
           const Spacer(),
-          AppButtons.primaryButton(
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            const WalletAddPaymentMethodScreen()));
-
-                if (walletCharged) {
+          if (showButton)
+            AppButtons.primaryButton(
+                onPressed: () {
+                  // if (ywalletCharged || addCharged) {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const WalletAddChargeScreen()));
-                }
-              },
-              title: walletCharged
-                  ? 'شحن المحفظه'
-                  : addCharged
-                      ? 'برجاء ادخال القيمه'
-                      : "إنشاء محفظه",
-              bgColor: AppColors.white.withOpacity(.3)),
+                      context, MaterialPageRoute(builder: (context) => WalletScreen())); // WalletAddChargeScreen()
+                  // } else {
+                  //   Navigator.push(context, MaterialPageRoute(builder: (context) => const WalletAddPaymentMethodScreen()));
+                  // }
+                },
+                title: walletCharged
+                    ? 'شحن المحفظه'
+                    : addCharged
+                        ? 'برجاء ادخال القيمه'
+                        : "إنشاء محفظه",
+                bgColor: AppColors.white.withOpacity(.3)),
         ],
       ),
     );

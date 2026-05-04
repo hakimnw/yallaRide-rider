@@ -6,22 +6,20 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../main.dart';
 import '../../service/AuthService1.dart';
+import '../../utils/Common.dart';
+import '../../utils/Extensions/AppButtonWidget.dart';
+import '../../utils/Extensions/app_common.dart';
 import '../../utils/constant/app_colors.dart';
 import '../../utils/constant/app_image.dart';
 import '../../utils/constant/styles/app_text_style.dart';
 import '../../utils/constant/styles/input_border_styles.dart';
-import '../../utils/Common.dart';
-import '../../utils/Extensions/AppButtonWidget.dart';
-import '../../utils/Extensions/app_common.dart';
-import '../../utils/Extensions/app_textfield.dart';
 import '../languageConfiguration/LanguageDefaultJson.dart';
 import '../network/RestApis.dart';
 import '../utils/Constants.dart';
 import '../utils/Extensions/context_extension.dart';
 import '../utils/Extensions/dataTypeExtensions.dart';
 import '../utils/images.dart';
-import 'TermsConditionScreen.dart';
-import 'PrivacyPolicyScreen.dart';
+import 'TermsAndConditionsScreen.dart';
 
 class SignUpScreen extends StatefulWidget {
   final bool socialLogin;
@@ -92,18 +90,12 @@ class SignUpScreenState extends State<SignUpScreen> {
         Map req = {
           'first_name': firstController.text.trim(),
           'last_name': lastNameController.text.trim(),
-          'username': widget.socialLogin
-              ? widget.userName
-              : userNameController.text.trim(),
+          'username': widget.socialLogin ? widget.userName : userNameController.text.trim(),
           'email': emailController.text.trim(),
           "user_type": "rider",
-          "contact_number": widget.socialLogin
-              ? '${widget.userName}'
-              : '${phoneController.text.trim()}',
-          "country_code":
-              widget.socialLogin ? '${widget.countryCode}' : '$countryCode',
-          'password':
-              widget.socialLogin ? widget.userName : passController.text.trim(),
+          "contact_number": widget.socialLogin ? '${widget.userName}' : '${phoneController.text.trim()}',
+          "country_code": widget.socialLogin ? '${widget.countryCode}' : '$countryCode',
+          'password': widget.socialLogin ? widget.userName : passController.text.trim(),
           "player_id": sharedPref.getString(PLAYER_ID).validate(),
           if (widget.socialLogin) 'login_type': 'mobile',
         };
@@ -117,12 +109,8 @@ class SignUpScreenState extends State<SignUpScreen> {
                   email: emailController.text.trim(),
                   fName: firstController.text.trim(),
                   lName: lastNameController.text.trim(),
-                  userName: widget.socialLogin
-                      ? widget.userName
-                      : userNameController.text.trim(),
-                  password: widget.socialLogin
-                      ? widget.userName
-                      : passController.text.trim(),
+                  userName: widget.socialLogin ? widget.userName : userNameController.text.trim(),
+                  password: widget.socialLogin ? widget.userName : passController.text.trim(),
                   userType: RIDER,
                   isOtpLogin: widget.socialLogin)
               .then((res) async {
@@ -166,13 +154,10 @@ class SignUpScreenState extends State<SignUpScreen> {
                   Container(
                     padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withAlpha(25),
                       shape: BoxShape.circle,
                     ),
-                    child: ClipRRect(
-                        borderRadius: radius(50),
-                        child:
-                            Image.asset(ic_app_logo, width: 100, height: 100)),
+                    child: ClipRRect(borderRadius: radius(50), child: Image.asset(ic_app_logo, width: 100, height: 100)),
                   ),
                   SizedBox(height: 24),
                   Container(
@@ -182,7 +167,7 @@ class SignUpScreenState extends State<SignUpScreen> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.black.withOpacity(0.1),
+                          color: AppColors.black.withAlpha(25),
                           blurRadius: 10,
                           offset: Offset(0, 5),
                         ),
@@ -191,20 +176,13 @@ class SignUpScreenState extends State<SignUpScreen> {
                     child: Column(
                       children: [
                         Text(language.createAccount,
-                            style: AppTextStyles.sSemiBold16(
-                                    color: AppColors.textColor)
-                                .copyWith(fontSize: 24)),
+                            style: AppTextStyles.sSemiBold16(color: AppColors.textColor).copyWith(fontSize: 24)),
                         RichText(
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                  text: 'Sign up to get started ',
-                                  style: AppTextStyles.sRegular14(
-                                      color: AppColors.gray)),
-                              TextSpan(
-                                  text: '🚗',
-                                  style: AppTextStyles.sSemiBold16()
-                                      .copyWith(fontSize: 20)),
+                                  text: 'Sign up to get started ', style: AppTextStyles.sRegular14(color: AppColors.gray)),
+                              TextSpan(text: '🚗', style: AppTextStyles.sSemiBold16().copyWith(fontSize: 20)),
                             ],
                           ),
                         ),
@@ -216,32 +194,21 @@ class SignUpScreenState extends State<SignUpScreen> {
                                 controller: firstController,
                                 focusNode: firstNameFocus,
                                 textInputAction: TextInputAction.next,
-                                autovalidateMode:
-                                    AutovalidateMode.onUserInteraction,
+                                autovalidateMode: AutovalidateMode.onUserInteraction,
                                 decoration: InputDecoration(
                                   labelText: language.firstName,
-                                  prefixIcon: Icon(Icons.person_outline,
-                                      color: AppColors.primary),
-                                  border: InputBorders.custom(
-                                      color: AppColors.lightGray,
-                                      borderRadius: 10),
-                                  enabledBorder: InputBorders.custom(
-                                      color: AppColors.lightGray,
-                                      borderRadius: 10),
-                                  focusedBorder: InputBorders.custom(
-                                      color: AppColors.primary,
-                                      borderRadius: 10),
-                                  fillColor:
-                                      AppColors.lightGray.withOpacity(0.3),
+                                  prefixIcon: Icon(Icons.person_outline, color: AppColors.primary),
+                                  border: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+                                  enabledBorder: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+                                  focusedBorder: InputBorders.custom(color: AppColors.primary, borderRadius: 10),
+                                  fillColor: AppColors.lightGray.withAlpha(76),
                                   filled: true,
                                 ),
                                 validator: (s) {
-                                  if (s!.trim().isEmpty)
-                                    return errorThisFieldRequired;
+                                  if (s!.trim().isEmpty) return errorThisFieldRequired;
                                   return null;
                                 },
-                                onFieldSubmitted: (s) => FocusScope.of(context)
-                                    .requestFocus(lastNameFocus),
+                                onFieldSubmitted: (s) => FocusScope.of(context).requestFocus(lastNameFocus),
                               ),
                             ),
                             SizedBox(width: 20),
@@ -250,32 +217,21 @@ class SignUpScreenState extends State<SignUpScreen> {
                                 controller: lastNameController,
                                 focusNode: lastNameFocus,
                                 textInputAction: TextInputAction.next,
-                                autovalidateMode:
-                                    AutovalidateMode.onUserInteraction,
+                                autovalidateMode: AutovalidateMode.onUserInteraction,
                                 decoration: InputDecoration(
                                   labelText: language.lastName,
-                                  prefixIcon: Icon(Icons.person_outline,
-                                      color: AppColors.primary),
-                                  border: InputBorders.custom(
-                                      color: AppColors.lightGray,
-                                      borderRadius: 10),
-                                  enabledBorder: InputBorders.custom(
-                                      color: AppColors.lightGray,
-                                      borderRadius: 10),
-                                  focusedBorder: InputBorders.custom(
-                                      color: AppColors.primary,
-                                      borderRadius: 10),
-                                  fillColor:
-                                      AppColors.lightGray.withOpacity(0.3),
+                                  prefixIcon: Icon(Icons.person_outline, color: AppColors.primary),
+                                  border: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+                                  enabledBorder: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+                                  focusedBorder: InputBorders.custom(color: AppColors.primary, borderRadius: 10),
+                                  fillColor: AppColors.lightGray.withAlpha(76),
                                   filled: true,
                                 ),
                                 validator: (s) {
-                                  if (s!.trim().isEmpty)
-                                    return errorThisFieldRequired;
+                                  if (s!.trim().isEmpty) return errorThisFieldRequired;
                                   return null;
                                 },
-                                onFieldSubmitted: (s) => FocusScope.of(context)
-                                    .requestFocus(userNameFocus),
+                                onFieldSubmitted: (s) => FocusScope.of(context).requestFocus(userNameFocus),
                               ),
                             ),
                           ],
@@ -286,28 +242,21 @@ class SignUpScreenState extends State<SignUpScreen> {
                             controller: userNameController,
                             focusNode: userNameFocus,
                             textInputAction: TextInputAction.next,
-                            autovalidateMode:
-                                AutovalidateMode.onUserInteraction,
+                            autovalidateMode: AutovalidateMode.onUserInteraction,
                             decoration: InputDecoration(
                               labelText: language.userName,
-                              prefixIcon: Icon(Icons.account_circle_outlined,
-                                  color: AppColors.primary),
-                              border: InputBorders.custom(
-                                  color: AppColors.lightGray, borderRadius: 10),
-                              enabledBorder: InputBorders.custom(
-                                  color: AppColors.lightGray, borderRadius: 10),
-                              focusedBorder: InputBorders.custom(
-                                  color: AppColors.primary, borderRadius: 10),
-                              fillColor: AppColors.lightGray.withOpacity(0.3),
+                              prefixIcon: Icon(Icons.account_circle_outlined, color: AppColors.primary),
+                              border: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+                              enabledBorder: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+                              focusedBorder: InputBorders.custom(color: AppColors.primary, borderRadius: 10),
+                              fillColor: AppColors.lightGray.withAlpha(76),
                               filled: true,
                             ),
                             validator: (s) {
-                              if (s!.trim().isEmpty)
-                                return errorThisFieldRequired;
+                              if (s!.trim().isEmpty) return errorThisFieldRequired;
                               return null;
                             },
-                            onFieldSubmitted: (s) =>
-                                FocusScope.of(context).requestFocus(emailFocus),
+                            onFieldSubmitted: (s) => FocusScope.of(context).requestFocus(emailFocus),
                           ),
                         SizedBox(height: 20),
                         TextFormField(
@@ -318,26 +267,19 @@ class SignUpScreenState extends State<SignUpScreen> {
                           autovalidateMode: AutovalidateMode.onUserInteraction,
                           decoration: InputDecoration(
                             labelText: language.email,
-                            prefixIcon: Icon(Icons.email_outlined,
-                                color: AppColors.primary),
-                            border: InputBorders.custom(
-                                color: AppColors.lightGray, borderRadius: 10),
-                            enabledBorder: InputBorders.custom(
-                                color: AppColors.lightGray, borderRadius: 10),
-                            focusedBorder: InputBorders.custom(
-                                color: AppColors.primary, borderRadius: 10),
-                            fillColor: AppColors.lightGray.withOpacity(0.3),
+                            prefixIcon: Icon(Icons.email_outlined, color: AppColors.primary),
+                            border: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+                            enabledBorder: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+                            focusedBorder: InputBorders.custom(color: AppColors.primary, borderRadius: 10),
+                            fillColor: AppColors.lightGray.withAlpha(76),
                             filled: true,
                           ),
                           validator: (s) {
-                            if (s!.trim().isEmpty)
-                              return errorThisFieldRequired;
-                            if (!s.trim().validateEmail())
-                              return errorThisFieldRequired;
+                            if (s!.trim().isEmpty) return errorThisFieldRequired;
+                            if (!s.trim().validateEmail()) return errorThisFieldRequired;
                             return null;
                           },
-                          onFieldSubmitted: (s) =>
-                              FocusScope.of(context).requestFocus(phoneFocus),
+                          onFieldSubmitted: (s) => FocusScope.of(context).requestFocus(phoneFocus),
                         ),
                         if (widget.socialLogin != true) SizedBox(height: 20),
                         if (widget.socialLogin != true)
@@ -346,21 +288,15 @@ class SignUpScreenState extends State<SignUpScreen> {
                             focusNode: phoneFocus,
                             textInputAction: TextInputAction.next,
                             keyboardType: TextInputType.phone,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly
-                            ],
-                            autovalidateMode:
-                                AutovalidateMode.onUserInteraction,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            autovalidateMode: AutovalidateMode.onUserInteraction,
                             decoration: InputDecoration(
                               labelText: language.phoneNumber,
-                              fillColor: AppColors.lightGray.withOpacity(0.3),
+                              fillColor: AppColors.lightGray.withAlpha(76),
                               filled: true,
-                              border: InputBorders.custom(
-                                  color: AppColors.lightGray, borderRadius: 10),
-                              enabledBorder: InputBorders.custom(
-                                  color: AppColors.lightGray, borderRadius: 10),
-                              focusedBorder: InputBorders.custom(
-                                  color: AppColors.primary, borderRadius: 10),
+                              border: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+                              enabledBorder: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+                              focusedBorder: InputBorders.custom(color: AppColors.primary, borderRadius: 10),
                               prefixIcon: IntrinsicHeight(
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -370,31 +306,22 @@ class SignUpScreenState extends State<SignUpScreen> {
                                       initialSelection: countryCode,
                                       showCountryOnly: false,
                                       dialogSize: Size(
-                                          MediaQuery.of(context).size.width -
-                                              60,
-                                          MediaQuery.of(context).size.height *
-                                              0.6),
+                                          MediaQuery.of(context).size.width - 60, MediaQuery.of(context).size.height * 0.6),
                                       showFlag: true,
                                       showFlagDialog: true,
                                       showOnlyCountryWhenClosed: false,
                                       alignLeft: false,
                                       textStyle: AppTextStyles.sRegular14(),
-                                      dialogBackgroundColor:
-                                          Theme.of(context).cardColor,
+                                      dialogBackgroundColor: Theme.of(context).cardColor,
                                       barrierColor: Colors.black12,
-                                      dialogTextStyle:
-                                          AppTextStyles.sRegular14(),
+                                      dialogTextStyle: AppTextStyles.sRegular14(),
                                       searchDecoration: InputDecoration(
                                         focusColor: AppColors.primary,
-                                        iconColor:
-                                            Theme.of(context).dividerColor,
+                                        iconColor: Theme.of(context).dividerColor,
                                         enabledBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
-                                                color: Theme.of(context)
-                                                    .dividerColor)),
-                                        focusedBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
-                                                color: AppColors.primary)),
+                                            borderSide: BorderSide(color: Theme.of(context).dividerColor)),
+                                        focusedBorder:
+                                            UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
                                       ),
                                       searchStyle: AppTextStyles.sRegular14(),
                                       onInit: (c) {
@@ -404,19 +331,16 @@ class SignUpScreenState extends State<SignUpScreen> {
                                         countryCode = c.dialCode!;
                                       },
                                     ),
-                                    VerticalDivider(
-                                        color: AppColors.gray.withOpacity(0.5)),
+                                    VerticalDivider(color: AppColors.gray.withAlpha(127)),
                                   ],
                                 ),
                               ),
                             ),
                             validator: (value) {
-                              if (value!.trim().isEmpty)
-                                return errorThisFieldRequired;
+                              if (value!.trim().isEmpty) return errorThisFieldRequired;
                               return null;
                             },
-                            onFieldSubmitted: (s) =>
-                                FocusScope.of(context).requestFocus(passFocus),
+                            onFieldSubmitted: (s) => FocusScope.of(context).requestFocus(passFocus),
                           ),
                         if (widget.socialLogin != true) SizedBox(height: 20),
                         if (widget.socialLogin != true)
@@ -428,39 +352,25 @@ class SignUpScreenState extends State<SignUpScreen> {
                                   focusNode: passFocus,
                                   textInputAction: TextInputAction.next,
                                   obscureText: true,
-                                  autovalidateMode:
-                                      AutovalidateMode.onUserInteraction,
+                                  autovalidateMode: AutovalidateMode.onUserInteraction,
                                   decoration: InputDecoration(
                                     labelText: language.password,
-                                    prefixIcon: Icon(Icons.lock_outline,
-                                        color: AppColors.primary),
-                                    border: InputBorders.custom(
-                                        color: AppColors.lightGray,
-                                        borderRadius: 10),
-                                    enabledBorder: InputBorders.custom(
-                                        color: AppColors.lightGray,
-                                        borderRadius: 10),
-                                    focusedBorder: InputBorders.custom(
-                                        color: AppColors.primary,
-                                        borderRadius: 10),
-                                    fillColor:
-                                        AppColors.lightGray.withOpacity(0.3),
+                                    prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
+                                    border: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+                                    enabledBorder: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+                                    focusedBorder: InputBorders.custom(color: AppColors.primary, borderRadius: 10),
+                                    fillColor: AppColors.lightGray.withAlpha(76),
                                     filled: true,
                                   ),
                                   validator: (String? value) {
-                                    if (value!.isEmpty)
-                                      return errorThisFieldRequired;
-                                    if (value.length < passwordLengthGlobal)
-                                      return language.passwordLength;
+                                    if (value!.isEmpty) return errorThisFieldRequired;
+                                    if (value.length < passwordLengthGlobal) return language.passwordLength;
                                     return null;
                                   },
-                                  onFieldSubmitted: (s) =>
-                                      FocusScope.of(context)
-                                          .requestFocus(confirmPass),
+                                  onFieldSubmitted: (s) => FocusScope.of(context).requestFocus(confirmPass),
                                 ),
                               ),
-                              if (widget.socialLogin != true)
-                                SizedBox(width: 16),
+                              if (widget.socialLogin != true) SizedBox(width: 16),
                               if (widget.socialLogin != true)
                                 Expanded(
                                   child: TextFormField(
@@ -468,33 +378,20 @@ class SignUpScreenState extends State<SignUpScreen> {
                                     focusNode: confirmPass,
                                     textInputAction: TextInputAction.done,
                                     obscureText: true,
-                                    autovalidateMode:
-                                        AutovalidateMode.onUserInteraction,
+                                    autovalidateMode: AutovalidateMode.onUserInteraction,
                                     decoration: InputDecoration(
                                       labelText: language.confirmPassword,
-                                      prefixIcon: Icon(Icons.lock_outline,
-                                          color: AppColors.primary),
-                                      border: InputBorders.custom(
-                                          color: AppColors.lightGray,
-                                          borderRadius: 10),
-                                      enabledBorder: InputBorders.custom(
-                                          color: AppColors.lightGray,
-                                          borderRadius: 10),
-                                      focusedBorder: InputBorders.custom(
-                                          color: AppColors.primary,
-                                          borderRadius: 10),
-                                      fillColor:
-                                          AppColors.lightGray.withOpacity(0.3),
+                                      prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
+                                      border: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+                                      enabledBorder: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+                                      focusedBorder: InputBorders.custom(color: AppColors.primary, borderRadius: 10),
+                                      fillColor: AppColors.lightGray.withAlpha(76),
                                       filled: true,
                                     ),
                                     validator: (String? value) {
-                                      if (value!.isEmpty)
-                                        return errorThisFieldRequired;
-                                      if (value.length < passwordLengthGlobal)
-                                        return language.passwordLength;
-                                      if (value.trim() !=
-                                          passController.text.trim())
-                                        return language.bothPasswordNotMatch;
+                                      if (value!.isEmpty) return errorThisFieldRequired;
+                                      if (value.length < passwordLengthGlobal) return language.passwordLength;
+                                      if (value.trim() != passController.text.trim()) return language.bothPasswordNotMatch;
                                       return null;
                                     },
                                   ),
@@ -508,12 +405,10 @@ class SignUpScreenState extends State<SignUpScreen> {
                               height: 18,
                               width: 18,
                               child: Checkbox(
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
+                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                 activeColor: AppColors.primary,
                                 value: isAcceptedTc,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: radius(4)),
+                                shape: RoundedRectangleBorder(borderRadius: radius(4)),
                                 onChanged: (v) async {
                                   isAcceptedTc = v!;
                                   setState(() {});
@@ -526,45 +421,24 @@ class SignUpScreenState extends State<SignUpScreen> {
                                 text: TextSpan(children: [
                                   TextSpan(
                                       text: '${language.iAgreeToThe} ',
-                                      style: AppTextStyles.sRegular14(
-                                          color: AppColors.gray)),
+                                      style: AppTextStyles.sRegular14(color: AppColors.gray)),
                                   TextSpan(
                                     text: language.termsConditions,
-                                    style: AppTextStyles.sSemiBold14(
-                                        color: AppColors.primary),
+                                    style: AppTextStyles.sSemiBold14(color: AppColors.primary),
                                     recognizer: TapGestureRecognizer()
                                       ..onTap = () {
-                                        if (widget.termsConditionUrl != null &&
-                                            widget.termsConditionUrl!
-                                                .isNotEmpty) {
-                                          launchScreen(
-                                              context,
-                                              TermsConditionScreen(
-                                                  title:
-                                                      language.termsConditions,
-                                                  subtitle:
-                                                      widget.termsConditionUrl),
-                                              pageRouteAnimation:
-                                                  PageRouteAnimation.Slide);
-                                        } else {
-                                          toast(language.txtURLEmpty);
-                                        }
+                                        launchScreen(context, TermsAndConditionsScreen(),
+                                            pageRouteAnimation: PageRouteAnimation.Slide);
                                       },
                                   ),
-                                  TextSpan(
-                                      text: ' & ',
-                                      style: AppTextStyles.sRegular14(
-                                          color: AppColors.gray)),
+                                  TextSpan(text: ' & ', style: AppTextStyles.sRegular14(color: AppColors.gray)),
                                   TextSpan(
                                     text: language.privacyPolicy,
-                                    style: AppTextStyles.sSemiBold14(
-                                        color: AppColors.primary),
+                                    style: AppTextStyles.sSemiBold14(color: AppColors.primary),
                                     recognizer: TapGestureRecognizer()
                                       ..onTap = () {
-                                        launchScreen(
-                                            context, PrivacyPolicyScreen(),
-                                            pageRouteAnimation:
-                                                PageRouteAnimation.Slide);
+                                        launchScreen(context, TermsAndConditionsScreen(),
+                                            pageRouteAnimation: PageRouteAnimation.Slide);
                                       },
                                   ),
                                 ]),
@@ -595,7 +469,7 @@ class SignUpScreenState extends State<SignUpScreen> {
             top: context.statusBarHeight + 4,
             left: 4,
             child: Material(
-              color: AppColors.white.withOpacity(0.9),
+              color: AppColors.white.withAlpha(226),
               shape: CircleBorder(),
               child: InkWell(
                 onTap: () => Navigator.pop(context),
@@ -623,16 +497,13 @@ class SignUpScreenState extends State<SignUpScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(language.alreadyHaveAnAccount,
-                    style: AppTextStyles.sRegular14()),
+                Text(language.alreadyHaveAnAccount, style: AppTextStyles.sRegular14()),
                 SizedBox(width: 8),
                 inkWellWidget(
                   onTap: () {
                     Navigator.pop(context);
                   },
-                  child: Text(language.logIn,
-                      style:
-                          AppTextStyles.sSemiBold14(color: AppColors.primary)),
+                  child: Text(language.logIn, style: AppTextStyles.sSemiBold14(color: AppColors.primary)),
                 ),
               ],
             ),

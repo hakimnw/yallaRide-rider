@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taxi_booking/utils/core/app_routes/navigation_service.dart';
-import 'package:taxi_booking/utils/core/app_routes/router_names.dart';
 import 'package:taxi_booking/utils/core/constant/app_icons.dart';
-import 'package:taxi_booking/utils/core/widget/rating/widgets/complain_screen/choose_complain_topics_dropdown.dart';
 import 'package:taxi_booking/utils/core/widget/rating/widgets/complain_screen/small_rating_widget.dart';
 
 class ComplainScreenMainContent extends StatelessWidget {

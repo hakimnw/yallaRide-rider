@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+
+import '../../../main.dart';
 import '../../utils/Extensions/app_common.dart';
 import '../../utils/Extensions/dataTypeExtensions.dart';
-import '../../../main.dart';
 import '../Colors.dart';
 import '../Common.dart';
 import '../Constants.dart';
+import '../constant/app_colors.dart';
 import 'Loader.dart';
 
 enum DialogType { CONFIRMATION, ACCEPT, DELETE, UPDATE, ADD, RETRY }
@@ -32,7 +34,7 @@ Color getDialogPrimaryColor(
       color = Colors.blue;
       break;
     case DialogType.ACCEPT:
-      color = Colors.green;
+      color = AppColors.primary;
       break;
   }
   return color;
@@ -119,7 +121,7 @@ Widget? getCenteredImage(BuildContext context, DialogType dialogType, Color? pri
     case DialogType.CONFIRMATION:
       widget = Container(
         decoration: BoxDecoration(
-          color: getDialogPrimaryColor(context, dialogType, primaryColor).withOpacity(0.2),
+          color: getDialogPrimaryColor(context, dialogType, primaryColor).withAlpha(51),
           shape: BoxShape.circle,
         ),
         child: Icon(Icons.warning_amber_rounded, color: getDialogPrimaryColor(context, dialogType, primaryColor), size: 40),
@@ -128,14 +130,16 @@ Widget? getCenteredImage(BuildContext context, DialogType dialogType, Color? pri
       break;
     case DialogType.DELETE:
       widget = Container(
-        decoration: BoxDecoration(color: getDialogPrimaryColor(context, dialogType, primaryColor).withOpacity(0.2), shape: BoxShape.circle),
+        decoration: BoxDecoration(
+            color: getDialogPrimaryColor(context, dialogType, primaryColor).withAlpha(51), shape: BoxShape.circle),
         child: Icon(Icons.close, color: getDialogPrimaryColor(context, dialogType, primaryColor), size: 40),
         padding: EdgeInsets.all(16),
       );
       break;
     case DialogType.UPDATE:
       widget = Container(
-        decoration: BoxDecoration(color: getDialogPrimaryColor(context, dialogType, primaryColor).withOpacity(0.2), shape: BoxShape.circle),
+        decoration: BoxDecoration(
+            color: getDialogPrimaryColor(context, dialogType, primaryColor).withAlpha(51), shape: BoxShape.circle),
         child: Icon(Icons.edit_outlined, color: getDialogPrimaryColor(context, dialogType, primaryColor), size: 40),
         padding: EdgeInsets.all(16),
       );
@@ -144,7 +148,7 @@ Widget? getCenteredImage(BuildContext context, DialogType dialogType, Color? pri
     case DialogType.ACCEPT:
       widget = Container(
         decoration: BoxDecoration(
-          color: getDialogPrimaryColor(context, dialogType, primaryColor).withOpacity(0.2),
+          color: getDialogPrimaryColor(context, dialogType, primaryColor).withAlpha(51),
           shape: BoxShape.circle,
         ),
         child: Icon(Icons.done_outline, color: getDialogPrimaryColor(context, dialogType, primaryColor), size: 40),
@@ -154,7 +158,7 @@ Widget? getCenteredImage(BuildContext context, DialogType dialogType, Color? pri
     case DialogType.RETRY:
       widget = Container(
         decoration: BoxDecoration(
-          color: getDialogPrimaryColor(context, dialogType, primaryColor).withOpacity(0.2),
+          color: getDialogPrimaryColor(context, dialogType, primaryColor).withAlpha(51),
           shape: BoxShape.circle,
         ),
         child: Icon(Icons.refresh_rounded, color: getDialogPrimaryColor(context, dialogType, primaryColor), size: 40),
@@ -178,7 +182,7 @@ Widget defaultPlaceHolder(
     height: height,
     width: width,
     decoration: BoxDecoration(
-      color: getDialogPrimaryColor(context, dialogType, primaryColor).withOpacity(0.2),
+      color: getDialogPrimaryColor(context, dialogType, primaryColor).withAlpha(51),
     ),
     alignment: Alignment.center,
     child: child ?? getCenteredImage(context, dialogType, primaryColor),
@@ -223,7 +227,9 @@ Widget buildTitleWidget(
             primaryColor,
             shape: shape,
             child: Loader(
-              value: loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null,
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                  : null,
             ),
           );
         },

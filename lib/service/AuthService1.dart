@@ -7,7 +7,6 @@ import 'package:taxi_booking/screens/MainScreen.dart';
 import '../main.dart';
 import '../model/LoginResponse.dart';
 import '../network/RestApis.dart';
-import '../screens/DashBoardScreen.dart';
 import '../utils/Common.dart';
 import '../utils/Constants.dart';
 import '../utils/Extensions/app_common.dart';
@@ -16,14 +15,11 @@ import '../utils/Extensions/dataTypeExtensions.dart';
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class AuthServices {
-  Future<User?> createAuthUser(
-      String? email, String? password, bool isOtpLogin) async {
+  Future<User?> createAuthUser(String? email, String? password, bool isOtpLogin) async {
     User? userCredential;
     try {
       if (!isOtpLogin) {
-        await _auth
-            .createUserWithEmailAndPassword(email: email!, password: password!)
-            .then((value) {
+        await _auth.createUserWithEmailAndPassword(email: email!, password: password!).then((value) {
           userCredential = value.user!;
         });
       } else {
@@ -33,9 +29,7 @@ class AuthServices {
       if (error.code == "ERROR_EMAIL_ALREADY_IN_USE" ||
           error.code == "account-exists-with-different-credential" ||
           error.code == "email-already-in-use") {
-        await _auth
-            .signInWithEmailAndPassword(email: email!, password: password!)
-            .then((value) {
+        await _auth.signInWithEmailAndPassword(email: email!, password: password!).then((value) {
           userCredential = value.user!;
         });
       } else {
@@ -77,9 +71,7 @@ class AuthServices {
           userModel.playerId = sharedPref.getString(PLAYER_ID).validate();
           sharedPref.setString(UID, user.uid.validate());
 
-          await userService
-              .addDocumentWithCustomId(currentUser.uid, userModel.toJson())
-              .then((value) async {
+          await userService.addDocumentWithCustomId(currentUser.uid, userModel.toJson()).then((value) async {
             Map request = {
               "email": userModel.email,
               "password": password,
@@ -89,16 +81,12 @@ class AuthServices {
             if (isOtpLogin) {
               appStore.setLoading(false);
               updateProfileUid();
-              launchScreen(context, MainScreen(),
-                  isNewTask: true,
-                  pageRouteAnimation: PageRouteAnimation.Slide);
+              launchScreen(context, MainScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
             } else {
               await logInApi(request).then((res) async {
                 appStore.setLoading(false);
                 updateProfileUid();
-                launchScreen(context, MainScreen(),
-                    isNewTask: true,
-                    pageRouteAnimation: PageRouteAnimation.Slide);
+                launchScreen(context, MainScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
               }).catchError((e) {
                 appStore.setLoading(false);
                 log(e.toString());
@@ -117,8 +105,7 @@ class AuthServices {
     }
   }
 
-  Future<void> loginFromFirebaseUser(User currentUser,
-      {LoginResponse? loginDetail, String? fullName}) async {
+  Future<void> loginFromFirebaseUser(User currentUser, {LoginResponse? loginDetail, String? fullName}) async {
     UserModel userModel = UserModel();
     if (await userService.isUserExist(loginDetail!.data!.email)) {
       ///Return user data
@@ -159,9 +146,7 @@ class AuthServices {
 
       log(userModel.toJson());
 
-      await userService
-          .addDocumentWithCustomId(currentUser.uid, userModel.toJson())
-          .then((value) {
+      await userService.addDocumentWithCustomId(currentUser.uid, userModel.toJson()).then((value) {
         //
       }).catchError((e) {
         throw e;

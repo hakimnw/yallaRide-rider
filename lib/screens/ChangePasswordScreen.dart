@@ -17,8 +17,7 @@ class ChangePasswordScreen extends StatefulWidget {
   ChangePasswordScreenState createState() => ChangePasswordScreenState();
 }
 
-class ChangePasswordScreenState extends State<ChangePasswordScreen>
-    with SingleTickerProviderStateMixin {
+class ChangePasswordScreenState extends State<ChangePasswordScreen> with SingleTickerProviderStateMixin {
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   TextEditingController oldPassController = TextEditingController();
@@ -139,8 +138,7 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen>
           ),
           backgroundColor: Colors.transparent,
           elevation: 0,
-          title: Text(language.changePassword,
-              style: AppTextStyles.sSemiBold16(color: AppColors.white)),
+          title: Text(language.changePassword, style: AppTextStyles.sSemiBold16(color: AppColors.white)),
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: AppColors.white),
             onPressed: () => Navigator.pop(context),
@@ -173,7 +171,7 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen>
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.black.withOpacity(0.1),
+                        color: AppColors.black.withAlpha(25),
                         blurRadius: 10,
                         spreadRadius: 0,
                       ),
@@ -190,7 +188,7 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen>
                             child: Container(
                               padding: EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
+                                color: AppColors.primary.withAlpha(25),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
@@ -212,8 +210,7 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen>
 
                           Text(
                             "يرجى إدخال كلمة المرور الحالية وكلمة المرور الجديدة لتغيير كلمة المرور",
-                            style:
-                                AppTextStyles.sRegular14(color: AppColors.gray),
+                            style: AppTextStyles.sRegular14(color: AppColors.gray),
                           ),
 
                           SizedBox(height: 30),
@@ -226,13 +223,10 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen>
                             style: AppTextStyles.sRegular14(),
                             decoration: InputDecoration(
                               labelText: language.oldPassword,
-                              prefixIcon: Icon(Icons.lock_outline,
-                                  color: AppColors.primary),
+                              prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  _obscureOldPassword
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
+                                  _obscureOldPassword ? Icons.visibility_off : Icons.visibility,
                                   color: AppColors.gray,
                                 ),
                                 onPressed: () {
@@ -253,16 +247,14 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen>
                                 color: AppColors.primary,
                                 borderRadius: 10,
                               ),
-                              fillColor: AppColors.lightGray.withOpacity(0.3),
+                              fillColor: AppColors.lightGray.withAlpha(76),
                               filled: true,
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty)
-                                return language.thisFieldRequired;
+                              if (value == null || value.isEmpty) return language.thisFieldRequired;
                               return null;
                             },
-                            onFieldSubmitted: (s) => FocusScope.of(context)
-                                .requestFocus(newPassFocus),
+                            onFieldSubmitted: (s) => FocusScope.of(context).requestFocus(newPassFocus),
                           ),
 
                           SizedBox(height: 20),
@@ -275,13 +267,10 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen>
                             style: AppTextStyles.sRegular14(),
                             decoration: InputDecoration(
                               labelText: language.newPassword,
-                              prefixIcon: Icon(Icons.lock_outline,
-                                  color: AppColors.primary),
+                              prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  _obscureNewPassword
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
+                                  _obscureNewPassword ? Icons.visibility_off : Icons.visibility,
                                   color: AppColors.gray,
                                 ),
                                 onPressed: () {
@@ -302,18 +291,15 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen>
                                 color: AppColors.primary,
                                 borderRadius: 10,
                               ),
-                              fillColor: AppColors.lightGray.withOpacity(0.3),
+                              fillColor: AppColors.lightGray.withAlpha(76),
                               filled: true,
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty)
-                                return language.thisFieldRequired;
-                              if (value.length < passwordLengthGlobal)
-                                return language.passwordLength;
+                              if (value == null || value.isEmpty) return language.thisFieldRequired;
+                              if (value.length < passwordLengthGlobal) return language.passwordLength;
                               return null;
                             },
-                            onFieldSubmitted: (s) => FocusScope.of(context)
-                                .requestFocus(confirmPassFocus),
+                            onFieldSubmitted: (s) => FocusScope.of(context).requestFocus(confirmPassFocus),
                           ),
 
                           SizedBox(height: 20),
@@ -326,19 +312,15 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen>
                             style: AppTextStyles.sRegular14(),
                             decoration: InputDecoration(
                               labelText: language.confirmPassword,
-                              prefixIcon: Icon(Icons.lock_outline,
-                                  color: AppColors.primary),
+                              prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  _obscureConfirmPassword
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
+                                  _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
                                   color: AppColors.gray,
                                 ),
                                 onPressed: () {
                                   setState(() {
-                                    _obscureConfirmPassword =
-                                        !_obscureConfirmPassword;
+                                    _obscureConfirmPassword = !_obscureConfirmPassword;
                                   });
                                 },
                               ),
@@ -354,14 +336,12 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen>
                                 color: AppColors.primary,
                                 borderRadius: 10,
                               ),
-                              fillColor: AppColors.lightGray.withOpacity(0.3),
+                              fillColor: AppColors.lightGray.withAlpha(76),
                               filled: true,
                             ),
                             validator: (val) {
-                              if (val == null || val.isEmpty)
-                                return language.thisFieldRequired;
-                              if (val != newPassController.text)
-                                return language.passwordDoesNotMatch;
+                              if (val == null || val.isEmpty) return language.thisFieldRequired;
+                              if (val != newPassController.text) return language.passwordDoesNotMatch;
                               return null;
                             },
                           ),
@@ -374,8 +354,7 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen>
                             color: AppColors.primary,
                             width: MediaQuery.of(context).size.width,
                             onTap: () {
-                              if (sharedPref.getString(USER_EMAIL) ==
-                                  demoEmail) {
+                              if (sharedPref.getString(USER_EMAIL) == demoEmail) {
                                 toast(language.demoMsg);
                               } else {
                                 submit();

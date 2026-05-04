@@ -256,7 +256,7 @@ class RiderModel {
       data['extra_charges'] = this.extraCharges!.map((v) => v.toJson()).toList();
     }
     if(multiDropLocation!=null){
-      data["multi_drop_location"]=List<dynamic>.from(multiDropLocation!.map((x) => x!.toJson()));
+      data["multi_drop_location"]=List<dynamic>.from(multiDropLocation!.map((x) => x.toJson()));
     }
     data['coupon_discount'] = this.couponDiscount;
     data['coupon_code'] = this.couponCode;

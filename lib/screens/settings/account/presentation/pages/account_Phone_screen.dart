@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:taxi_booking/main.dart';
 import 'package:taxi_booking/utils/Constants.dart';
 import 'package:taxi_booking/utils/core/constant/app_colors.dart';
 import 'package:taxi_booking/utils/core/constant/styles/app_text_style.dart';
@@ -8,8 +9,6 @@ import 'package:taxi_booking/utils/core/widget/app_input_fields/app_text_form_fi
 import 'package:taxi_booking/utils/core/widget/app_input_fields/my_country_code_picker.dart';
 import 'package:taxi_booking/utils/core/widget/appbar/back_app_bar.dart';
 import 'package:taxi_booking/utils/core/widget/buttons/app_buttons.dart';
-import 'package:taxi_booking/main.dart';
-import 'package:taxi_booking/utils/core/widget/shared/custom_navigation_bar.dart';
 
 class AccountPhoneScreen extends StatefulWidget {
   const AccountPhoneScreen({super.key});
@@ -88,7 +87,7 @@ class _AccountPhoneScreenState extends State<AccountPhoneScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('تم تحديث رقم الهاتف بنجاح'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.primary,
           ),
         );
         Navigator.pop(context);

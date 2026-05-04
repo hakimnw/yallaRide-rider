@@ -5,7 +5,6 @@ import 'package:taxi_booking/utils/core/constant/app_image.dart';
 import 'package:taxi_booking/utils/core/constant/styles/app_text_style.dart';
 import 'package:taxi_booking/utils/core/utils/responsive_vertical_space.dart';
 import 'package:taxi_booking/utils/core/widget/appbar/back_app_bar.dart';
-import 'package:taxi_booking/utils/core/widget/shared/custom_navigation_bar.dart';
 
 class WhoAreWeScreen extends StatelessWidget {
   const WhoAreWeScreen({super.key});
@@ -35,9 +34,8 @@ class WhoAreWeScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "تطبيق مسارك",
-                        style:
-                            AppTextStyles.sSemiBold16(color: AppColors.primary),
+                        "تطبيق YallahRide",
+                        style: AppTextStyles.sSemiBold16(color: AppColors.primary),
                       ),
                       const ResponsiveVerticalSpace(10),
                       Text(

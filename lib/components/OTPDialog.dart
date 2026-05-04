@@ -42,7 +42,8 @@ class OTPDialogState extends State<OTPDialog> {
   Future<void> submit() async {
     appStore.setLoading(true);
 
-    AuthCredential credential = PhoneAuthProvider.credential(verificationId: widget.verificationId!, smsCode: verId.validate());
+    AuthCredential credential =
+        PhoneAuthProvider.credential(verificationId: widget.verificationId!, smsCode: verId.validate());
 
     await FirebaseAuth.instance.signInWithCredential(credential).then((result) async {
       Map req = {
@@ -60,11 +61,16 @@ class OTPDialogState extends State<OTPDialog> {
         appStore.setLoading(false);
         if (value.data == null) {
           Navigator.pop(context);
-          launchScreen(context, SignUpScreen(countryCode: widget.phoneNumber!.split(" ").first, userName: widget.phoneNumber!.split(" ").last, socialLogin: true));
+          launchScreen(
+              context,
+              SignUpScreen(
+                  countryCode: widget.phoneNumber!.split(" ").first,
+                  userName: widget.phoneNumber!.split(" ").last,
+                  socialLogin: true));
         } else {
           updatePlayerId();
           Navigator.pop(context);
-          launchScreen(context, DashBoardScreen(), isNewTask: true);
+          launchScreen(context, DashboardScreen(), isNewTask: true);
         }
       }).catchError((e) {
         Navigator.pop(context);
@@ -162,7 +168,7 @@ class OTPDialogState extends State<OTPDialog> {
                           otpCode = c.dialCode!;
                         },
                       ),
-                      VerticalDivider(color: Colors.grey.withOpacity(0.5)),
+                      VerticalDivider(color: Colors.grey.withAlpha(127)),
                     ],
                   ),
                 ),
@@ -253,7 +259,10 @@ class OTPDialogState extends State<OTPDialog> {
                       textStyle: TextStyle(
                         fontSize: 18,
                       ),
-                      decoration: BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.all(Radius.circular(8)), border: Border.all(color: primaryColor)),
+                      decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                          border: Border.all(color: primaryColor)),
                     ),
                     toolbarEnabled: true,
                     useNativeKeyboard: true,
@@ -263,7 +272,10 @@ class OTPDialogState extends State<OTPDialog> {
                       textStyle: TextStyle(
                         fontSize: 18,
                       ),
-                      decoration: BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.all(Radius.circular(8)), border: Border.all(color: dividerColor)),
+                      decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                          border: Border.all(color: dividerColor)),
                     ),
                     isCursorAnimationEnabled: true,
                     showCursor: true,

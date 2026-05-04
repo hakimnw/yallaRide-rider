@@ -30,34 +30,35 @@ class AppTextFormField extends StatelessWidget {
   final int? maxLength;
   final Color? hintColor;
 
-  const AppTextFormField(
-      {super.key,
-      required this.controller,
-      this.keyboardType = TextInputType.text,
-      required this.hint,
-      this.prefixIcon,
-      this.action = TextInputAction.next,
-      this.isPassword = false,
-      this.readOnly = false,
-      this.autoFocus = false,
-      this.validator,
-      this.onChanged,
-      this.prefixWidget,
-      this.onTap,
-      this.suffixTap,
-      this.keyError = "",
-      this.errors,
-      this.suffixIcon,
-      this.labelText,
-      this.border,
-      this.svgSuffixIcon,
-      this.maxLines = 1,
-      this.inputTextStyle,
-      this.textDirection,
-      this.enabled,
-      this.labelStyle,
-      this.maxLength,
-      this.hintColor});
+  const AppTextFormField({
+    super.key,
+    required this.controller,
+    this.keyboardType = TextInputType.text,
+    required this.hint,
+    this.prefixIcon,
+    this.action = TextInputAction.next,
+    this.isPassword = false,
+    this.readOnly = false,
+    this.autoFocus = false,
+    this.validator,
+    this.onChanged,
+    this.prefixWidget,
+    this.onTap,
+    this.suffixTap,
+    this.keyError = "",
+    this.errors,
+    this.suffixIcon,
+    this.labelText,
+    this.border,
+    this.svgSuffixIcon,
+    this.maxLines = 1,
+    this.inputTextStyle,
+    this.textDirection,
+    this.enabled,
+    this.labelStyle,
+    this.maxLength,
+    this.hintColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -66,39 +67,27 @@ class AppTextFormField extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x26000000),
-            blurRadius: 4,
-            offset: Offset(0, 0),
-            spreadRadius: 0,
-          ),
-        ],
+        boxShadow: const [BoxShadow(color: AppColors.black, blurRadius: 4, offset: Offset(0, 0), spreadRadius: 0)],
       ),
       child: TextFormField(
         cursorColor: AppColors.primary,
         enabled: enabled,
         maxLines: maxLines,
         controller: controller,
-        style: TextStyle(
-          color: AppColors.textColor,
-          fontSize: 16.spMin,
-          fontFamily: 'Tajawal',
-          fontWeight: FontWeight.w500,
-        ),
+        style: TextStyle(color: AppColors.textColor, fontSize: 16.spMin, fontFamily: 'Tajawal', fontWeight: FontWeight.w500),
         decoration: InputDecoration(
-            border: InputBorder.none,
-            hintText: hint,
-            hintStyle: TextStyle(
-              color: hintColor ?? AppColors.primary,
-              fontSize: 16.spMin,
-              fontFamily: 'Tajawal',
-              fontWeight: FontWeight.w500,
-              letterSpacing: -0.30,
-            ),
-            suffixIcon: svgSuffixIcon,
-            suffixIconConstraints:
-                BoxConstraints(maxHeight: 20.h, maxWidth: 20.w)),
+          border: InputBorder.none,
+          hintText: hint,
+          hintStyle: TextStyle(
+            color: hintColor ?? AppColors.primary,
+            fontSize: 16.spMin,
+            fontFamily: 'Tajawal',
+            fontWeight: FontWeight.w500,
+            letterSpacing: -0.30,
+          ),
+          suffixIcon: svgSuffixIcon,
+          suffixIconConstraints: BoxConstraints(maxHeight: 20.h, maxWidth: 20.w),
+        ),
       ),
     );
   }

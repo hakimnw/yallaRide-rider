@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:paginate_firestore/paginate_firestore.dart';
-import 'package:taxi_booking/screens/DashBoardScreen.dart';
 import 'package:taxi_booking/screens/MainScreen.dart';
 
 import '../../main.dart';
@@ -11,7 +10,7 @@ import '../../service/ChatMessagesService.dart';
 import '../../utils/Colors.dart';
 import '../../utils/Constants.dart';
 import '../../utils/Extensions/app_common.dart';
-import '../components/ChatItemWidget.dart';
+import '../components/chat_item_widget.dart';
 import '../model/ChatMessageModel.dart';
 import '../model/FileModel.dart';
 import '../model/LoginResponse.dart';
@@ -56,16 +55,14 @@ class _ChatScreenState extends State<ChatScreen> {
     id = sharedPref.getString(UID)!;
 
     chatMessageService = ChatMessageService();
-    chatMessageService.setUnReadStatusToTrue(
-        riderID: sender.uid!, driverID: widget.userData!.uid.validate());
+    chatMessageService.setUnReadStatusToTrue(riderID: sender.uid!, driverID: widget.userData!.uid.validate());
     setState(() {});
   }
 
   @override
   void dispose() {
     try {
-      chatMessageService.setUnReadStatusToTrue(
-          riderID: sender.uid!, driverID: widget.userData!.uid.validate());
+      chatMessageService.setUnReadStatusToTrue(riderID: sender.uid!, driverID: widget.userData!.uid.validate());
     } catch (e) {}
     super.dispose();
   }
@@ -100,11 +97,7 @@ class _ChatScreenState extends State<ChatScreen> {
     String f_name = sharedPref.getString(FIRST_NAME) ?? '';
     String l_name = sharedPref.getString(LAST_NAME) ?? '';
     notificationService
-        .sendPushNotifications(
-            f_name == ''
-                ? sharedPref.getString(USER_NAME)!
-                : f_name + " $l_name",
-            messageCont.text,
+        .sendPushNotifications(f_name == '' ? sharedPref.getString(USER_NAME)! : f_name + " $l_name", messageCont.text,
             receiverPlayerId: widget.userData!.playerId)
         .catchError(log);
     messageCont.clear();
@@ -185,28 +178,22 @@ class _ChatScreenState extends State<ChatScreen> {
               if (widget.show_history != true)
                 ClipRRect(
                     borderRadius: BorderRadius.all(radiusCircular(20)),
-                    child: commonCachedNetworkImage(
-                        widget.userData!.profileImage.validate(),
-                        fit: BoxFit.cover,
-                        height: 40,
-                        width: 40)),
+                    child: commonCachedNetworkImage(widget.userData!.profileImage.validate(),
+                        fit: BoxFit.cover, height: 40, width: 40)),
               // CircleAvatar(backgroundImage: NetworkImage(widget.userData!.profileImage.validate()), minRadius: 20),
               SizedBox(width: 10),
               if (widget.show_history != true)
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 16),
                   child: Text(
-                      widget.userData!.firstName
-                              .validate()
-                              .capitalizeFirstLetter() +
+                      widget.userData!.firstName.validate().capitalizeFirstLetter() +
                           " ${widget.userData!.lastName.validate()}",
                       style: TextStyle(color: Colors.white)),
                 ),
               if (widget.show_history == true)
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Text("${language.lblRide} #${widget.ride_id} Messages",
-                      style: boldTextStyle(color: Colors.white)),
+                  child: Text("${language.lblRide} #${widget.ride_id} Messages", style: boldTextStyle(color: Colors.white)),
                 ),
             ],
           ),
@@ -218,20 +205,16 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Stack(
             children: [
               Container(
-                padding: EdgeInsets.only(
-                    bottom: widget.show_history == true ? 20 : 76),
+                padding: EdgeInsets.only(bottom: widget.show_history == true ? 20 : 76),
                 height: MediaQuery.of(context).size.height,
                 width: MediaQuery.of(context).size.width,
                 child: PaginateFirestore(
                   reverse: true,
                   isLive: true,
-                  padding:
-                      EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
+                  padding: EdgeInsets.only(left: 8, top: 8, right: 8, bottom: 0),
                   physics: BouncingScrollPhysics(),
                   query: widget.show_history == true
-                      ? chatMessageService
-                          .rideSpecificChatMessagesWithPagination(
-                              rideId: widget.ride_id.toString())
+                      ? chatMessageService.rideSpecificChatMessagesWithPagination(rideId: widget.ride_id.toString())
                       : chatMessageService.chatMessagesWithPagination(
                           riderId: sharedPref.getString(UID),
                           driverID: widget.userData!.uid.validate(),
@@ -241,12 +224,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   onEmpty: Offstage(),
                   itemBuilderType: PaginateBuilderType.listView,
                   itemBuilder: (context, snap, index) {
-                    ChatMessageModel data = ChatMessageModel.fromJson(
-                        snap[index].data() as Map<String, dynamic>);
+                    ChatMessageModel data = ChatMessageModel.fromJson(snap[index].data() as Map<String, dynamic>);
                     data.isMe = data.senderId == sender.uid;
-                    return ChatItemWidget(
-                        data: data,
-                        historyModeOnly: widget.show_history == true);
+                    return ChatItemWidget(data: data, historyModeOnly: widget.show_history == true);
                   },
                 ),
               ),
@@ -279,20 +259,15 @@ class _ChatScreenState extends State<ChatScreen> {
                                 border: InputBorder.none,
                                 hintText: language.writeMessage,
                                 hintStyle: secondaryTextStyle(),
-                                contentPadding:
-                                    EdgeInsets.symmetric(horizontal: 8),
+                                contentPadding: EdgeInsets.symmetric(horizontal: 8),
                               ),
-                              cursorColor: appStore.isDarkMode
-                                  ? Colors.white
-                                  : Colors.black,
+                              cursorColor: appStore.isDarkMode ? Colors.white : Colors.black,
                               focusNode: messageFocus,
                               textCapitalization: TextCapitalization.sentences,
                               keyboardType: TextInputType.multiline,
                               minLines: 1,
                               style: primaryTextStyle(),
-                              textInputAction: mIsEnterKey
-                                  ? TextInputAction.send
-                                  : TextInputAction.newline,
+                              textInputAction: mIsEnterKey ? TextInputAction.send : TextInputAction.newline,
                               onSubmitted: (s) {
                                 sendMessage();
                               },

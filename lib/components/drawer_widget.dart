@@ -5,6 +5,7 @@ import '../utils/Common.dart';
 import '../utils/Constants.dart';
 import '../utils/Extensions/app_common.dart';
 
+// ignore: must_be_immutable
 class DrawerWidget extends StatefulWidget {
   final String title;
   final String iconData;

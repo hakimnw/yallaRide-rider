@@ -10,6 +10,7 @@ import '../utils/Extensions/AppButtonWidget.dart';
 import '../utils/Extensions/app_common.dart';
 import '../utils/images.dart';
 
+// ignore: must_be_immutable
 class UpdateAvailable extends StatefulWidget {
   bool? force;
   String storeUrl;
@@ -89,7 +90,8 @@ class _UpdateAvailableState extends State<UpdateAvailable> {
                           AppButtonWidget(
                             text: language.skip,
                             color: Colors.white,
-                            shapeBorder: RoundedRectangleBorder(side: BorderSide(color: primaryColor), borderRadius: BorderRadius.circular(12)),
+                            shapeBorder: RoundedRectangleBorder(
+                                side: BorderSide(color: primaryColor), borderRadius: BorderRadius.circular(12)),
                             textStyle: boldTextStyle(size: 18, color: primaryColor),
                             onTap: () {
                               Navigator.pop(context);

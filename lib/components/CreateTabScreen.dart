@@ -14,6 +14,7 @@ import '../utils/Common.dart';
 import '../utils/Constants.dart';
 import '../utils/Extensions/app_common.dart';
 import '../utils/Extensions/dataTypeExtensions.dart';
+import '../utils/constant/app_colors.dart';
 
 class CreateTabScreen extends StatefulWidget {
   final String? status;
@@ -38,8 +39,7 @@ class CreateTabScreenState extends State<CreateTabScreen> {
     scrollController.addListener(() {
       try {
         if (scrollController.hasClients &&
-            scrollController.position.pixels ==
-                scrollController.position.maxScrollExtent &&
+            scrollController.position.pixels == scrollController.position.maxScrollExtent &&
             !appStore.isLoading &&
             mounted) {
           if (currentPage < totalPage) {
@@ -76,11 +76,9 @@ class CreateTabScreenState extends State<CreateTabScreen> {
         return;
       }
 
-      await getRiderRequestList(
-              page: currentPage, status: widget.status, riderId: userId)
-          .then((value) {
+      await getRiderRequestList(page: currentPage, status: widget.status, riderId: userId).then((value) {
         // التحقق من صحة الاستجابة
-        if (value?.pagination != null) {
+        if (value.pagination != null) {
           currentPage = value.pagination!.currentPage ?? 1;
           totalPage = value.pagination!.totalPages ?? 1;
         } else {
@@ -93,11 +91,9 @@ class CreateTabScreenState extends State<CreateTabScreen> {
         }
 
         // إضافة البيانات مع التحقق من صحتها
-        if (value?.data != null && value!.data!.isNotEmpty) {
+        if (value.data != null && value.data!.isNotEmpty) {
           // فلترة البيانات الصالحة فقط
-          List<RiderModel> validData = value.data!
-              .where((item) => item != null && item.id != null && item.id! > 0)
-              .toList();
+          List<RiderModel> validData = value.data!.where((item) => item.id != null && item.id! > 0).toList();
 
           if (validData.isNotEmpty) {
             riderData.addAll(validData);
@@ -146,8 +142,7 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                   child: ListView.builder(
                       itemCount: riderData.length,
                       controller: scrollController,
-                      padding: EdgeInsets.only(
-                          top: 8, bottom: 8, left: 16, right: 16),
+                      padding: EdgeInsets.only(top: 8, bottom: 8, left: 16, right: 16),
                       itemBuilder: (_, index) {
                         RiderModel data = riderData[index];
                         // التأكد من صحة البيانات قبل العرض
@@ -159,8 +154,7 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                           position: index,
                           duration: Duration(milliseconds: 300),
                           child: SlideAnimation(
-                            child: IntrinsicHeight(
-                                child: rideCardWidget(data: data)),
+                            child: IntrinsicHeight(child: rideCardWidget(data: data)),
                           ),
                         );
                       }),
@@ -176,9 +170,7 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            widget.status == COMPLETED
-                                ? Icons.check_circle_outline
-                                : Icons.cancel_outlined,
+                            widget.status == COMPLETED ? Icons.check_circle_outline : Icons.cancel_outlined,
                             size: 80,
                             color: Colors.grey[400],
                           ),
@@ -267,8 +259,7 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         ),
                         SizedBox(width: 12),
@@ -282,8 +273,7 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                         ),
                       ],
                     ),
-                    backgroundColor:
-                        data.status == COMPLETED ? Colors.green : primaryColor,
+                    backgroundColor: data.status == COMPLETED ? AppColors.primary : primaryColor,
                     duration: Duration(milliseconds: 1500),
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
@@ -304,8 +294,7 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                   SnackBar(
                     content: Row(
                       children: [
-                        Icon(Icons.error_outline,
-                            color: Colors.white, size: 20),
+                        Icon(Icons.error_outline, color: Colors.white, size: 20),
                         SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -362,26 +351,25 @@ class CreateTabScreenState extends State<CreateTabScreen> {
         decoration: BoxDecoration(
           border: Border.all(
             color: data.status == COMPLETED
-                ? Colors.green.withOpacity(0.4)
+                ? AppColors.primary.withOpacity(0.4)
                 : data.status == CANCELED
-                    ? Colors.red.withOpacity(0.3)
+                    ? Colors.red.withAlpha(76)
                     : dividerColor,
-            width:
-                data.status == COMPLETED || data.status == CANCELED ? 1.5 : 1,
+            width: data.status == COMPLETED || data.status == CANCELED ? 1.5 : 1,
           ),
           borderRadius: BorderRadius.circular(defaultRadius),
           color: data.status == COMPLETED
-              ? Colors.green.withOpacity(0.08)
+              ? AppColors.primary.withOpacity(0.08)
               : data.status == CANCELED
-                  ? Colors.red.withOpacity(0.05)
+                  ? Colors.red.withAlpha(13)
                   : Colors.white,
           boxShadow: [
             BoxShadow(
               color: data.status == COMPLETED
-                  ? Colors.green.withOpacity(0.15)
+                  ? AppColors.primary.withAlpha(38)
                   : data.status == CANCELED
-                      ? Colors.red.withOpacity(0.1)
-                      : Colors.grey.withOpacity(0.1),
+                      ? Colors.red.withAlpha(25)
+                      : Colors.grey.withAlpha(25),
               blurRadius: data.status == COMPLETED ? 12 : 8,
               offset: Offset(0, data.status == COMPLETED ? 4 : 2),
             ),
@@ -397,16 +385,13 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                   flex: 2,
                   child: Row(
                     children: [
-                      Icon(Ionicons.calendar,
-                          color: textSecondaryColorGlobal, size: 16),
+                      Icon(Ionicons.calendar, color: textSecondaryColorGlobal, size: 16),
                       SizedBox(width: 8),
                       Expanded(
                         child: Padding(
                           padding: EdgeInsets.only(top: 2),
                           child: Text('${printDate(data.createdAt.validate())}',
-                              style: primaryTextStyle(size: 14),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis),
+                              style: primaryTextStyle(size: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
                         ),
                       ),
                     ],
@@ -419,7 +404,7 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                   decoration: BoxDecoration(
                     gradient: data.status == COMPLETED
                         ? LinearGradient(
-                            colors: [Colors.green, Colors.green.shade600],
+                            colors: [AppColors.primary, AppColors.primary],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           )
@@ -430,10 +415,7 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                                 end: Alignment.bottomRight,
                               )
                             : LinearGradient(
-                                colors: [
-                                  primaryColor,
-                                  primaryColor.withOpacity(0.8)
-                                ],
+                                colors: [primaryColor, primaryColor.withAlpha(201)],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
@@ -441,11 +423,11 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                     boxShadow: [
                       BoxShadow(
                         color: (data.status == COMPLETED
-                                ? Colors.green
+                                ? AppColors.primary
                                 : data.status == CANCELED
                                     ? Colors.red
                                     : primaryColor)
-                            .withOpacity(0.3),
+                            .withAlpha(76),
                         blurRadius: 6,
                         offset: Offset(0, 2),
                       ),
@@ -488,11 +470,9 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.near_me, color: Colors.green, size: 18),
+                      Icon(Icons.near_me, color: AppColors.primary, size: 18),
                       SizedBox(width: 8),
-                      Expanded(
-                          child: Text(data.startAddress.validate(),
-                              style: primaryTextStyle(size: 14), maxLines: 2)),
+                      Expanded(child: Text(data.startAddress.validate(), style: primaryTextStyle(size: 14), maxLines: 2)),
                     ],
                   ),
                   SizedBox(height: 4),
@@ -516,9 +496,7 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                     children: [
                       Icon(Icons.location_on, color: Colors.red, size: 18),
                       SizedBox(width: 8),
-                      Expanded(
-                          child: Text(data.endAddress.validate(),
-                              style: primaryTextStyle(size: 14), maxLines: 2)),
+                      Expanded(child: Text(data.endAddress.validate(), style: primaryTextStyle(size: 14), maxLines: 2)),
                     ],
                   ),
                 ],
@@ -532,18 +510,17 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Colors.green.withOpacity(0.15),
-                      Colors.green.withOpacity(0.08),
+                      AppColors.primary.withAlpha(38),
+                      AppColors.primary.withOpacity(0.08),
                     ],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   ),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: Colors.green.withOpacity(0.4), width: 1.5),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.4), width: 1.5),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.green.withOpacity(0.1),
+                      color: AppColors.primary.withAlpha(25),
                       blurRadius: 8,
                       offset: Offset(0, 2),
                     ),
@@ -555,14 +532,14 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                       padding: EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Colors.green, Colors.green.shade600],
+                          colors: [AppColors.primary, AppColors.primary],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(25),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.green.withOpacity(0.3),
+                            color: AppColors.primary.withAlpha(76),
                             blurRadius: 6,
                             offset: Offset(0, 2),
                           ),
@@ -583,7 +560,7 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                             "✅ تم إكمال الرحلة بنجاح",
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.green[800],
+                              color: AppColors.primary,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.3,
                             ),
@@ -593,7 +570,7 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                             "اضغط هنا لعرض جميع التفاصيل والفاتورة",
                             style: TextStyle(
                               fontSize: 11,
-                              color: Colors.green[700],
+                              color: AppColors.primary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -603,12 +580,12 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                     Container(
                       padding: EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.2),
+                        color: AppColors.primary.withAlpha(51),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Icon(
                         Icons.arrow_forward_ios,
-                        color: Colors.green[700],
+                        color: AppColors.primary,
                         size: 14,
                       ),
                     ),
@@ -623,15 +600,14 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Colors.red.withOpacity(0.1),
-                      Colors.red.withOpacity(0.05),
+                      Colors.red.withAlpha(25),
+                      Colors.red.withAlpha(13),
                     ],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   ),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: Colors.red.withOpacity(0.3), width: 1.5),
+                  border: Border.all(color: Colors.red.withAlpha(76), width: 1.5),
                 ),
                 child: Row(
                   children: [

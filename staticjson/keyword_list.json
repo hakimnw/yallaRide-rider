@@ -1205,6 +1205,18 @@
       },
       {
         "screenId": "25",
+        "keyword_id": 395,
+        "keyword_name": "seatCount",
+        "keyword_value": "عدد الركاب"
+      },
+      {
+        "screenId": "25",
+        "keyword_id": 396,
+        "keyword_name": "seatCountRange",
+        "keyword_value": "من 1 إلى {max}"
+      },
+      {
+        "screenId": "25",
         "keyword_id": 54,
         "keyword_name": "paymentMethod",
         "keyword_value": "طريقة الدفع"

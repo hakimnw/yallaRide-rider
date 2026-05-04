@@ -1,26 +1,22 @@
 import 'dart:io';
 
-import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:taxi_booking/utils/core/widget/appbar/home_screen_app_bar.dart';
-import 'package:taxi_booking/utils/core/utils/responsive_vertical_space.dart';
 import 'package:taxi_booking/screens/settings/help/app_bar/search_field.dart';
+import 'package:taxi_booking/utils/core/utils/responsive_vertical_space.dart';
+import 'package:taxi_booking/utils/core/widget/appbar/home_screen_app_bar.dart';
 
 import '../../main.dart';
 import '../../utils/Common.dart';
 import '../../utils/Constants.dart';
-import '../../utils/Extensions/app_textfield.dart';
 import '../components/ImageSourceDialog.dart';
 import '../languageConfiguration/LanguageDefaultJson.dart';
 import '../network/RestApis.dart';
 import '../utils/Colors.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
 import '../utils/Extensions/app_common.dart';
 import '../utils/Extensions/dataTypeExtensions.dart';
-import '../utils/constant/app_colors.dart';
 import 'DashBoardScreen.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -32,8 +28,7 @@ class EditProfileScreen extends StatefulWidget {
   EditProfileScreenState createState() => EditProfileScreenState();
 }
 
-class EditProfileScreenState extends State<EditProfileScreen>
-    with SingleTickerProviderStateMixin {
+class EditProfileScreenState extends State<EditProfileScreen> with SingleTickerProviderStateMixin {
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   XFile? imageProfile;
@@ -109,8 +104,7 @@ class EditProfileScreenState extends State<EditProfileScreen>
       addressController.text = value.data!.address.validate();
       contactNumberController.text = value.data!.contactNumber.validate();
       if (value.data!.country_code != null) {
-        contactNumberController.text = value.data!.country_code.validate() +
-            value.data!.contactNumber.validate();
+        contactNumberController.text = value.data!.country_code.validate() + value.data!.contactNumber.validate();
       }
       if (value.data != null) {
         appStore.setUserEmail(value.data!.email.validate());
@@ -123,8 +117,7 @@ class EditProfileScreenState extends State<EditProfileScreen>
       sharedPref.setString(USER_EMAIL, value.data!.email.validate());
       sharedPref.setString(FIRST_NAME, value.data!.firstName.validate());
       sharedPref.setString(LAST_NAME, value.data!.lastName.validate());
-      sharedPref.setString(
-          USER_PROFILE_PHOTO, value.data!.profileImage.validate());
+      sharedPref.setString(USER_PROFILE_PHOTO, value.data!.profileImage.validate());
 
       appStore.setLoading(false);
       setState(() {});
@@ -151,7 +144,7 @@ class EditProfileScreenState extends State<EditProfileScreen>
             borderRadius: BorderRadius.circular(60),
             boxShadow: [
               BoxShadow(
-                color: primaryColor.withOpacity(0.2),
+                color: primaryColor.withAlpha(51),
                 blurRadius: 10,
                 spreadRadius: 2,
                 offset: Offset(0, 4),
@@ -170,8 +163,7 @@ class EditProfileScreenState extends State<EditProfileScreen>
         ),
       );
     } else {
-      if (sharedPref.getString(USER_PROFILE_PHOTO) != null &&
-          sharedPref.getString(USER_PROFILE_PHOTO)!.isNotEmpty) {
+      if (sharedPref.getString(USER_PROFILE_PHOTO) != null && sharedPref.getString(USER_PROFILE_PHOTO)!.isNotEmpty) {
         return Hero(
           tag: 'profile_image',
           child: Container(
@@ -181,7 +173,7 @@ class EditProfileScreenState extends State<EditProfileScreen>
               borderRadius: BorderRadius.circular(60),
               boxShadow: [
                 BoxShadow(
-                  color: primaryColor.withOpacity(0.2),
+                  color: primaryColor.withAlpha(51),
                   blurRadius: 10,
                   spreadRadius: 2,
                   offset: Offset(0, 4),
@@ -249,8 +241,7 @@ class EditProfileScreenState extends State<EditProfileScreen>
         });
         toast(language.profileUpdateMsg);
         if (widget.isGoogle == true) {
-          launchScreen(context, DashBoardScreen(),
-              isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
+          launchScreen(context, DashboardScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
         } else {
           // Navigator.pop(context);
         }
@@ -284,7 +275,7 @@ class EditProfileScreenState extends State<EditProfileScreen>
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.white,
-                    //primaryColor.withOpacity(0.05),
+                    //primaryColor.withAlpha(13),
                   ],
                 ),
               ),
@@ -324,8 +315,7 @@ class EditProfileScreenState extends State<EditProfileScreen>
                             alignment: Alignment.bottomRight,
                             children: [
                               profileImage(),
-                              if (sharedPref.getString(LOGIN_TYPE) !=
-                                  LoginTypeGoogle)
+                              if (sharedPref.getString(LOGIN_TYPE) != LoginTypeGoogle)
                                 GestureDetector(
                                   onTap: () {
                                     showDialog(
@@ -334,18 +324,14 @@ class EditProfileScreenState extends State<EditProfileScreen>
                                         return ImageSourceDialog(
                                           onCamera: () async {
                                             Navigator.pop(context);
-                                            imageProfile = await ImagePicker()
-                                                .pickImage(
-                                                    source: ImageSource.camera,
-                                                    imageQuality: 100);
+                                            imageProfile =
+                                                await ImagePicker().pickImage(source: ImageSource.camera, imageQuality: 100);
                                             setState(() {});
                                           },
                                           onGallery: () async {
                                             Navigator.pop(context);
                                             imageProfile = await ImagePicker()
-                                                .pickImage(
-                                                    source: ImageSource.gallery,
-                                                    imageQuality: 100);
+                                                .pickImage(source: ImageSource.gallery, imageQuality: 100);
                                             setState(() {});
                                           },
                                         );
@@ -359,7 +345,7 @@ class EditProfileScreenState extends State<EditProfileScreen>
                                       color: primaryColor,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withOpacity(0.2),
+                                          color: Colors.black.withAlpha(51),
                                           blurRadius: 5,
                                           offset: Offset(0, 2),
                                         ),
@@ -384,8 +370,7 @@ class EditProfileScreenState extends State<EditProfileScreen>
                             child: ElevatedButton(
                               onPressed: () {
                                 if (!_isSaving) {
-                                  if (sharedPref.getString(USER_EMAIL) ==
-                                      demoEmail) {
+                                  if (sharedPref.getString(USER_EMAIL) == demoEmail) {
                                     toast(language.demoMsg);
                                   } else {
                                     saveProfile();
@@ -402,8 +387,7 @@ class EditProfileScreenState extends State<EditProfileScreen>
                               ),
                               child: _isSaving
                                   ? Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         SizedBox(
                                           height: 24,
@@ -552,219 +536,211 @@ class EditProfileScreenState extends State<EditProfileScreen>
     );
   }
 
-  Widget _buildFormField({
-    required TextEditingController controller,
-    required FocusNode focus,
-    FocusNode? nextFocus,
-    required String label,
-    Widget? prefixIcon,
-    bool readOnly = false,
-    Function()? onTap,
-    TextInputType textInputType = TextInputType.text,
-    TextInputAction textInputAction = TextInputAction.next,
-    TextCapitalization textCapitalization = TextCapitalization.none,
-    int maxLines = 1,
-    int? maxLength,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: controller,
-        focusNode: focus,
-        readOnly: readOnly,
-        onTap: onTap,
-        style: TextStyle(fontSize: 16),
-        keyboardType: textInputType,
-        textInputAction: textInputAction,
-        textCapitalization: textCapitalization,
-        maxLines: maxLines,
-        maxLength: maxLength,
-        decoration: InputDecoration(
-          counterText: '',
-          contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-          labelText: label,
-          labelStyle: TextStyle(color: Colors.grey),
-          prefixIcon: prefixIcon,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: primaryColor, width: 1.0),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide:
-                BorderSide(color: Colors.grey.withOpacity(0.2), width: 1.0),
-          ),
-          fillColor: readOnly ? Colors.grey.withOpacity(0.1) : Colors.white,
-          filled: true,
-        ),
-        onSubmitted: (value) {
-          if (nextFocus != null) {
-            FocusScope.of(context).requestFocus(nextFocus);
-          }
-        },
-      ),
-    );
-  }
+  // Widget _buildFormField({
+  //   required TextEditingController controller,
+  //   required FocusNode focus,
+  //   FocusNode? nextFocus,
+  //   required String label,
+  //   Widget? prefixIcon,
+  //   bool readOnly = false,
+  //   Function()? onTap,
+  //   TextInputType textInputType = TextInputType.text,
+  //   TextInputAction textInputAction = TextInputAction.next,
+  //   TextCapitalization textCapitalization = TextCapitalization.none,
+  //   int maxLines = 1,
+  //   int? maxLength,
+  // }) {
+  //   return Container(
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(12),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.grey.withAlpha(25),
+  //           blurRadius: 10,
+  //           offset: Offset(0, 2),
+  //         ),
+  //       ],
+  //     ),
+  //     child: TextField(
+  //       controller: controller,
+  //       focusNode: focus,
+  //       readOnly: readOnly,
+  //       onTap: onTap,
+  //       style: TextStyle(fontSize: 16),
+  //       keyboardType: textInputType,
+  //       textInputAction: textInputAction,
+  //       textCapitalization: textCapitalization,
+  //       maxLines: maxLines,
+  //       maxLength: maxLength,
+  //       decoration: InputDecoration(
+  //         counterText: '',
+  //         contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+  //         labelText: label,
+  //         labelStyle: TextStyle(color: Colors.grey),
+  //         prefixIcon: prefixIcon,
+  //         border: OutlineInputBorder(
+  //           borderRadius: BorderRadius.circular(12),
+  //           borderSide: BorderSide.none,
+  //         ),
+  //         focusedBorder: OutlineInputBorder(
+  //           borderRadius: BorderRadius.circular(12),
+  //           borderSide: BorderSide(color: primaryColor, width: 1.0),
+  //         ),
+  //         enabledBorder: OutlineInputBorder(
+  //           borderRadius: BorderRadius.circular(12),
+  //           borderSide: BorderSide(color: Colors.grey.withAlpha(51), width: 1.0),
+  //         ),
+  //         fillColor: readOnly ? Colors.grey.withAlpha(25) : Colors.white,
+  //         filled: true,
+  //       ),
+  //       onSubmitted: (value) {
+  //         if (nextFocus != null) {
+  //           FocusScope.of(context).requestFocus(nextFocus);
+  //         }
+  //       },
+  //     ),
+  //   );
+  // }
 
-  Widget _buildPhoneField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: contactNumberController,
-        focusNode: contactFocus,
-        style: TextStyle(fontSize: 16),
-        keyboardType: TextInputType.phone,
-        textInputAction: TextInputAction.next,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-          labelText: language.phoneNumber,
-          labelStyle: TextStyle(color: Colors.grey),
-          prefixIcon: Padding(
-            padding: EdgeInsets.only(left: 8, right: 8),
-            child: IntrinsicHeight(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CountryCodePicker(
-                    padding: EdgeInsets.zero,
-                    initialSelection: countryCode,
-                    showCountryOnly: false,
-                    dialogSize: Size(MediaQuery.of(context).size.width - 60,
-                        MediaQuery.of(context).size.height * 0.6),
-                    showFlag: true,
-                    showFlagDialog: true,
-                    showOnlyCountryWhenClosed: false,
-                    alignLeft: false,
-                    textStyle: TextStyle(fontSize: 16, color: Colors.black),
-                    dialogBackgroundColor: Theme.of(context).cardColor,
-                    barrierColor: Colors.black12,
-                    dialogTextStyle:
-                        TextStyle(fontSize: 16, color: Colors.black),
-                    searchDecoration: InputDecoration(
-                      focusColor: primaryColor,
-                      enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Theme.of(context).dividerColor)),
-                      focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: primaryColor)),
-                    ),
-                    searchStyle: TextStyle(fontSize: 16, color: Colors.black),
-                    onInit: (c) {
-                      countryCode = c!.dialCode!;
-                    },
-                    onChanged: (c) {
-                      countryCode = c.dialCode!;
-                    },
-                  ),
-                  VerticalDivider(
-                      color: Colors.grey.withOpacity(0.5), width: 16),
-                ],
-              ),
-            ),
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: primaryColor, width: 1.0),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide:
-                BorderSide(color: Colors.grey.withOpacity(0.2), width: 1.0),
-          ),
-          fillColor: Colors.white,
-          filled: true,
-        ),
-        onSubmitted: (value) {
-          FocusScope.of(context).requestFocus(addressFocus);
-        },
-      ),
-    );
-  }
+  // Widget _buildPhoneField() {
+  //   return Container(
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(12),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.grey.withAlpha(25),
+  //           blurRadius: 10,
+  //           offset: Offset(0, 2),
+  //         ),
+  //       ],
+  //     ),
+  //     child: TextField(
+  //       controller: contactNumberController,
+  //       focusNode: contactFocus,
+  //       style: TextStyle(fontSize: 16),
+  //       keyboardType: TextInputType.phone,
+  //       textInputAction: TextInputAction.next,
+  //       decoration: InputDecoration(
+  //         contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+  //         labelText: language.phoneNumber,
+  //         labelStyle: TextStyle(color: Colors.grey),
+  //         prefixIcon: Padding(
+  //           padding: EdgeInsets.only(left: 8, right: 8),
+  //           child: IntrinsicHeight(
+  //             child: Row(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 CountryCodePicker(
+  //                   padding: EdgeInsets.zero,
+  //                   initialSelection: countryCode,
+  //                   showCountryOnly: false,
+  //                   dialogSize: Size(MediaQuery.of(context).size.width - 60, MediaQuery.of(context).size.height * 0.6),
+  //                   showFlag: true,
+  //                   showFlagDialog: true,
+  //                   showOnlyCountryWhenClosed: false,
+  //                   alignLeft: false,
+  //                   textStyle: TextStyle(fontSize: 16, color: Colors.black),
+  //                   dialogBackgroundColor: Theme.of(context).cardColor,
+  //                   barrierColor: Colors.black12,
+  //                   dialogTextStyle: TextStyle(fontSize: 16, color: Colors.black),
+  //                   searchDecoration: InputDecoration(
+  //                     focusColor: primaryColor,
+  //                     enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Theme.of(context).dividerColor)),
+  //                     focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: primaryColor)),
+  //                   ),
+  //                   searchStyle: TextStyle(fontSize: 16, color: Colors.black),
+  //                   onInit: (c) {
+  //                     countryCode = c!.dialCode!;
+  //                   },
+  //                   onChanged: (c) {
+  //                     countryCode = c.dialCode!;
+  //                   },
+  //                 ),
+  //                 VerticalDivider(color: Colors.grey.withAlpha(127), width: 16),
+  //               ],
+  //             ),
+  //           ),
+  //         ),
+  //         border: OutlineInputBorder(
+  //           borderRadius: BorderRadius.circular(12),
+  //           borderSide: BorderSide.none,
+  //         ),
+  //         focusedBorder: OutlineInputBorder(
+  //           borderRadius: BorderRadius.circular(12),
+  //           borderSide: BorderSide(color: primaryColor, width: 1.0),
+  //         ),
+  //         enabledBorder: OutlineInputBorder(
+  //           borderRadius: BorderRadius.circular(12),
+  //           borderSide: BorderSide(color: Colors.grey.withAlpha(51), width: 1.0),
+  //         ),
+  //         fillColor: Colors.white,
+  //         filled: true,
+  //       ),
+  //       onSubmitted: (value) {
+  //         FocusScope.of(context).requestFocus(addressFocus);
+  //       },
+  //     ),
+  //   );
+  // }
 
-  Widget _buildUpdateButton() {
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 300),
-      height: 56,
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () {
-          if (!_isSaving) {
-            if (sharedPref.getString(USER_EMAIL) == demoEmail) {
-              toast(language.demoMsg);
-            } else {
-              saveProfile();
-            }
-          }
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 0,
-          padding: EdgeInsets.zero,
-        ),
-        child: _isSaving
-            ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2.5,
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Text(
-                    "جاري التحديث...",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              )
-            : Text(
-                'تعديل الصوره',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
-              ),
-      ),
-    );
-  }
+  // Widget _buildUpdateButton() {
+  //   return AnimatedContainer(
+  //     duration: Duration(milliseconds: 300),
+  //     height: 56,
+  //     width: double.infinity,
+  //     child: ElevatedButton(
+  //       onPressed: () {
+  //         if (!_isSaving) {
+  //           if (sharedPref.getString(USER_EMAIL) == demoEmail) {
+  //             toast(language.demoMsg);
+  //           } else {
+  //             saveProfile();
+  //           }
+  //         }
+  //       },
+  //       style: ElevatedButton.styleFrom(
+  //         backgroundColor: primaryColor,
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(12),
+  //         ),
+  //         elevation: 0,
+  //         padding: EdgeInsets.zero,
+  //       ),
+  //       child: _isSaving
+  //           ? Row(
+  //               mainAxisAlignment: MainAxisAlignment.center,
+  //               children: [
+  //                 SizedBox(
+  //                   height: 24,
+  //                   width: 24,
+  //                   child: CircularProgressIndicator(
+  //                     color: Colors.white,
+  //                     strokeWidth: 2.5,
+  //                   ),
+  //                 ),
+  //                 SizedBox(width: 12),
+  //                 Text(
+  //                   "جاري التحديث...",
+  //                   style: TextStyle(
+  //                     color: Colors.white,
+  //                     fontSize: 16,
+  //                     fontWeight: FontWeight.bold,
+  //                   ),
+  //                 ),
+  //               ],
+  //             )
+  //           : Text(
+  //               'تعديل الصوره',
+  //               style: TextStyle(
+  //                 color: Colors.white,
+  //                 fontSize: 16,
+  //                 fontWeight: FontWeight.bold,
+  //                 letterSpacing: 0.5,
+  //               ),
+  //             ),
+  //     ),
+  //   );
+  // }
 }

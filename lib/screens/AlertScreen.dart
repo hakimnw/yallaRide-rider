@@ -11,6 +11,7 @@ import '../utils/Colors.dart';
 import '../utils/Common.dart';
 import '../utils/Extensions/app_common.dart';
 import '../utils/Extensions/dataTypeExtensions.dart';
+import '../utils/constant/app_colors.dart';
 
 class AlertScreen extends StatefulWidget {
   final int? rideId;
@@ -101,7 +102,8 @@ class AlertScreenState extends State<AlertScreen> {
                           children: [
                             Text(language.notifyAdmin, style: boldTextStyle()),
                             if (sendNotification) SizedBox(height: 4),
-                            if (sendNotification) Text(language.notifiedSuccessfully, style: secondaryTextStyle(color: Colors.green)),
+                            if (sendNotification)
+                              Text(language.notifiedSuccessfully, style: secondaryTextStyle(color: AppColors.primary)),
                           ],
                         ),
                         inkWellWidget(
@@ -135,7 +137,8 @@ class AlertScreenState extends State<AlertScreen> {
                                   ),
                                   inkWellWidget(
                                     onTap: () {
-                                      launchUrl(Uri.parse('tel:${sosListData[index].contactNumber}'), mode: LaunchMode.externalApplication);
+                                      launchUrl(Uri.parse('tel:${sosListData[index].contactNumber}'),
+                                          mode: LaunchMode.externalApplication);
                                     },
                                     child: Icon(Icons.call),
                                   ),

@@ -21,8 +21,7 @@ class ComplaintScreen extends StatefulWidget {
   final RiderModel? riderModel;
   final ComplaintModel? complaintModel;
 
-  ComplaintScreen(
-      {required this.driverRatting, this.complaintModel, this.riderModel});
+  ComplaintScreen({required this.driverRatting, this.complaintModel, this.riderModel});
 
   @override
   ComplaintScreenState createState() => ComplaintScreenState();
@@ -43,8 +42,7 @@ class ComplaintScreenState extends State<ComplaintScreen> {
   void init() async {
     if (widget.complaintModel != null) {
       subController.text = widget.complaintModel!.subject.validate();
-      descriptionController.text =
-          widget.complaintModel!.description.validate();
+      descriptionController.text = widget.complaintModel!.description.validate();
     }
   }
 
@@ -116,9 +114,7 @@ class ComplaintScreenState extends State<ComplaintScreen> {
                   Container(
                     width: MediaQuery.of(context).size.width,
                     decoration: BoxDecoration(
-                      color: appStore.isDarkMode
-                          ? scaffoldSecondaryDark
-                          : primaryColor.withOpacity(0.05),
+                      color: appStore.isDarkMode ? scaffoldSecondaryDark : primaryColor.withAlpha(13),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     padding: EdgeInsets.all(12),
@@ -130,19 +126,15 @@ class ComplaintScreenState extends State<ComplaintScreen> {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(35),
-                              child: commonCachedNetworkImage(
-                                  widget.riderModel!.driverProfileImage,
-                                  height: 70,
-                                  width: 70,
-                                  fit: BoxFit.cover),
+                              child: commonCachedNetworkImage(widget.riderModel!.driverProfileImage,
+                                  height: 70, width: 70, fit: BoxFit.cover),
                             ),
                             SizedBox(width: 16),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 SizedBox(height: 8),
-                                Text(widget.riderModel!.driverName.validate(),
-                                    style: boldTextStyle()),
+                                Text(widget.riderModel!.driverName.validate(), style: boldTextStyle()),
                                 SizedBox(height: 8),
                                 if (widget.driverRatting.rating != null)
                                   RatingBar.builder(
@@ -153,12 +145,9 @@ class ComplaintScreenState extends State<ComplaintScreen> {
                                     wrapAlignment: WrapAlignment.spaceBetween,
                                     itemCount: 5,
                                     itemSize: 20,
-                                    initialRating: double.parse(
-                                        widget.driverRatting.rating.toString()),
-                                    itemPadding:
-                                        EdgeInsets.symmetric(horizontal: 0),
-                                    itemBuilder: (context, _) =>
-                                        Icon(Icons.star, color: Colors.amber),
+                                    initialRating: double.parse(widget.driverRatting.rating.toString()),
+                                    itemPadding: EdgeInsets.symmetric(horizontal: 0),
+                                    itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
                                     onRatingUpdate: (rating) {
                                       //
                                     },
@@ -170,15 +159,11 @@ class ComplaintScreenState extends State<ComplaintScreen> {
                                       margin: EdgeInsets.only(top: 4),
                                       padding: EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                          color: primaryColor.withOpacity(0.9),
-                                          borderRadius: BorderRadius.circular(
-                                              defaultRadius)),
+                                          color: primaryColor.withAlpha(226),
+                                          borderRadius: BorderRadius.circular(defaultRadius)),
                                       alignment: Alignment.topRight,
-                                      child: Text(
-                                          widget.complaintModel!.status
-                                              .validate(),
-                                          style: boldTextStyle(
-                                              color: Colors.white)),
+                                      child: Text(widget.complaintModel!.status.validate(),
+                                          style: boldTextStyle(color: Colors.white)),
                                     ),
                                   )
                               ],
@@ -199,8 +184,7 @@ class ComplaintScreenState extends State<ComplaintScreen> {
                   AppTextField(
                     controller: descriptionController,
                     readOnly: widget.complaintModel != null ? true : false,
-                    decoration:
-                        inputDecoration(context, label: 'تفاصيل الشكوى...'),
+                    decoration: inputDecoration(context, label: 'تفاصيل الشكوى...'),
                     textFieldType: TextFieldType.NAME,
                     minLines: 5,
                     maxLines: 10,
@@ -224,11 +208,8 @@ class ComplaintScreenState extends State<ComplaintScreen> {
                       width: MediaQuery.of(context).size.width,
                       textStyle: boldTextStyle(color: Colors.white),
                       onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => ComplaintListScreen(
-                                    complaint: widget.complaintModel!.id!)));
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => ComplaintListScreen(complaint: widget.complaintModel!.id!)));
                       },
                     ),
                 ],

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:taxi_booking/screens/settings/settings_screen/presentation/pages/chat_screen.dart'
-    show ChatScreen;
+import 'package:taxi_booking/screens/settings/settings_screen/presentation/pages/chat_screen.dart' show ChatScreen;
 import 'package:taxi_booking/utils/core/app_routes/navigation_service.dart';
 import 'package:taxi_booking/utils/core/app_routes/router_names.dart';
 import 'package:taxi_booking/utils/core/constant/app_icons.dart';
@@ -22,59 +21,56 @@ class PaymentSection extends StatelessWidget {
 يرجى التواصل معنا خلال 7 أيام من وقوع الحادث، وإلا فلن نتمكن من مراجعة الأسعار''';
   @override
   Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(
-        "الدفع",
-        style: AppTextStyles.sSemiBold16(),
-      ),
-      const ResponsiveVerticalSpace(16),
-      Container(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("الدفع", style: AppTextStyles.sSemiBold16()),
+        const ResponsiveVerticalSpace(16),
+        Container(
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x26000000),
-                blurRadius: 4,
-                offset: Offset(0, 0),
-                spreadRadius: 0,
-              ),
-            ],
+            boxShadow: const [BoxShadow(color: AppColors.black, blurRadius: 4, offset: Offset(0, 0), spreadRadius: 0)],
           ),
           child: Column(
             children: [
               CustomListTitleWidget(
                 title: "مشكله في إنشاء محفظه",
-                leading: SvgPicture.asset(AppIcons.wallet,
-                    colorFilter: const ColorFilter.mode(
-                        AppColors.primary, BlendMode.srcIn)),
+                leading: SvgPicture.asset(
+                  AppIcons.wallet,
+                  colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn),
+                ),
                 onTap: () {
                   NavigationService.pushNamed(
-                      RouterNames.helperContactMessageScreen,
-                      arguments: HelpPageEntity(
-                          onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => const ChatScreen()));
-                          },
-                          title: 'مشكله في إنشاء المحفظه',
-                          content: content));
+                    RouterNames.helperContactMessageScreen,
+                    arguments: HelpPageEntity(
+                      onTap: () {
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ChatScreen()));
+                      },
+                      title: 'مشكله في إنشاء المحفظه',
+                      content: content,
+                    ),
+                  );
                 },
               ),
               customDivider(),
               CustomListTitleWidget(
                 title: "مشكله في شحن المحفظه",
-                leading: SvgPicture.asset(AppIcons.wallet,
-                    colorFilter: const ColorFilter.mode(
-                        AppColors.primary, BlendMode.srcIn)),
+                leading: SvgPicture.asset(
+                  AppIcons.wallet,
+                  colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn),
+                ),
                 onTap: () {
                   NavigationService.pushNamed(
-                      RouterNames.helperContactMessageScreen,
-                      arguments: HelpPageEntity(
-                          onTap: () {
-                            NavigationService.pushNamed(RouterNames.chatScreen);
-                          },
-                          title: 'مشكله في شحن المحفظه',
-                          content: content));
+                    RouterNames.helperContactMessageScreen,
+                    arguments: HelpPageEntity(
+                      onTap: () {
+                        NavigationService.pushNamed(RouterNames.chatScreen);
+                      },
+                      title: 'مشكله في شحن المحفظه',
+                      content: content,
+                    ),
+                  );
                 },
               ),
               customDivider(),
@@ -82,38 +78,38 @@ class PaymentSection extends StatelessWidget {
                 title: "مشكله في إضافه بطاقه",
                 onTap: () {
                   NavigationService.pushNamed(
-                      RouterNames.helperContactMessageScreen,
-                      arguments: HelpPageEntity(
-                          onTap: () {
-                            NavigationService.pushNamed(RouterNames.chatScreen);
-                          },
-                          title: 'مشكله في إضافه بطاقه',
-                          content: content));
+                    RouterNames.helperContactMessageScreen,
+                    arguments: HelpPageEntity(
+                      onTap: () {
+                        NavigationService.pushNamed(RouterNames.chatScreen);
+                      },
+                      title: 'مشكله في إضافه بطاقه',
+                      content: content,
+                    ),
+                  );
                 },
                 leading: SvgPicture.asset(
                   AppIcons.visaCard,
-                  colorFilter: const ColorFilter.mode(
-                      AppColors.primary, BlendMode.srcIn),
+                  colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn),
                 ),
               ),
               customDivider(),
               CustomListTitleWidget(
                 title: "تواصل معانا",
-                leading: SvgPicture.asset(AppIcons.chat,
-                    colorFilter: const ColorFilter.mode(
-                        AppColors.primary, BlendMode.srcIn)),
+                leading: SvgPicture.asset(
+                  AppIcons.chat,
+                  colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn),
+                ),
                 onTap: () {
                   NavigationService.pushNamed(RouterNames.chatScreen);
                 },
               ),
             ],
-          ))
-    ]);
+          ),
+        ),
+      ],
+    );
   }
 
-  Widget customDivider() => const Divider(
-        indent: 16,
-        endIndent: 16,
-        height: 1,
-      );
+  Widget customDivider() => const Divider(indent: 16, endIndent: 16, height: 1);
 }

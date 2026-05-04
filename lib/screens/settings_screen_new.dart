@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taxi_booking/utils/core/constant/app_colors.dart';
+import 'package:taxi_booking/screens/settings/settings_screen/presentation/widgets/settings_screen_main_content.dart';
 import 'package:taxi_booking/utils/core/utils/responsive_vertical_space.dart';
 import 'package:taxi_booking/utils/core/widget/appbar/home_screen_app_bar.dart';
-import 'package:taxi_booking/screens/settings/settings_screen/presentation/widgets/settings_screen_main_content.dart';
 
 import 'settings/help/app_bar/search_field.dart';
 

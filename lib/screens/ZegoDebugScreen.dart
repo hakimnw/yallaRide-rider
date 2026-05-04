@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -8,7 +9,7 @@ import '../utils/Colors.dart';
 import '../utils/Constants.dart';
 import '../utils/Extensions/AppButtonWidget.dart';
 import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
+import '../utils/constant/app_colors.dart';
 
 /// Debug screen for testing Zego Cloud SDK integration
 ///
@@ -42,8 +43,7 @@ class ZegoDebugScreenState extends State<ZegoDebugScreen> {
     // Pre-fill with app user data if available
     if (appStore.isLoggedIn) {
       _testUserIdController.text = appStore.userPhone;
-      _testUserNameController.text =
-          appStore.userName.isNotEmpty ? appStore.userName : appStore.firstName;
+      _testUserNameController.text = appStore.userName.isNotEmpty ? appStore.userName : appStore.firstName;
     }
   }
 
@@ -62,8 +62,7 @@ class ZegoDebugScreenState extends State<ZegoDebugScreen> {
     });
   }
 
-  Future<void> _performAction(
-      String actionName, Future<bool> Function() action) async {
+  Future<void> _performAction(String actionName, Future<bool> Function() action) async {
     setState(() {
       _isLoading = true;
       _lastResult = 'Executing $actionName...';
@@ -79,7 +78,7 @@ class ZegoDebugScreenState extends State<ZegoDebugScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('$actionName completed successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.primary,
           ),
         );
       } else {
@@ -113,8 +112,7 @@ class ZegoDebugScreenState extends State<ZegoDebugScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text('Zego Debug Console', style: TextStyle(color: Colors.white)),
+        title: Text('Zego Debug Console', style: TextStyle(color: Colors.white)),
         backgroundColor: primaryColor,
         actions: [
           IconButton(
@@ -177,18 +175,12 @@ class ZegoDebugScreenState extends State<ZegoDebugScreen> {
               ],
             ),
             SizedBox(height: 12),
-            _buildStatusItem(
-                'SDK Initialized', _serviceStatus['isInitialized'] ?? false),
-            _buildStatusItem(
-                'User Logged In', _serviceStatus['isLoggedIn'] ?? false),
-            if (_serviceStatus['currentUserID'] != null)
-              _buildInfoItem(
-                  'Current User ID', _serviceStatus['currentUserID']),
+            _buildStatusItem('SDK Initialized', _serviceStatus['isInitialized'] ?? false),
+            _buildStatusItem('User Logged In', _serviceStatus['isLoggedIn'] ?? false),
+            if (_serviceStatus['currentUserID'] != null) _buildInfoItem('Current User ID', _serviceStatus['currentUserID']),
             if (_serviceStatus['currentUserName'] != null)
-              _buildInfoItem(
-                  'Current User Name', _serviceStatus['currentUserName']),
-            _buildInfoItem(
-                'Last Updated', _serviceStatus['timestamp'] ?? 'Unknown'),
+              _buildInfoItem('Current User Name', _serviceStatus['currentUserName']),
+            _buildInfoItem('Last Updated', _serviceStatus['timestamp'] ?? 'Unknown'),
           ],
         ),
       ),
@@ -241,7 +233,7 @@ class ZegoDebugScreenState extends State<ZegoDebugScreen> {
                       'Auto Login',
                       zegoService.autoLoginIfAuthenticated,
                     ),
-                    color: Colors.green,
+                    color: AppColors.primary,
                   ),
                 ),
               ],
@@ -295,12 +287,11 @@ class ZegoDebugScreenState extends State<ZegoDebugScreen> {
                       'Manual Login',
                       () => zegoService.loginToZego(
                         userID: _testUserIdController.text.trim(),
-                        userName: _testUserNameController.text.trim().isNotEmpty
-                            ? _testUserNameController.text.trim()
-                            : null,
+                        userName:
+                            _testUserNameController.text.trim().isNotEmpty ? _testUserNameController.text.trim() : null,
                       ),
                     ),
-                    color: Colors.green,
+                    color: AppColors.primary,
                   ),
                 ),
                 SizedBox(width: 8),
@@ -366,9 +357,7 @@ class ZegoDebugScreenState extends State<ZegoDebugScreen> {
                       () => zegoService.initiateVoiceCall(
                         driverPhoneNumber: _targetPhoneController.text.trim(),
                         context: context,
-                        driverName: _targetNameController.text.trim().isNotEmpty
-                            ? _targetNameController.text.trim()
-                            : null,
+                        driverName: _targetNameController.text.trim().isNotEmpty ? _targetNameController.text.trim() : null,
                       ),
                     ),
                     color: Colors.orange,
@@ -383,9 +372,7 @@ class ZegoDebugScreenState extends State<ZegoDebugScreen> {
                       () => zegoService.initiateVideoCall(
                         driverPhoneNumber: _targetPhoneController.text.trim(),
                         context: context,
-                        driverName: _targetNameController.text.trim().isNotEmpty
-                            ? _targetNameController.text.trim()
-                            : null,
+                        driverName: _targetNameController.text.trim().isNotEmpty ? _targetNameController.text.trim() : null,
                       ),
                     ),
                     color: primaryColor,
@@ -440,17 +427,15 @@ class ZegoDebugScreenState extends State<ZegoDebugScreen> {
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: _lastResult.contains('SUCCESS')
-                        ? Colors.green.withOpacity(0.1)
-                        : _lastResult.contains('FAILED') ||
-                                _lastResult.contains('ERROR')
-                            ? Colors.red.withOpacity(0.1)
-                            : Colors.grey.withOpacity(0.1),
+                        ? AppColors.primary.withAlpha(25)
+                        : _lastResult.contains('FAILED') || _lastResult.contains('ERROR')
+                            ? Colors.red.withAlpha(25)
+                            : Colors.grey.withAlpha(25),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: _lastResult.contains('SUCCESS')
-                          ? Colors.green
-                          : _lastResult.contains('FAILED') ||
-                                  _lastResult.contains('ERROR')
+                          ? AppColors.primary
+                          : _lastResult.contains('FAILED') || _lastResult.contains('ERROR')
                               ? Colors.red
                               : Colors.grey,
                     ),
@@ -519,7 +504,7 @@ class ZegoDebugScreenState extends State<ZegoDebugScreen> {
         children: [
           Icon(
             status ? Icons.check_circle : Icons.cancel,
-            color: status ? Colors.green : Colors.red,
+            color: status ? AppColors.primary : Colors.red,
             size: 20,
           ),
           SizedBox(width: 8),
@@ -528,7 +513,7 @@ class ZegoDebugScreenState extends State<ZegoDebugScreen> {
           Text(
             status ? 'Yes' : 'No',
             style: primaryTextStyle(
-              color: status ? Colors.green : Colors.red,
+              color: status ? AppColors.primary : Colors.red,
             ),
           ),
         ],
@@ -589,8 +574,7 @@ class ZegoDebugScreenState extends State<ZegoDebugScreen> {
       if (appStore.isLoggedIn && appStore.userPhone.isNotEmpty) {
         results.add('   ✅ PASS: User logged in with phone');
         results.add('   📞 Phone: ${appStore.userPhone}');
-        results.add(
-            '   👤 Name: ${appStore.userName.isNotEmpty ? appStore.userName : appStore.firstName}');
+        results.add('   👤 Name: ${appStore.userName.isNotEmpty ? appStore.userName : appStore.firstName}');
         passedTests++;
       } else {
         results.add('   ❌ FAIL: User not logged in or no phone number');
@@ -616,9 +600,7 @@ class ZegoDebugScreenState extends State<ZegoDebugScreen> {
         try {
           final loginResult = await zegoService.loginToZego(
             userID: appStore.userPhone,
-            userName: appStore.userName.isNotEmpty
-                ? appStore.userName
-                : appStore.firstName,
+            userName: appStore.userName.isNotEmpty ? appStore.userName : appStore.firstName,
           );
           if (loginResult) {
             results.add('   ✅ PASS: User logged into Zego successfully');
@@ -653,8 +635,7 @@ class ZegoDebugScreenState extends State<ZegoDebugScreen> {
         results.add('   📋 Camera, Microphone, Phone permissions added');
         passedTests++;
       } else {
-        results.add(
-            '   ✅ PASS: iOS permissions should be configured in Info.plist');
+        results.add('   ✅ PASS: iOS permissions should be configured in Info.plist');
         passedTests++;
       }
 
@@ -711,9 +692,8 @@ class ZegoDebugScreenState extends State<ZegoDebugScreen> {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content:
-                          Text('🎉 Zego is ready! You can now make calls!'),
-                      backgroundColor: Colors.green,
+                      content: Text('🎉 Zego is ready! You can now make calls!'),
+                      backgroundColor: AppColors.primary,
                       duration: Duration(seconds: 5),
                     ),
                   );

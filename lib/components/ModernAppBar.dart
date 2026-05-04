@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:math' as math;
+
+import '../utils/constant/app_colors.dart';
 
 class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -33,7 +36,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
           boxShadow: elevation != null && elevation! > 0
               ? [
                   BoxShadow(
-                    color: shadowColor ?? Colors.black.withOpacity(0.1),
+                    color: shadowColor ?? Colors.black.withAlpha(25),
                     blurRadius: elevation! * 3,
                     offset: Offset(0, elevation!),
                   ),
@@ -46,7 +49,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: Color(0xFF3DB44A),
+                  color: AppColors.primary,
                   image: DecorationImage(
                     image: AssetImage('assets/assets/images/Vector.png'),
                     fit: BoxFit.cover,
@@ -59,8 +62,8 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.3),
-                      Colors.black.withOpacity(0.05),
+                      Colors.black.withAlpha(76),
+                      Colors.black.withAlpha(13),
                       Colors.transparent,
                     ],
                     stops: [0.0, 0.6, 1.0],
@@ -75,7 +78,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
                       center: Alignment.topRight,
                       radius: 1.8,
                       colors: [
-                        Colors.white.withOpacity(0.1),
+                        Colors.white.withAlpha(25),
                         Colors.transparent,
                       ],
                       stops: [0.1, 1.0],
@@ -127,7 +130,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.white.withAlpha(127),
                               blurRadius: 8,
                               spreadRadius: 1,
                             ),
@@ -139,15 +142,14 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
                   )
                 : null,
           ),
-          systemOverlayStyle:
-              Theme.of(context).appBarTheme.systemOverlayStyle?.copyWith(
-                        statusBarColor: Colors.transparent,
-                        statusBarIconBrightness: Brightness.light,
-                      ) ??
-                  const SystemUiOverlayStyle(
+          systemOverlayStyle: Theme.of(context).appBarTheme.systemOverlayStyle?.copyWith(
                     statusBarColor: Colors.transparent,
                     statusBarIconBrightness: Brightness.light,
-                  ),
+                  ) ??
+              const SystemUiOverlayStyle(
+                statusBarColor: Colors.transparent,
+                statusBarIconBrightness: Brightness.light,
+              ),
         ),
       ),
     );
@@ -162,7 +164,7 @@ class PatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.3)
+      ..color = Colors.white.withAlpha(76)
       ..strokeWidth = 1
       ..strokeCap = StrokeCap.round;
 

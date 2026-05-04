@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../../screens/settings/help/app_bar/user_icon.dart';
-import '../../../constant/app_colors.dart';
-import '../../../constant/app_image.dart';
+
 import '../../../../main.dart'; // Import for appStore
-import '../../constant/app_icons.dart';
 import '../../../../screens/NotificationScreen.dart';
+import '../../../constant/app_colors.dart';
 
 class HomeScreenAppBar extends StatefulWidget {
   const HomeScreenAppBar({
@@ -16,8 +14,7 @@ class HomeScreenAppBar extends StatefulWidget {
   State<HomeScreenAppBar> createState() => _HomeScreenAppBarState();
 }
 
-class _HomeScreenAppBarState extends State<HomeScreenAppBar>
-    with SingleTickerProviderStateMixin {
+class _HomeScreenAppBarState extends State<HomeScreenAppBar> with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
   int unreadNotifications = 0; // You can update this value based on your needs
@@ -89,7 +86,7 @@ class _HomeScreenAppBarState extends State<HomeScreenAppBar>
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.black.withAlpha(51),
                               blurRadius: 10,
                               offset: Offset(0, 3),
                             ),
@@ -99,8 +96,7 @@ class _HomeScreenAppBarState extends State<HomeScreenAppBar>
                           child: Image.network(
                             appStore.userProfile,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(
+                            errorBuilder: (context, error, stackTrace) => Container(
                               color: Colors.white,
                               child: Icon(
                                 Icons.person,
@@ -117,7 +113,7 @@ class _HomeScreenAppBarState extends State<HomeScreenAppBar>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'اهلا بك في مسارك',
+                            'اهلا بك في YallahRide',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 14,
@@ -144,15 +140,13 @@ class _HomeScreenAppBarState extends State<HomeScreenAppBar>
                     animation: _pulseAnimation,
                     builder: (context, child) {
                       return Transform.scale(
-                        scale: unreadNotifications > 0
-                            ? _pulseAnimation.value
-                            : 1.0,
+                        scale: unreadNotifications > 0 ? _pulseAnimation.value : 1.0,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withAlpha(51),
                             borderRadius: BorderRadius.circular(15),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
+                              color: Colors.white.withAlpha(76),
                               width: 1,
                             ),
                           ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../constant/app_image.dart';
 
 class BackAppBar extends StatelessWidget {
   final String title;
@@ -38,9 +37,7 @@ class BackAppBar extends StatelessWidget {
                 ),
                 const Spacer(),
                 GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child:
-                        const Icon(Icons.arrow_forward, color: Colors.white)),
+                    onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_forward, color: Colors.white)),
               ],
             ),
           ),

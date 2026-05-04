@@ -6,14 +6,12 @@ import 'package:taxi_booking/utils/core/utils/responsive_vertical_space.dart';
 import 'package:taxi_booking/utils/core/widget/app_input_fields/app_text_form_field.dart';
 import 'package:taxi_booking/utils/core/widget/appbar/back_app_bar.dart';
 import 'package:taxi_booking/utils/core/widget/buttons/app_buttons.dart';
-import 'package:taxi_booking/utils/core/widget/shared/custom_navigation_bar.dart';
 
 class AmountPaidContactScreen extends StatefulWidget {
   const AmountPaidContactScreen({super.key});
 
   @override
-  State<AmountPaidContactScreen> createState() =>
-      _AmountPaidContactScreenState();
+  State<AmountPaidContactScreen> createState() => _AmountPaidContactScreenState();
 }
 
 class _AmountPaidContactScreenState extends State<AmountPaidContactScreen> {
@@ -48,8 +46,7 @@ class _AmountPaidContactScreenState extends State<AmountPaidContactScreen> {
                   hintColor: AppColors.gray,
                 ),
                 const ResponsiveVerticalSpace(16),
-                Text("برجاء ادخال بعض التفاصيل",
-                    style: AppTextStyles.sRegular14()),
+                Text("برجاء ادخال بعض التفاصيل", style: AppTextStyles.sRegular14()),
                 const ResponsiveVerticalSpace(16),
                 AppTextFormField(
                   controller: controller,

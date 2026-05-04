@@ -9,18 +9,15 @@ import 'package:taxi_booking/utils/core/utils/responsive_vertical_space.dart';
 import 'package:taxi_booking/utils/core/widget/app_input_fields/app_text_form_field.dart';
 import 'package:taxi_booking/utils/core/widget/appbar/back_app_bar.dart';
 import 'package:taxi_booking/utils/core/widget/buttons/app_buttons.dart';
-import 'package:taxi_booking/utils/core/widget/shared/custom_navigation_bar.dart';
 
 class LostSomethingContactScreen extends StatefulWidget {
   const LostSomethingContactScreen({super.key});
 
   @override
-  State<LostSomethingContactScreen> createState() =>
-      _LostSomethingContactScreenState();
+  State<LostSomethingContactScreen> createState() => _LostSomethingContactScreenState();
 }
 
-class _LostSomethingContactScreenState
-    extends State<LostSomethingContactScreen> {
+class _LostSomethingContactScreenState extends State<LostSomethingContactScreen> {
   final TextEditingController controller = TextEditingController();
   @override
   void dispose() {
@@ -41,54 +38,35 @@ class _LostSomethingContactScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "اضعت شي",
-                  style: AppTextStyles.sSemiBold16(),
-                ),
+                Text("اضعت شي", style: AppTextStyles.sSemiBold16()),
                 const ResponsiveVerticalSpace(16),
                 Container(
-                    height: 48.h,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x26000000),
-                          blurRadius: 4,
-                          offset: Offset(0, 0),
-                          spreadRadius: 0,
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(AppIcons.upload),
-                        const ResponsiveHorizontalSpace(10),
-                        Text(
-                          "تحميل صوره",
-                          style: AppTextStyles.sMedium16(),
-                        )
-                      ],
-                    )),
-                const ResponsiveVerticalSpace(16),
-                Text("برجاء ادخال بعض التفاصيل",
-                    style: AppTextStyles.sRegular14()),
-                const ResponsiveVerticalSpace(16),
-                AppTextFormField(
-                  controller: controller,
-                  hint: 'التفاصيل',
-                  maxLines: 5,
-                  hintColor: AppColors.gray,
+                  height: 48.h,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: const [
+                      BoxShadow(color: AppColors.black, blurRadius: 4, offset: Offset(0, 0), spreadRadius: 0),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SvgPicture.asset(AppIcons.upload),
+                      const ResponsiveHorizontalSpace(10),
+                      Text("تحميل صوره", style: AppTextStyles.sMedium16()),
+                    ],
+                  ),
                 ),
+                const ResponsiveVerticalSpace(16),
+                Text("برجاء ادخال بعض التفاصيل", style: AppTextStyles.sRegular14()),
+                const ResponsiveVerticalSpace(16),
+                AppTextFormField(controller: controller, hint: 'التفاصيل', maxLines: 5, hintColor: AppColors.gray),
                 const ResponsiveVerticalSpace(24),
-                AppButtons.primaryButton(
-                  title: "ارسال",
-                  onPressed: () {},
-                )
+                AppButtons.primaryButton(title: "ارسال", onPressed: () {}),
               ],
             ),
-          )
+          ),
         ],
       ),
       //bottomNavigationBar: const CustomNavigationBar(),

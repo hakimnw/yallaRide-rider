@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:taxi_booking/screens/settings/help/presentation/pages/ride_problem_screen.dart';
-import 'package:taxi_booking/utils/core/app_routes/router_names.dart';
 import 'package:taxi_booking/utils/core/constant/app_colors.dart';
 import 'package:taxi_booking/utils/core/constant/app_icons.dart';
 import 'package:taxi_booking/utils/core/utils/responsive_horizontal_space.dart';
@@ -14,33 +13,18 @@ class HelpRideItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const RideProblemScreen()));
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => const RideProblemScreen()));
       },
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: ShapeDecoration(
           color: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          shadows: const [
-            BoxShadow(
-              color: Color(0x26000000),
-              blurRadius: 4,
-              offset: Offset(0, 0),
-              spreadRadius: 0,
-            )
-          ],
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shadows: const [BoxShadow(color: AppColors.black, blurRadius: 4, offset: Offset(0, 0), spreadRadius: 0)],
         ),
         child: Row(
           children: [
-            SvgPicture.asset(
-              fit: BoxFit.fill,
-              AppIcons.sedan,
-              width: 38.spMin,
-              height: 38.spMin,
-            ),
+            SvgPicture.asset(fit: BoxFit.fill, AppIcons.sedan, width: 38.spMin, height: 38.spMin),
             const ResponsiveHorizontalSpace(10),
             const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,12 +42,7 @@ class HelpRideItem extends StatelessWidget {
                 Text(
                   'نوع الرحله : سياره فاخره',
                   textAlign: TextAlign.right,
-                  style: TextStyle(
-                    color: Color(0xFFB0B0B0),
-                    fontSize: 12,
-                    fontFamily: 'Tajawal',
-                    fontWeight: FontWeight.w400,
-                  ),
+                  style: TextStyle(color: AppColors.gray, fontSize: 12, fontFamily: 'Tajawal', fontWeight: FontWeight.w400),
                 ),
                 Text(
                   'الرحله مكتمله',
@@ -74,7 +53,7 @@ class HelpRideItem extends StatelessWidget {
                     fontFamily: 'Tajawal',
                     fontWeight: FontWeight.w400,
                   ),
-                )
+                ),
               ],
             ),
             const Spacer(),
@@ -99,7 +78,7 @@ class HelpRideItem extends StatelessWidget {
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),

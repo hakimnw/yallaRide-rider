@@ -1,32 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../components/BottomNavBar.dart';
 import '../main.dart';
-import '../service/ZegoService.dart';
-import '../service/ZegoDebugHelper.dart';
-import '../utils/Colors.dart';
-import '../utils/Common.dart';
 import '../utils/Constants.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
+import '../utils/constant/app_colors.dart';
 import 'DashBoardScreen.dart';
 import 'HomeScreen.dart';
 import 'RideListScreen.dart';
-import 'WalletScreen.dart';
 import 'SettingScreen.dart';
-import 'settings_screen_new.dart';
 import 'ZegoDebugScreen.dart';
-import 'EditProfileScreen.dart';
-import 'EmergencyContactScreen.dart';
-import 'GoogleMapScreen.dart';
-import 'NoInternetScreen.dart';
-import 'ScheduleRideListScreen.dart';
+import 'settings_screen_new.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
@@ -49,7 +33,7 @@ class _MainScreenState extends State<MainScreen> {
 
     _screens = [
       HomeScreen(),
-      DashBoardScreen(),
+      DashboardScreen(),
       RideListScreen(),
       // WalletScreen(),
       SettingScreen(),
@@ -81,19 +65,19 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   /// Build Zego debug FAB for development testing
-  Widget? _buildZegoDebugFAB() {
-    // Only show in debug mode for development
-    if (kDebugMode) {
-      return FloatingActionButton(
-        mini: true,
-        backgroundColor: zegoService.isLoggedIn ? Colors.green : Colors.orange,
-        onPressed: _showZegoQuickDebug,
-        child: Icon(Icons.video_call, color: Colors.white, size: 20),
-        tooltip: 'Zego Debug',
-      );
-    }
-    return null;
-  }
+  // Widget? _buildZegoDebugFAB() {
+  //   // Only show in debug mode for development
+  //   if (kDebugMode) {
+  //     return FloatingActionButton(
+  //       mini: true,
+  //       backgroundColor: zegoService.isLoggedIn ? AppColors.primary : Colors.orange,
+  //       onPressed: _showZegoQuickDebug,
+  //       child: Icon(Icons.video_call, color: Colors.white, size: 20),
+  //       tooltip: 'Zego Debug',
+  //     );
+  //   }
+  //   return null;
+  // }
 
   /// Show enhanced Zego debug options
   void _showZegoQuickDebug() {
@@ -106,8 +90,7 @@ class _MainScreenState extends State<MainScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Quick Zego Connection Test',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('Quick Zego Connection Test', style: TextStyle(fontWeight: FontWeight.bold)),
               SizedBox(height: 16),
 
               // Test Connection Button
@@ -135,8 +118,7 @@ class _MainScreenState extends State<MainScreen> {
                   },
                   icon: Icon(Icons.refresh),
                   label: Text('🔄 Force Reinitialize'),
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
                 ),
               ),
               SizedBox(height: 8),
@@ -149,21 +131,18 @@ class _MainScreenState extends State<MainScreen> {
                     Navigator.pop(context);
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => ZegoDebugScreen()),
+                      MaterialPageRoute(builder: (context) => ZegoDebugScreen()),
                     );
                   },
                   icon: Icon(Icons.settings),
                   label: Text('🛠️ Full Debug Screen'),
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
                 ),
               ),
               SizedBox(height: 16),
 
               // Current Status
-              Text('Current Status:',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('Current Status:', style: TextStyle(fontWeight: FontWeight.bold)),
               SizedBox(height: 8),
               Text('SDK Initialized: ${zegoService.isInitialized}'),
               Text('User Logged In: ${zegoService.isLoggedIn}'),
@@ -227,8 +206,7 @@ class _MainScreenState extends State<MainScreen> {
       results.add('3. Testing SDK Initialization:');
       try {
         bool initResult = await zegoService.initializeZegoSDK();
-        results
-            .add(initResult ? '   ✅ SDK initialized' : '   ❌ SDK init failed');
+        results.add(initResult ? '   ✅ SDK initialized' : '   ❌ SDK init failed');
       } catch (e) {
         results.add('   ❌ SDK init error: $e');
       }
@@ -239,13 +217,9 @@ class _MainScreenState extends State<MainScreen> {
         try {
           bool loginResult = await zegoService.loginToZego(
             userID: appStore.userPhone,
-            userName: appStore.userName.isNotEmpty
-                ? appStore.userName
-                : appStore.firstName,
+            userName: appStore.userName.isNotEmpty ? appStore.userName : appStore.firstName,
           );
-          results.add(loginResult
-              ? '   ✅ Zego login successful'
-              : '   ❌ Zego login failed');
+          results.add(loginResult ? '   ✅ Zego login successful' : '   ❌ Zego login failed');
         } catch (e) {
           results.add('   ❌ Zego login error: $e');
         }
@@ -257,8 +231,7 @@ class _MainScreenState extends State<MainScreen> {
       results.add('5. Final Status:');
       results.add('   SDK Ready: ${zegoService.isInitialized}');
       results.add('   User Ready: ${zegoService.isLoggedIn}');
-      results.add(
-          '   Overall: ${zegoService.isInitialized && zegoService.isLoggedIn ? "✅ READY" : "❌ NOT READY"}');
+      results.add('   Overall: ${zegoService.isInitialized && zegoService.isLoggedIn ? "✅ READY" : "❌ NOT READY"}');
 
       Navigator.pop(context); // Close loading
 
@@ -285,7 +258,7 @@ class _MainScreenState extends State<MainScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('🎉 Zego is ready! Try making a call now!'),
-                      backgroundColor: Colors.green,
+                      backgroundColor: AppColors.primary,
                     ),
                   );
                 },
@@ -346,9 +319,7 @@ class _MainScreenState extends State<MainScreen> {
       if (appStore.isLoggedIn && appStore.userPhone.isNotEmpty) {
         loginResult = await zegoService.loginToZego(
           userID: appStore.userPhone,
-          userName: appStore.userName.isNotEmpty
-              ? appStore.userName
-              : appStore.firstName,
+          userName: appStore.userName.isNotEmpty ? appStore.userName : appStore.firstName,
         );
       }
 
@@ -359,10 +330,9 @@ class _MainScreenState extends State<MainScreen> {
 
       if (initResult && loginResult) {
         message = '🎉 Zego reinitialized successfully! Ready for calls!';
-        color = Colors.green;
+        color = AppColors.primary;
       } else if (initResult) {
-        message =
-            '⚠️ SDK initialized but login failed. Check user authentication.';
+        message = '⚠️ SDK initialized but login failed. Check user authentication.';
         color = Colors.orange;
       } else {
         message = '❌ Reinitialize failed. Check credentials and network.';

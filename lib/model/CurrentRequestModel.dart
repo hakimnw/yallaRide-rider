@@ -78,7 +78,7 @@ class CurrentRequestModel {
     }
     if(this.schedule_ride_request!=null && this.schedule_ride_request!.isNotEmpty){
       data['schedule_ride_request']= schedule_ride_request!.isNotEmpty
-          ? schedule_ride_request!.map((item) => item!.toJson()).toList()
+          ? schedule_ride_request!.map((item) => item.toJson()).toList()
           : [];
     }
     return data;
@@ -292,7 +292,7 @@ class OnRideRequest {
     data['ride_attempt'] = this.rideAttempt;
     data['otp'] = this.otp;
     if(multiDropLocation!=null){
-      data["multi_drop_location"]=List<dynamic>.from(multiDropLocation!.map((x) => x!.toJson()));
+      data["multi_drop_location"]=List<dynamic>.from(multiDropLocation!.map((x) => x.toJson()));
     }
     data['total_amount'] = this.totalAmount;
     data['subtotal'] = this.subtotal;

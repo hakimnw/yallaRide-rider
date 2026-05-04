@@ -44,7 +44,9 @@ class _ImageSourceDialogState extends State<ImageSourceDialog> {
                   onTap: widget.onGallery ?? () {},
                   child: Container(
                     padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(border: Border.all(color: Colors.grey.withOpacity(0.5)), borderRadius: BorderRadius.circular(defaultRadius)),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.withAlpha(127)),
+                        borderRadius: BorderRadius.circular(defaultRadius)),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -62,7 +64,9 @@ class _ImageSourceDialogState extends State<ImageSourceDialog> {
                   onTap: widget.onCamera ?? () {},
                   child: Container(
                     padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(border: Border.all(color: Colors.grey.withOpacity(0.5)), borderRadius: BorderRadius.circular(defaultRadius)),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.withAlpha(127)),
+                        borderRadius: BorderRadius.circular(defaultRadius)),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [

@@ -11,6 +11,7 @@ import '../model/ChatMessageModel.dart';
 import '../utils/Common.dart';
 import '../utils/Extensions/dataTypeExtensions.dart';
 
+// ignore: must_be_immutable
 class ChatItemWidget extends StatefulWidget {
   final ChatMessageModel? data;
   bool historyModeOnly;
@@ -49,14 +50,18 @@ class _ChatItemWidgetState extends State<ChatItemWidget> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: widget.data!.isMe! ? CrossAxisAlignment.end : CrossAxisAlignment.start,
             children: [
-              Text(widget.data!.message!, style: primaryTextStyle(color: widget.data!.isMe! ? Colors.white : textPrimaryColorGlobal), maxLines: null),
+              Text(widget.data!.message!,
+                  style: primaryTextStyle(color: widget.data!.isMe! ? Colors.white : textPrimaryColorGlobal),
+                  maxLines: null),
               SizedBox(height: 1),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     time,
-                    style: primaryTextStyle(color: !widget.data!.isMe.validate() ? Colors.blueGrey.withOpacity(0.6) : Colors.white.withOpacity(0.6), size: 10),
+                    style: primaryTextStyle(
+                        color: !widget.data!.isMe.validate() ? Colors.blueGrey.withAlpha(153) : Colors.white.withAlpha(153),
+                        size: 10),
                   ),
                   SizedBox(height: 2),
                   widget.data!.isMe!
@@ -85,7 +90,8 @@ class _ChatItemWidgetState extends State<ChatItemWidget> {
                         Text(
                           time,
                           style: primaryTextStyle(
-                            color: !widget.data!.isMe.validate() ? Colors.blueGrey.withOpacity(0.6) : Colors.white.withOpacity(0.6),
+                            color:
+                                !widget.data!.isMe.validate() ? Colors.blueGrey.withAlpha(153) : Colors.white.withAlpha(153),
                             size: 10,
                           ),
                         ),
@@ -128,10 +134,17 @@ class _ChatItemWidgetState extends State<ChatItemWidget> {
           ? null
           : () async {
               if (widget.historyModeOnly == true) return;
-              bool? res = await showConfirmDialogCustom(context, positiveText: language.yes, negativeText: language.no, primaryColor: primaryColor, onAccept: (BuildContext context) {});
+              bool? res = await showConfirmDialogCustom(context,
+                  positiveText: language.yes,
+                  negativeText: language.no,
+                  primaryColor: primaryColor,
+                  onAccept: (BuildContext context) {});
               if (res ?? false) {
                 hideKeyboard(context);
-                chatMessageService.deleteSingleMessage(riderID: widget.data!.senderId, driverID: widget.data!.receiverId!, documentId: widget.data!.id).then((value) {
+                chatMessageService
+                    .deleteSingleMessage(
+                        riderID: widget.data!.senderId, driverID: widget.data!.receiverId!, documentId: widget.data!.id)
+                    .then((value) {
                   //
                 }).catchError(
                   (e) {
@@ -148,15 +161,25 @@ class _ChatItemWidgetState extends State<ChatItemWidget> {
           children: [
             Container(
               margin: widget.data!.isMe.validate()
-                  ? EdgeInsets.only(top: 0.0, bottom: 0.0, left: isRTL ? 0 : MediaQuery.of(context).size.width * 0.25, right: 8)
-                  : EdgeInsets.only(top: 2.0, bottom: 2.0, left: 8, right: isRTL ? 0 : MediaQuery.of(context).size.width * 0.25),
+                  ? EdgeInsets.only(
+                      top: 0.0, bottom: 0.0, left: isRTL ? 0 : MediaQuery.of(context).size.width * 0.25, right: 8)
+                  : EdgeInsets.only(
+                      top: 2.0, bottom: 2.0, left: 8, right: isRTL ? 0 : MediaQuery.of(context).size.width * 0.25),
               padding: customPadding(widget.data!.messageType),
               decoration: BoxDecoration(
                 boxShadow: appStore.isDarkMode ? null : defaultBoxShadow(),
                 color: widget.data!.isMe.validate() ? primaryColor : scaffoldColorLight,
                 borderRadius: widget.data!.isMe.validate()
-                    ? BorderRadius.only(bottomLeft: radiusCircular(12), topLeft: radiusCircular(12), bottomRight: radiusCircular(12), topRight: radiusCircular(12))
-                    : BorderRadius.only(bottomLeft: radiusCircular(0), topLeft: radiusCircular(12), bottomRight: radiusCircular(12), topRight: radiusCircular(12)),
+                    ? BorderRadius.only(
+                        bottomLeft: radiusCircular(12),
+                        topLeft: radiusCircular(12),
+                        bottomRight: radiusCircular(12),
+                        topRight: radiusCircular(12))
+                    : BorderRadius.only(
+                        bottomLeft: radiusCircular(0),
+                        topLeft: radiusCircular(12),
+                        bottomRight: radiusCircular(12),
+                        topRight: radiusCircular(12)),
               ),
               child: chatItem(widget.data!.messageType),
             ),

@@ -32,7 +32,7 @@ class DriverRatingListTile extends StatelessWidget {
         subtitle: const Text(
           'Revo - 2016',
           style: TextStyle(
-            color: Color(0xFFB0B0B0),
+            color: AppColors.gray,
             fontSize: 14,
             fontFamily: 'Tajawal',
             fontWeight: FontWeight.w500,

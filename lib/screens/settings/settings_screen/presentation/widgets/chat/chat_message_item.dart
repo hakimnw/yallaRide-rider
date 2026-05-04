@@ -3,10 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taxi_booking/utils/core/constant/app_colors.dart';
 
 class ChatMessageItem extends StatelessWidget {
-  const ChatMessageItem({
-    super.key,
-    required this.isMe,
-  });
+  const ChatMessageItem({super.key, required this.isMe});
   final bool isMe;
   @override
   Widget build(BuildContext context) {
@@ -17,23 +14,14 @@ class ChatMessageItem extends StatelessWidget {
         padding: const EdgeInsets.all(10),
         clipBehavior: Clip.antiAlias,
         decoration: ShapeDecoration(
-          shadows: const [
-            BoxShadow(
-              color: Color(0x26000000),
-              blurRadius: 4,
-              offset: Offset(0, 0),
-              spreadRadius: 0,
-            )
-          ],
+          shadows: const [BoxShadow(color: AppColors.black, blurRadius: 4, offset: Offset(0, 0), spreadRadius: 0)],
           color: isMe ? AppColors.primary : AppColors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(10),
               topRight: const Radius.circular(10),
-              bottomLeft:
-                  !isMe ? const Radius.circular(0) : const Radius.circular(10),
-              bottomRight:
-                  isMe ? const Radius.circular(0) : const Radius.circular(10),
+              bottomLeft: !isMe ? const Radius.circular(0) : const Radius.circular(10),
+              bottomRight: isMe ? const Radius.circular(0) : const Radius.circular(10),
             ),
           ),
         ),

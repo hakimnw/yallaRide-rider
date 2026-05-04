@@ -1,40 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:taxi_booking/screens/ComplaintScreen.dart';
 import 'package:taxi_booking/screens/MainScreen.dart';
 import 'package:taxi_booking/service/RideService.dart';
-import '../model/DriverRatting.dart';
-import '../model/RiderModel.dart';
 
 import '../main.dart';
 import '../model/CurrentRequestModel.dart';
-import '../model/FRideBookingModel.dart';
+import '../model/DriverRatting.dart';
+import '../model/RiderModel.dart';
 import '../network/RestApis.dart';
-import '../screens/RidePaymentDetailScreen.dart';
 import '../utils/Colors.dart';
 import '../utils/Common.dart';
 import '../utils/Constants.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
 import '../utils/Extensions/app_common.dart';
 import '../utils/Extensions/app_textfield.dart';
 import '../utils/Extensions/dataTypeExtensions.dart';
-import 'DashBoardScreen.dart';
+import '../utils/constant/app_colors.dart';
 
 class ReviewScreen extends StatefulWidget {
   final Driver? driverData;
   final OnRideRequest rideRequest;
 
-  const ReviewScreen({Key? key, this.driverData, required this.rideRequest})
-      : super(key: key);
+  const ReviewScreen({Key? key, this.driverData, required this.rideRequest}) : super(key: key);
 
   @override
   ReviewScreenState createState() => ReviewScreenState();
 }
 
-class ReviewScreenState extends State<ReviewScreen>
-    with TickerProviderStateMixin {
+class ReviewScreenState extends State<ReviewScreen> with TickerProviderStateMixin {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final RideService _rideService = RideService();
   final TextEditingController _reviewController = TextEditingController();
@@ -47,10 +41,10 @@ class ReviewScreenState extends State<ReviewScreen>
   late Animation<double> _ratingScaleAnimation;
 
   double _currentRating = 0;
-  int _selectedTipIndex = -1;
-  bool _isMoreTip = false;
+  // int _selectedTipIndex = -1;
+  // bool _isMoreTip = false;
   bool _isSubmitting = false;
-  OnRideRequest? _servicesListData;
+  // OnRideRequest? _servicesListData;
 
   @override
   void initState() {
@@ -79,8 +73,7 @@ class ReviewScreenState extends State<ReviewScreen>
     );
 
     _ratingScaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(
-          parent: _ratingAnimationController, curve: Curves.elasticOut),
+      CurvedAnimation(parent: _ratingAnimationController, curve: Curves.elasticOut),
     );
 
     _animationController.forward();
@@ -133,8 +126,7 @@ class ReviewScreenState extends State<ReviewScreen>
           content: Text(message),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
     }
@@ -151,10 +143,9 @@ class ReviewScreenState extends State<ReviewScreen>
               Expanded(child: Text(message)),
             ],
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
     }
@@ -230,15 +221,13 @@ class ReviewScreenState extends State<ReviewScreen>
       String errorDetails = error.toString();
 
       // Handle specific error cases
-      if (errorDetails.contains('payment_status') &&
-          errorDetails.contains('null')) {
+      if (errorDetails.contains('payment_status') && errorDetails.contains('null')) {
         errorMessage = 'خطأ في بيانات الرحلة - يرجى المحاولة مرة أخرى';
         errorDetails = 'Ride request data is invalid or incomplete';
       } else if (errorDetails.contains('ride_request_id')) {
         errorMessage = 'رقم الرحلة غير صحيح';
         errorDetails = 'Invalid ride request ID';
-      } else if (errorDetails.contains('network') ||
-          errorDetails.contains('connection')) {
+      } else if (errorDetails.contains('network') || errorDetails.contains('connection')) {
         errorMessage = 'خطأ في الاتصال - يرجى التحقق من الإنترنت';
       }
 
@@ -275,7 +264,7 @@ class ReviewScreenState extends State<ReviewScreen>
           end: Alignment.bottomRight,
           colors: [
             primaryColor,
-            primaryColor.withOpacity(0.8),
+            primaryColor.withAlpha(201),
           ],
         ),
         borderRadius: const BorderRadius.only(
@@ -284,7 +273,7 @@ class ReviewScreenState extends State<ReviewScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: primaryColor.withOpacity(0.3),
+            color: primaryColor.withAlpha(76),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -313,24 +302,24 @@ class ReviewScreenState extends State<ReviewScreen>
     );
   }
 
-  Widget _buildActionButton(String text, VoidCallback onPressed) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.white.withOpacity(0.3)),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: MaterialButton(
-        onPressed: onPressed,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        minWidth: 0,
-        child: Text(
-          text,
-          style: boldTextStyle(color: Colors.white, size: 12),
-        ),
-      ),
-    );
-  }
+  // Widget _buildActionButton(String text, VoidCallback onPressed) {
+  //   return Container(
+  //     decoration: BoxDecoration(
+  //       border: Border.all(color: Colors.white.withAlpha(76)),
+  //       borderRadius: BorderRadius.circular(20),
+  //     ),
+  //     child: MaterialButton(
+  //       onPressed: onPressed,
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+  //       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+  //       minWidth: 0,
+  //       child: Text(
+  //         text,
+  //         style: boldTextStyle(color: Colors.white, size: 12),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildDriverCard() {
     return AnimatedBuilder(
@@ -347,7 +336,7 @@ class ReviewScreenState extends State<ReviewScreen>
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withAlpha(25),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
@@ -364,14 +353,13 @@ class ReviewScreenState extends State<ReviewScreen>
                   Row(
                     children: [
                       Hero(
-                        tag:
-                            'driver_image_${widget.driverData?.id ?? 'default'}',
+                        tag: 'driver_image_${widget.driverData?.id ?? 'default'}',
                         child: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: primaryColor.withOpacity(0.3),
+                                color: primaryColor.withAlpha(76),
                                 blurRadius: 10,
                                 offset: const Offset(0, 5),
                               ),
@@ -426,7 +414,7 @@ class ReviewScreenState extends State<ReviewScreen>
           height: 70,
           width: 70,
           decoration: BoxDecoration(
-            color: primaryColor.withOpacity(0.1),
+            color: primaryColor.withAlpha(25),
             shape: BoxShape.circle,
           ),
           child: Icon(
@@ -442,7 +430,7 @@ class ReviewScreenState extends State<ReviewScreen>
         height: 70,
         width: 70,
         decoration: BoxDecoration(
-          color: primaryColor.withOpacity(0.1),
+          color: primaryColor.withAlpha(25),
           shape: BoxShape.circle,
         ),
         child: Icon(
@@ -456,11 +444,8 @@ class ReviewScreenState extends State<ReviewScreen>
 
   String _getDriverName() {
     try {
-      final firstName =
-          widget.driverData?.firstName?.validate().capitalizeFirstLetter() ??
-              '';
-      final lastName =
-          widget.driverData?.lastName?.validate().capitalizeFirstLetter() ?? '';
+      final firstName = widget.driverData?.firstName?.validate().capitalizeFirstLetter() ?? '';
+      final lastName = widget.driverData?.lastName?.validate().capitalizeFirstLetter() ?? '';
 
       if (firstName.isNotEmpty || lastName.isNotEmpty) {
         return '$firstName $lastName'.trim();
@@ -497,7 +482,7 @@ class ReviewScreenState extends State<ReviewScreen>
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withAlpha(25),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
@@ -523,8 +508,7 @@ class ReviewScreenState extends State<ReviewScreen>
                           allowHalfRating: false,
                           itemCount: 5,
                           itemSize: 40,
-                          itemPadding:
-                              const EdgeInsets.symmetric(horizontal: 4),
+                          itemPadding: const EdgeInsets.symmetric(horizontal: 4),
                           itemBuilder: (context, index) => Icon(
                             Icons.star,
                             color: Colors.amber,
@@ -588,7 +572,7 @@ class ReviewScreenState extends State<ReviewScreen>
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withAlpha(25),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
@@ -605,7 +589,7 @@ class ReviewScreenState extends State<ReviewScreen>
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(15),
-                      border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                      border: Border.all(color: Colors.grey.withAlpha(76)),
                     ),
                     child: AppTextField(
                       controller: _reviewController,
@@ -645,12 +629,12 @@ class ReviewScreenState extends State<ReviewScreen>
                   height: 55,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [primaryColor, primaryColor.withOpacity(0.8)],
+                      colors: [primaryColor, primaryColor.withAlpha(201)],
                     ),
                     borderRadius: BorderRadius.circular(15),
                     boxShadow: [
                       BoxShadow(
-                        color: primaryColor.withOpacity(0.3),
+                        color: primaryColor.withAlpha(76),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
                       ),
@@ -667,8 +651,7 @@ class ReviewScreenState extends State<ReviewScreen>
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
                         : Text(
@@ -684,7 +667,7 @@ class ReviewScreenState extends State<ReviewScreen>
                   decoration: BoxDecoration(
                     color: Colors.grey[100],
                     borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: primaryColor.withOpacity(0.3)),
+                    border: Border.all(color: primaryColor.withAlpha(76)),
                   ),
                   child: MaterialButton(
                     onPressed: () {

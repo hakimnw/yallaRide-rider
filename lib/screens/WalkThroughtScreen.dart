@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:math' as math;
 
 import '../../main.dart';
 import '../../utils/Colors.dart';
-import '../../utils/Common.dart';
 import '../../utils/Constants.dart';
 import '../../utils/Extensions/app_common.dart';
 import '../model/WalkThroughModel.dart';
@@ -15,8 +13,7 @@ class WalkThroughScreen extends StatefulWidget {
   WalkThroughScreenState createState() => WalkThroughScreenState();
 }
 
-class WalkThroughScreenState extends State<WalkThroughScreen>
-    with TickerProviderStateMixin {
+class WalkThroughScreenState extends State<WalkThroughScreen> with TickerProviderStateMixin {
   PageController pageController = PageController();
   int currentPage = 0;
 
@@ -77,18 +74,15 @@ class WalkThroughScreenState extends State<WalkThroughScreen>
     );
 
     _textAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-          parent: _textAnimationController, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _textAnimationController, curve: Curves.easeInOut),
     );
 
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
       CurvedAnimation(parent: _textAnimationController, curve: Curves.easeOut),
     );
 
     _buttonAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-          parent: _buttonAnimationController, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _buttonAnimationController, curve: Curves.easeInOut),
     );
 
     // Start initial animations
@@ -143,7 +137,7 @@ class WalkThroughScreenState extends State<WalkThroughScreen>
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.white,
-                      primaryColor.withOpacity(0.05),
+                      primaryColor.withAlpha(13),
                     ],
                   ),
                 ),
@@ -190,18 +184,16 @@ class WalkThroughScreenState extends State<WalkThroughScreen>
                         },
                         child: TextButton(
                           onPressed: () {
-                            launchScreen(context, SignInScreen(),
-                                isNewTask: true);
+                            launchScreen(context, SignInScreen(), isNewTask: true);
                             sharedPref.setBool(IS_FIRST_TIME, false);
                           },
                           style: TextButton.styleFrom(
                             foregroundColor: Colors.grey[700],
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
+                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                               side: BorderSide(
-                                color: Colors.grey.withOpacity(0.3),
+                                color: Colors.grey.withAlpha(76),
                                 width: 1,
                               ),
                             ),
@@ -253,7 +245,7 @@ class WalkThroughScreenState extends State<WalkThroughScreen>
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: primaryColor.withOpacity(0.15),
+                                      color: primaryColor.withAlpha(38),
                                       blurRadius: 30,
                                       offset: Offset(0, 15),
                                     ),
@@ -263,10 +255,8 @@ class WalkThroughScreenState extends State<WalkThroughScreen>
                                   borderRadius: BorderRadius.circular(20),
                                   child: Image.asset(
                                     walkThroughClass[i].img.toString(),
-                                    height: MediaQuery.of(context).size.height *
-                                        0.4,
-                                    width: MediaQuery.of(context).size.width *
-                                        0.85,
+                                    height: MediaQuery.of(context).size.height * 0.4,
+                                    width: MediaQuery.of(context).size.width * 0.85,
                                     fit: BoxFit.cover,
                                   ),
                                 ),
@@ -301,8 +291,7 @@ class WalkThroughScreenState extends State<WalkThroughScreen>
                                   ),
                                   SizedBox(height: 16),
                                   Container(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 20),
+                                    padding: EdgeInsets.symmetric(horizontal: 20),
                                     child: Text(
                                       walkThroughClass[i].text.toString(),
                                       style: TextStyle(
@@ -348,8 +337,7 @@ class WalkThroughScreenState extends State<WalkThroughScreen>
                           child: ElevatedButton(
                             onPressed: () {
                               if (currentPage >= walkThroughClass.length - 1) {
-                                launchScreen(context, SignInScreen(),
-                                    isNewTask: true);
+                                launchScreen(context, SignInScreen(), isNewTask: true);
                                 sharedPref.setBool(IS_FIRST_TIME, false);
                               } else {
                                 pageController.animateToPage(
@@ -372,9 +360,7 @@ class WalkThroughScreenState extends State<WalkThroughScreen>
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  currentPage >= walkThroughClass.length - 1
-                                      ? "التالي"
-                                      : "التالي",
+                                  currentPage >= walkThroughClass.length - 1 ? "التالي" : "التالي",
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,

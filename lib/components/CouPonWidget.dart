@@ -72,7 +72,10 @@ class CouPonWidgetState extends State<CouPonWidget> {
           children: [
             Container(
               padding: EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.only(topLeft: radiusCircular(defaultRadius), topRight: radiusCircular(defaultRadius))),
+              decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius:
+                      BorderRadius.only(topLeft: radiusCircular(defaultRadius), topRight: radiusCircular(defaultRadius))),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -126,10 +129,12 @@ class CouPonWidgetState extends State<CouPonWidget> {
                                       strokeWidth: 2.5,
                                       padding: EdgeInsets.all(8),
                                       child: Text(data.code.validate(), style: boldTextStyle()),
-                                      color: primaryColor.withOpacity(0.3),
+                                      color: primaryColor.withAlpha(76),
                                     ),
                                     SizedBox(width: 8),
-                                    Expanded(child: Text(data.title.validate(), maxLines: 3, overflow: TextOverflow.ellipsis, style: boldTextStyle(size: 14))),
+                                    Expanded(
+                                        child: Text(data.title.validate(),
+                                            maxLines: 3, overflow: TextOverflow.ellipsis, style: boldTextStyle(size: 14))),
                                     MaterialButton(
                                         onPressed: () {
                                           String codeData = data.code!;
@@ -142,7 +147,10 @@ class CouPonWidgetState extends State<CouPonWidget> {
                                   ],
                                 ),
                                 // SizedBox(height: 8),
-                                Text(data.discountType == CHARGE_TYPE_FIXED ? '${language.get} ${data.discount}' : '${language.get} ${data.discount} % ${language.off}',
+                                Text(
+                                    data.discountType == CHARGE_TYPE_FIXED
+                                        ? '${language.get} ${data.discount}'
+                                        : '${language.get} ${data.discount} % ${language.off}',
                                     style: primaryTextStyle(weight: FontWeight.w500)),
                                 if (data.description != null) SizedBox(height: 8),
                                 if (data.description != null)
@@ -158,7 +166,7 @@ class CouPonWidgetState extends State<CouPonWidget> {
                       },
                       separatorBuilder: (_, index) {
                         return SizedBox();
-                        return Divider(color: Colors.grey);
+                        // return Divider(color: Colors.grey);
                       },
                     ),
                   )

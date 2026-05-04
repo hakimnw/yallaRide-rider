@@ -14,6 +14,7 @@ import '../utils/Common.dart';
 import '../utils/Constants.dart';
 import '../utils/Extensions/AppButtonWidget.dart';
 import '../utils/Extensions/app_common.dart';
+import '../utils/constant/app_colors.dart';
 
 class SearchLocationComponent extends StatefulWidget {
   final String title;
@@ -50,10 +51,21 @@ class SearchLocationComponentState extends State<SearchLocationComponent> {
   }
 
   void init() async {
+    // Auto-set current location as source with full address
     sourceLocation.text = widget.title;
+    // polylineSource is already set globally from DashBoardScreen
+
+    // Clear destination for user to enter
+    destinationLocation.clear();
+
     await getServices().then((value) {
       list.addAll(value.data!);
       setState(() {});
+    });
+
+    // Auto-focus destination field for better UX
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      desFocus.requestFocus();
     });
 
     sourceFocus.addListener(() {
@@ -63,6 +75,7 @@ class SearchLocationComponentState extends State<SearchLocationComponent> {
 
     desFocus.addListener(() {
       if (desFocus.hasFocus) {
+        // Ensure source location is set to current location with full address
         if (mLocation.isNotEmpty) {
           sourceLocation.text = mLocation;
           sourceLocation.selection = TextSelection.collapsed(offset: sourceLocation.text.length);
@@ -70,6 +83,9 @@ class SearchLocationComponentState extends State<SearchLocationComponent> {
           sourceLocation.text = widget.title;
           sourceLocation.selection = TextSelection.collapsed(offset: sourceLocation.text.length);
         }
+        // Clear destination field when focused to allow user to enter new destination
+        destinationLocation.clear();
+        destinationLocation.selection = TextSelection.collapsed(offset: 0);
       }
     });
   }
@@ -105,7 +121,8 @@ class SearchLocationComponentState extends State<SearchLocationComponent> {
                   Container(
                     padding: EdgeInsets.only(bottom: 16),
                     width: MediaQuery.of(context).size.width,
-                    decoration: BoxDecoration(color: primaryColor.withOpacity(0.1), borderRadius: BorderRadius.circular(defaultRadius)),
+                    decoration: BoxDecoration(
+                        color: primaryColor.withAlpha(25), borderRadius: BorderRadius.circular(defaultRadius)),
                     child: Padding(
                       padding: EdgeInsets.all(12),
                       child: Column(
@@ -116,7 +133,7 @@ class SearchLocationComponentState extends State<SearchLocationComponent> {
                             children: [
                               Icon(
                                 Icons.near_me,
-                                color: Colors.green,
+                                color: AppColors.primary,
                                 shadows: [
                                   BoxShadow(color: Colors.black, blurRadius: 1, offset: Offset(1.5, 1.5), spreadRadius: 5),
                                   BoxShadow(color: Colors.white70, blurRadius: 1, offset: Offset(-1, -1), spreadRadius: 5),
@@ -132,6 +149,12 @@ class SearchLocationComponentState extends State<SearchLocationComponent> {
                                       controller: sourceLocation,
                                       focusNode: sourceFocus,
                                       decoration: searchInputDecoration(hint: language.currentLocation),
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        height: 1.3,
+                                      ),
+                                      maxLines: 2,
                                       onTap: () {
                                         isPickup = false;
                                         setState(() {});
@@ -201,8 +224,18 @@ class SearchLocationComponentState extends State<SearchLocationComponent> {
                                         focusNode: desFocus,
                                         autofocus: true,
                                         decoration: searchInputDecoration(hint: language.destinationLocation),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          height: 1.3,
+                                        ),
+                                        maxLines: 2,
                                         onTap: () {
                                           isDrop = false;
+                                          // Clear destination field if it contains the default current location
+                                          if (destinationLocation.text == widget.title) {
+                                            destinationLocation.clear();
+                                          }
                                           setState(() {});
                                         },
                                         onChanged: (val) {
@@ -296,20 +329,15 @@ class SearchLocationComponentState extends State<SearchLocationComponent> {
                               polylineDestination = LatLng(value.location!.latitude!, value.location!.longitude!);
                               destinationLocation.text = mData.placePrediction!.text!.text!;
                               if (!sourceLocation.text.isEmptyOrNull && !destinationLocation.text.isEmptyOrNull) {
-                                launchScreen(
-                                    context,
-                                    NewEstimateRideListWidget(
-                                        callFrom: "280",
-                                        sourceLatLog: polylineSource,
-                                        destinationLatLog: polylineDestination,
-                                        sourceTitle: sourceLocation.text,
-                                        destinationTitle: destinationLocation.text),
-                                    pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
-                                sourceLocation.clear();
-                                destinationLocation.clear();
+                                // Return result to DashBoardScreen instead of navigating directly
+                                Navigator.pop(context, {
+                                  'destination': destinationLocation.text,
+                                  'destinationLatLng': polylineDestination,
+                                });
                               }
                             } else if (multipleDropPoints.isNotEmpty) {
-                              multiDropLatLng[multiDropFieldPosition] = LatLng(value.location!.latitude!, value.location!.longitude!);
+                              multiDropLatLng[multiDropFieldPosition] =
+                                  LatLng(value.location!.latitude!, value.location!.longitude!);
                               multipleDropPoints[multiDropFieldPosition].text = mData.placePrediction!.text!.text!;
                               try {
                                 multipleDropPointsFocus[multiDropFieldPosition + 1].requestFocus();
@@ -325,13 +353,15 @@ class SearchLocationComponentState extends State<SearchLocationComponent> {
                     },
                   ),
                   SizedBox(height: 16),
-                  if (multipleDropPoints.isEmpty || (multipleDropPoints.isNotEmpty && multiDropLatLng.length != multipleDropPoints.length))
+                  if (multipleDropPoints.isEmpty ||
+                      (multipleDropPoints.isNotEmpty && multiDropLatLng.length != multipleDropPoints.length))
                     AppButtonWidget(
                       width: MediaQuery.of(context).size.width,
                       onTap: () async {
                         if (sourceFocus.hasFocus) {
                           isDone = true;
-                          var selectedPlace = await launchScreen(context, GoogleMapScreen(isDestination: false), pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+                          var selectedPlace = await launchScreen(context, GoogleMapScreen(isDestination: false),
+                              pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
                           log(selectedPlace);
                           mLocation = selectedPlace['formatted_address']!;
                           sourceLocation.text = selectedPlace['formatted_address']!;
@@ -354,7 +384,8 @@ class SearchLocationComponentState extends State<SearchLocationComponent> {
                             desFocus.nextFocus();
                           }
                         } else if (desFocus.hasFocus) {
-                          var selectedPlace = await launchScreen(context, GoogleMapScreen(isDestination: true), pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+                          var selectedPlace = await launchScreen(context, GoogleMapScreen(isDestination: true),
+                              pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
 
                           destinationLocation.text = selectedPlace['formatted_address']!;
                           polylineDestination = selectedPlace['position'];
@@ -362,18 +393,11 @@ class SearchLocationComponentState extends State<SearchLocationComponent> {
                           if (sourceLocation.text.isNotEmpty && destinationLocation.text.isNotEmpty) {
                             log(sourceLocation.text);
                             log(destinationLocation.text);
-                            launchScreen(
-                                context,
-                                NewEstimateRideListWidget(
-                                    callFrom: "340",
-                                    sourceLatLog: polylineSource,
-                                    destinationLatLog: polylineDestination,
-                                    sourceTitle: sourceLocation.text,
-                                    destinationTitle: destinationLocation.text),
-                                pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
-
-                            sourceLocation.clear();
-                            destinationLocation.clear();
+                            // Return result to DashBoardScreen instead of navigating directly
+                            Navigator.pop(context, {
+                              'destination': destinationLocation.text,
+                              'destinationLatLng': polylineDestination,
+                            });
                           } else {
                             sourceFocus.nextFocus();
                           }
@@ -382,7 +406,8 @@ class SearchLocationComponentState extends State<SearchLocationComponent> {
                             (element) => element.hasFocus,
                           );
                           if (x != -1) {
-                            var selectedPlace = await launchScreen(context, GoogleMapScreen(isDestination: true), pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+                            var selectedPlace = await launchScreen(context, GoogleMapScreen(isDestination: true),
+                                pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
                             multipleDropPoints[x].text = selectedPlace['formatted_address']!;
                             multiDropLatLng[x] = selectedPlace['position'];
                             try {
@@ -414,7 +439,7 @@ class SearchLocationComponentState extends State<SearchLocationComponent> {
                           return toast("Select Proper Location required");
                         }
                         var abc = {};
-                        polylineDestination = multiDropLatLng[multipleDropPoints!.length - 1];
+                        polylineDestination = multiDropLatLng[multipleDropPoints.length - 1];
                         destinationLocation.text = multipleDropPoints.last.text;
                         multipleDropPoints.removeLast();
                         for (int i = 0; i < multipleDropPoints.length; i++) {

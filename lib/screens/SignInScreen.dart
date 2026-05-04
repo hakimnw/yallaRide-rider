@@ -4,41 +4,33 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:taxi_booking/screens/MainScreen.dart';
 
 import '../../components/OTPDialog.dart';
 import '../../main.dart';
 import '../../network/RestApis.dart';
-import '../../screens/ForgotPasswordScreen.dart';
 import '../../service/AuthService1.dart';
-import '../../utils/constant/app_colors.dart';
-import '../../utils/constant/app_image.dart';
-import '../../utils/constant/styles/app_text_style.dart';
-import '../../utils/constant/styles/input_border_styles.dart';
 import '../../utils/Common.dart';
 import '../../utils/Constants.dart';
 import '../../utils/Extensions/AppButtonWidget.dart';
 import '../../utils/Extensions/app_common.dart';
-import '../../utils/Extensions/app_textfield.dart';
+import '../../utils/constant/app_colors.dart';
+import '../../utils/constant/styles/app_text_style.dart';
+import '../../utils/constant/styles/input_border_styles.dart';
 import '../model/LoginResponse.dart';
 import '../service/AuthService.dart';
-import '../utils/Extensions/context_extension.dart';
 import '../utils/Extensions/dataTypeExtensions.dart';
 import '../utils/images.dart';
-import 'DashBoardScreen.dart';
-import 'SignUpScreen.dart';
-import 'TermsConditionScreen.dart';
 import 'PrivacyPolicyScreen.dart';
+import 'TermsAndConditionsScreen.dart';
 
 class SignInScreen extends StatefulWidget {
   @override
   SignInScreenState createState() => SignInScreenState();
 }
 
-class SignInScreenState extends State<SignInScreen>
-    with TickerProviderStateMixin {
+class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixin {
   GlobalKey<FormState> loginFormKey = GlobalKey<FormState>();
   GlobalKey<FormState> signUpFormKey = GlobalKey<FormState>();
   final FirebaseAuth auth = FirebaseAuth.instance;
@@ -107,10 +99,7 @@ class SignInScreenState extends State<SignInScreen>
         log(req);
         await logInApi(req).then((value) {
           userModel = value.data!;
-          auth
-              .signInWithEmailAndPassword(
-                  email: emailController.text, password: passController.text)
-              .then((value) async {
+          auth.signInWithEmailAndPassword(email: emailController.text, password: passController.text).then((value) async {
             sharedPref.setString(UID, value.user!.uid);
             updateProfileUid();
             await checkPermission().then((value) async {
@@ -120,12 +109,10 @@ class SignInScreenState extends State<SignInScreen>
               });
             });
             appStore.setLoading(false);
-            launchScreen(context, MainScreen(),
-                isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
+            launchScreen(context, MainScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
           }).catchError((e) {
             appStore.setLoading(false);
-            if (e.toString().contains('user-not-found') ||
-                e.toString().contains('invalid')) {
+            if (e.toString().contains('user-not-found') || e.toString().contains('invalid')) {
               authService.signUpWithEmailPassword(
                 context,
                 mobileNumber: userModel.contactNumber,
@@ -137,9 +124,7 @@ class SignInScreenState extends State<SignInScreen>
                 userType: RIDER,
               );
             } else {
-              launchScreen(context, MainScreen(),
-                  isNewTask: true,
-                  pageRouteAnimation: PageRouteAnimation.Slide);
+              launchScreen(context, MainScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
             }
             log(e.toString());
           });
@@ -236,26 +221,22 @@ class SignInScreenState extends State<SignInScreen>
               // Custom App Bar with background image
               Container(
                 width: double.infinity,
-                height: 250,
+                height: 300,
                 decoration: BoxDecoration(
                   color: AppColors.primary,
                   image: DecorationImage(
-                    //assets\assets\images\loginFrame.png
-                    image: AssetImage(
-                        "assets/assets/images/app_bar_background.png"),
+                    image: AssetImage("assets/assets/images/app_bar_background.png"),
                     fit: BoxFit.cover,
                   ),
                 ),
                 child: Center(
-                  // Commenting out the app logo
-                  child: ClipRRect(
-                      borderRadius: radius(50),
-                      child: SvgPicture.asset(
-                        ic_app_logo,
-                        width: 100,
-                        height: 100,
-                        color: AppColors.white,
-                      )),
+                  // Make the logo bigger as requested
+                  child: Image.asset(
+                    "assets/assets/logo.png",
+                    width: 400, // Increased from 250 to 350
+                    height: 400, // Increased from 250 to 350
+                    color: AppColors.white,
+                  ),
                 ),
               ),
               Expanded(
@@ -268,7 +249,7 @@ class SignInScreenState extends State<SignInScreen>
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.black.withOpacity(0.1),
+                          color: AppColors.black.withAlpha(25),
                           blurRadius: 10,
                           spreadRadius: 0,
                         ),
@@ -344,13 +325,10 @@ class SignInScreenState extends State<SignInScreen>
               labelText: language.email,
               labelStyle: TextStyle(color: AppColors.primary),
               prefixIcon: Icon(Icons.email_outlined, color: AppColors.primary),
-              border: InputBorders.custom(
-                  color: AppColors.lightGray, borderRadius: 10),
-              enabledBorder: InputBorders.custom(
-                  color: AppColors.lightGray, borderRadius: 10),
-              focusedBorder: InputBorders.custom(
-                  color: AppColors.primary, borderRadius: 10),
-              fillColor: AppColors.lightGray.withOpacity(0.3),
+              border: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+              enabledBorder: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+              focusedBorder: InputBorders.custom(color: AppColors.primary, borderRadius: 10),
+              fillColor: AppColors.lightGray.withAlpha(76),
               //filled: true,
             ),
             validator: (s) {
@@ -358,8 +336,7 @@ class SignInScreenState extends State<SignInScreen>
               if (!s.trim().validateEmail()) return language.thisFieldRequired;
               return null;
             },
-            onFieldSubmitted: (s) =>
-                FocusScope.of(context).requestFocus(passFocus),
+            onFieldSubmitted: (s) => FocusScope.of(context).requestFocus(passFocus),
           ),
           SizedBox(height: 16),
           TextFormField(
@@ -372,13 +349,10 @@ class SignInScreenState extends State<SignInScreen>
               labelText: language.password,
               labelStyle: TextStyle(color: AppColors.primary),
               prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
-              border: InputBorders.custom(
-                  color: AppColors.lightGray, borderRadius: 10),
-              enabledBorder: InputBorders.custom(
-                  color: AppColors.lightGray, borderRadius: 10),
-              focusedBorder: InputBorders.custom(
-                  color: AppColors.primary, borderRadius: 10),
-              fillColor: AppColors.lightGray.withOpacity(0.3),
+              border: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+              enabledBorder: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+              focusedBorder: InputBorders.custom(color: AppColors.primary, borderRadius: 10),
+              fillColor: AppColors.lightGray.withAlpha(76),
               //filled: true,
             ),
             validator: (s) {
@@ -406,10 +380,8 @@ class SignInScreenState extends State<SignInScreen>
                           sharedPref.remove(REMEMBER_ME);
                         } else {
                           await sharedPref.setBool(REMEMBER_ME, mIsRemember);
-                          await sharedPref.setString(
-                              USER_EMAIL, emailController.text);
-                          await sharedPref.setString(
-                              USER_PASSWORD, passController.text);
+                          await sharedPref.setString(USER_EMAIL, emailController.text);
+                          await sharedPref.setString(USER_PASSWORD, passController.text);
                         }
 
                         setState(() {});
@@ -422,8 +394,7 @@ class SignInScreenState extends State<SignInScreen>
                       mIsRemember = !mIsRemember;
                       setState(() {});
                     },
-                    child: Text(language.rememberMe,
-                        style: AppTextStyles.sRegular14()),
+                    child: Text(language.rememberMe, style: AppTextStyles.sRegular14()),
                   ),
                 ],
               ),
@@ -459,41 +430,27 @@ class SignInScreenState extends State<SignInScreen>
                 child: RichText(
                   text: TextSpan(
                     children: [
-                      TextSpan(
-                          text: language.iAgreeToThe + " ",
-                          style: AppTextStyles.sRegular14()
-                              .copyWith(fontSize: 12)),
+                      TextSpan(text: language.iAgreeToThe + " ", style: AppTextStyles.sRegular14().copyWith(fontSize: 12)),
                       TextSpan(
                         text: language.termsConditions.splitBefore(' &'),
-                        style:
-                            AppTextStyles.sSemiBold14(color: AppColors.primary),
+                        style: AppTextStyles.sSemiBold14(color: AppColors.primary),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            if (appStore.termsCondition != null &&
-                                appStore.termsCondition!.isNotEmpty) {
-                              launchScreen(
-                                  context,
-                                  TermsConditionScreen(
-                                      title: language.termsConditions,
-                                      subtitle: appStore.termsCondition),
+                            if (appStore.termsCondition != null && appStore.termsCondition!.isNotEmpty) {
+                              launchScreen(context, TermsAndConditionsScreen(),
                                   pageRouteAnimation: PageRouteAnimation.Slide);
                             } else {
                               toast(language.txtURLEmpty);
                             }
                           },
                       ),
-                      TextSpan(
-                          text: ' & ',
-                          style: AppTextStyles.sRegular14()
-                              .copyWith(fontSize: 12)),
+                      TextSpan(text: ' & ', style: AppTextStyles.sRegular14().copyWith(fontSize: 12)),
                       TextSpan(
                         text: language.privacyPolicy,
-                        style:
-                            AppTextStyles.sSemiBold14(color: AppColors.primary),
+                        style: AppTextStyles.sSemiBold14(color: AppColors.primary),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            launchScreen(context, PrivacyPolicyScreen(),
-                                pageRouteAnimation: PageRouteAnimation.Slide);
+                            launchScreen(context, PrivacyPolicyScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
                           },
                       ),
                     ],
@@ -534,15 +491,11 @@ class SignInScreenState extends State<SignInScreen>
                   decoration: InputDecoration(
                     labelText: language.firstName,
                     labelStyle: TextStyle(color: AppColors.primary),
-                    prefixIcon:
-                        Icon(Icons.person_outline, color: AppColors.primary),
-                    border: InputBorders.custom(
-                        color: AppColors.lightGray, borderRadius: 10),
-                    enabledBorder: InputBorders.custom(
-                        color: AppColors.lightGray, borderRadius: 10),
-                    focusedBorder: InputBorders.custom(
-                        color: AppColors.primary, borderRadius: 10),
-                    fillColor: AppColors.lightGray.withOpacity(0.3),
+                    prefixIcon: Icon(Icons.person_outline, color: AppColors.primary),
+                    border: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+                    enabledBorder: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+                    focusedBorder: InputBorders.custom(color: AppColors.primary, borderRadius: 10),
+                    fillColor: AppColors.lightGray.withAlpha(76),
                     //filled: true,
                   ),
                   validator: (s) {
@@ -567,7 +520,7 @@ class SignInScreenState extends State<SignInScreen>
                         color: AppColors.lightGray, borderRadius: 10),
                     focusedBorder: InputBorders.custom(
                         color: AppColors.primary, borderRadius: 10),
-                    fillColor: AppColors.lightGray.withOpacity(0.3),
+                    fillColor: AppColors.lightGray.withAlpha(76),
                     filled: true,
                   ),
                   validator: (s) {
@@ -587,15 +540,11 @@ class SignInScreenState extends State<SignInScreen>
             decoration: InputDecoration(
               labelText: language.userName,
               labelStyle: TextStyle(color: AppColors.primary),
-              prefixIcon:
-                  Icon(Icons.account_circle_outlined, color: AppColors.primary),
-              border: InputBorders.custom(
-                  color: AppColors.lightGray, borderRadius: 10),
-              enabledBorder: InputBorders.custom(
-                  color: AppColors.lightGray, borderRadius: 10),
-              focusedBorder: InputBorders.custom(
-                  color: AppColors.primary, borderRadius: 10),
-              fillColor: AppColors.lightGray.withOpacity(0.3),
+              prefixIcon: Icon(Icons.account_circle_outlined, color: AppColors.primary),
+              border: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+              enabledBorder: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+              focusedBorder: InputBorders.custom(color: AppColors.primary, borderRadius: 10),
+              fillColor: AppColors.lightGray.withAlpha(76),
               //filled: true,
             ),
             validator: (s) {
@@ -613,13 +562,10 @@ class SignInScreenState extends State<SignInScreen>
               labelText: language.email,
               prefixIcon: Icon(Icons.email_outlined, color: AppColors.primary),
               labelStyle: TextStyle(color: AppColors.primary),
-              border: InputBorders.custom(
-                  color: AppColors.lightGray, borderRadius: 10),
-              enabledBorder: InputBorders.custom(
-                  color: AppColors.lightGray, borderRadius: 10),
-              focusedBorder: InputBorders.custom(
-                  color: AppColors.primary, borderRadius: 10),
-              fillColor: AppColors.lightGray.withOpacity(0.3),
+              border: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+              enabledBorder: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+              focusedBorder: InputBorders.custom(color: AppColors.primary, borderRadius: 10),
+              fillColor: AppColors.lightGray.withAlpha(76),
               //filled: true,
             ),
             validator: (s) {
@@ -638,13 +584,10 @@ class SignInScreenState extends State<SignInScreen>
               labelText: language.phoneNumber,
               prefixIcon: Icon(Icons.phone_outlined, color: AppColors.primary),
               labelStyle: TextStyle(color: AppColors.primary),
-              border: InputBorders.custom(
-                  color: AppColors.lightGray, borderRadius: 10),
-              enabledBorder: InputBorders.custom(
-                  color: AppColors.lightGray, borderRadius: 10),
-              focusedBorder: InputBorders.custom(
-                  color: AppColors.primary, borderRadius: 10),
-              fillColor: AppColors.lightGray.withOpacity(0.3),
+              border: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+              enabledBorder: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+              focusedBorder: InputBorders.custom(color: AppColors.primary, borderRadius: 10),
+              fillColor: AppColors.lightGray.withAlpha(76),
               //filled: true,
             ),
             validator: (s) {
@@ -662,19 +605,15 @@ class SignInScreenState extends State<SignInScreen>
               labelText: language.password,
               prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
               labelStyle: TextStyle(color: AppColors.primary),
-              border: InputBorders.custom(
-                  color: AppColors.lightGray, borderRadius: 10),
-              enabledBorder: InputBorders.custom(
-                  color: AppColors.lightGray, borderRadius: 10),
-              focusedBorder: InputBorders.custom(
-                  color: AppColors.primary, borderRadius: 10),
-              fillColor: AppColors.lightGray.withOpacity(0.3),
+              border: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+              enabledBorder: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+              focusedBorder: InputBorders.custom(color: AppColors.primary, borderRadius: 10),
+              fillColor: AppColors.lightGray.withAlpha(76),
               //filled: true,
             ),
             validator: (String? value) {
               if (value!.isEmpty) return errorThisFieldRequired;
-              if (value.length < passwordLengthGlobal)
-                return language.passwordLength;
+              if (value.length < passwordLengthGlobal) return language.passwordLength;
               return null;
             },
           ),
@@ -688,21 +627,16 @@ class SignInScreenState extends State<SignInScreen>
               labelText: language.confirmPassword,
               labelStyle: TextStyle(color: AppColors.primary),
               prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
-              border: InputBorders.custom(
-                  color: AppColors.lightGray, borderRadius: 10),
-              enabledBorder: InputBorders.custom(
-                  color: AppColors.lightGray, borderRadius: 10),
-              focusedBorder: InputBorders.custom(
-                  color: AppColors.primary, borderRadius: 10),
-              fillColor: AppColors.lightGray.withOpacity(0.3),
+              border: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+              enabledBorder: InputBorders.custom(color: AppColors.lightGray, borderRadius: 10),
+              focusedBorder: InputBorders.custom(color: AppColors.primary, borderRadius: 10),
+              fillColor: AppColors.lightGray.withAlpha(76),
               //filled: true,
             ),
             validator: (String? value) {
               if (value!.isEmpty) return errorThisFieldRequired;
-              if (value.length < passwordLengthGlobal)
-                return language.passwordLength;
-              if (value.trim() != signUpPasswordController.text.trim())
-                return language.bothPasswordNotMatch;
+              if (value.length < passwordLengthGlobal) return language.passwordLength;
+              if (value.trim() != signUpPasswordController.text.trim()) return language.bothPasswordNotMatch;
               return null;
             },
           ),
@@ -728,41 +662,27 @@ class SignInScreenState extends State<SignInScreen>
                 child: RichText(
                   text: TextSpan(
                     children: [
-                      TextSpan(
-                          text: language.iAgreeToThe + " ",
-                          style: AppTextStyles.sRegular14()
-                              .copyWith(fontSize: 12)),
+                      TextSpan(text: language.iAgreeToThe + " ", style: AppTextStyles.sRegular14().copyWith(fontSize: 12)),
                       TextSpan(
                         text: language.termsConditions.splitBefore(' &'),
-                        style:
-                            AppTextStyles.sSemiBold14(color: AppColors.primary),
+                        style: AppTextStyles.sSemiBold14(color: AppColors.primary),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            if (appStore.termsCondition != null &&
-                                appStore.termsCondition!.isNotEmpty) {
-                              launchScreen(
-                                  context,
-                                  TermsConditionScreen(
-                                      title: language.termsConditions,
-                                      subtitle: appStore.termsCondition),
+                            if (appStore.termsCondition != null && appStore.termsCondition!.isNotEmpty) {
+                              launchScreen(context, TermsAndConditionsScreen(),
                                   pageRouteAnimation: PageRouteAnimation.Slide);
                             } else {
                               toast(language.txtURLEmpty);
                             }
                           },
                       ),
-                      TextSpan(
-                          text: ' & ',
-                          style: AppTextStyles.sRegular14()
-                              .copyWith(fontSize: 12)),
+                      TextSpan(text: ' & ', style: AppTextStyles.sRegular14().copyWith(fontSize: 12)),
                       TextSpan(
                         text: language.privacyPolicy,
-                        style:
-                            AppTextStyles.sSemiBold14(color: AppColors.primary),
+                        style: AppTextStyles.sSemiBold14(color: AppColors.primary),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            launchScreen(context, PrivacyPolicyScreen(),
-                                pageRouteAnimation: PageRouteAnimation.Slide);
+                            launchScreen(context, PrivacyPolicyScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
                           },
                       ),
                     ],
@@ -797,8 +717,7 @@ class SignInScreenState extends State<SignInScreen>
               Expanded(child: Divider(color: AppColors.lightGray)),
               Padding(
                 padding: EdgeInsets.only(left: 16, right: 16),
-                child: Text(language.orLogInWith,
-                    style: AppTextStyles.sRegular14()),
+                child: Text(language.orLogInWith, style: AppTextStyles.sRegular14()),
               ),
               Expanded(child: Divider(color: AppColors.lightGray)),
             ],
@@ -830,11 +749,9 @@ class SignInScreenState extends State<SignInScreen>
               },
               child: Container(
                 padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.lightGray),
-                    borderRadius: radius(defaultRadius)),
-                child: Image.asset(ic_mobile,
-                    fit: BoxFit.cover, height: 30, width: 30),
+                decoration:
+                    BoxDecoration(border: Border.all(color: AppColors.lightGray), borderRadius: radius(defaultRadius)),
+                child: Image.asset(ic_mobile, fit: BoxFit.cover, height: 30, width: 30),
               ),
             ),
             if (Platform.isIOS) SizedBox(width: 12),
@@ -854,9 +771,7 @@ class SignInScreenState extends State<SignInScreen>
   Widget socialWidgetComponent({required String img}) {
     return Container(
       padding: EdgeInsets.all(8),
-      decoration: BoxDecoration(
-          border: Border.all(color: AppColors.lightGray),
-          borderRadius: radius(defaultRadius)),
+      decoration: BoxDecoration(border: Border.all(color: AppColors.lightGray), borderRadius: radius(defaultRadius)),
       child: Image.asset(img, fit: BoxFit.cover, height: 30, width: 30),
     );
   }

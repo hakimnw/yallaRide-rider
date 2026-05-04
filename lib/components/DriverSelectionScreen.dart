@@ -1,27 +1,27 @@
 import 'dart:async';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:lottie/lottie.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter/rendering.dart';
 
 import '../main.dart';
 import '../model/CurrentRequestModel.dart';
+import '../model/LoginResponse.dart';
 import '../network/RestApis.dart';
+import '../screens/ChatScreen.dart';
+import '../screens/MainScreen.dart';
+import '../screens/NewEstimateRideListWidget.dart';
+import '../service/ChatMessagesService.dart';
 import '../utils/Colors.dart';
 import '../utils/Constants.dart';
 import '../utils/Extensions/AppButtonWidget.dart';
 import '../utils/Extensions/app_common.dart';
+import '../utils/constant/app_colors.dart';
 import '../utils/images.dart';
-import '../screens/NewEstimateRideListWidget.dart';
-import '../screens/MainScreen.dart';
-import '../screens/ChatScreen.dart';
-import '../model/LoginResponse.dart';
-import '../service/ChatMessagesService.dart';
-import '../service/ZegoService.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class DriverSelectionScreen extends StatefulWidget {
   final int rideRequestId;
@@ -45,8 +45,7 @@ class DriverSelectionScreen extends StatefulWidget {
   _DriverSelectionScreenState createState() => _DriverSelectionScreenState();
 }
 
-class _DriverSelectionScreenState extends State<DriverSelectionScreen>
-    with TickerProviderStateMixin {
+class _DriverSelectionScreenState extends State<DriverSelectionScreen> with TickerProviderStateMixin {
   List<Driver> availableDrivers = [];
   Driver? selectedDriver;
   bool isLoading = true;
@@ -130,8 +129,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
     try {
       // First check if there's an ongoing ride with an accepted driver
       final currentRequest = await getCurrentRideRequest();
-      final rideRequest =
-          currentRequest.rideRequest ?? currentRequest.onRideRequest;
+      final rideRequest = currentRequest.rideRequest ?? currentRequest.onRideRequest;
 
       // Store current ride request for pricing display
       setState(() {
@@ -169,15 +167,13 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
       } else {
         // Load nearby available drivers
         try {
-          final nearbyDrivers =
-              await getNearByDriverList(latLng: widget.sourceLatLog);
+          final nearbyDrivers = await getNearByDriverList(latLng: widget.sourceLatLog);
           if (nearbyDrivers.data != null && nearbyDrivers.data!.isNotEmpty) {
             setState(() {
               availableDrivers = nearbyDrivers.data!.map((nearbyDriver) {
                 // Store the rating directly from the API response
                 if (nearbyDriver.id != null && nearbyDriver.rating != null) {
-                  driverRatings[nearbyDriver.id!] =
-                      nearbyDriver.rating!.toDouble();
+                  driverRatings[nearbyDriver.id!] = nearbyDriver.rating!.toDouble();
                 }
 
                 return Driver(
@@ -218,17 +214,13 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
   }
 
   // Calculate distance between two points
-  double _calculateDistance(
-      double lat1, double lon1, double lat2, double lon2) {
+  double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
     const double earthRadius = 6371; // Earth's radius in kilometers
     double dLat = _degreesToRadians(lat2 - lat1);
     double dLon = _degreesToRadians(lon2 - lon1);
 
     double a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_degreesToRadians(lat1)) *
-            cos(_degreesToRadians(lat2)) *
-            sin(dLon / 2) *
-            sin(dLon / 2);
+        cos(_degreesToRadians(lat1)) * cos(_degreesToRadians(lat2)) * sin(dLon / 2) * sin(dLon / 2);
     double c = 2 * atan2(sqrt(a), sqrt(1 - a));
 
     return earthRadius * c;
@@ -306,11 +298,9 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
             setState(() {
               availableDrivers[i].userDetail = UserDetail(
                 carModel: driverDetailResponse.data!.userDetail!.carModel,
-                carPlateNumber:
-                    driverDetailResponse.data!.userDetail!.carPlateNumber,
+                carPlateNumber: driverDetailResponse.data!.userDetail!.carPlateNumber,
                 carColor: driverDetailResponse.data!.userDetail!.carColor,
-                carProductionYear:
-                    driverDetailResponse.data!.userDetail!.carProductionYear,
+                carProductionYear: driverDetailResponse.data!.userDetail!.carProductionYear,
               );
             });
           }
@@ -486,7 +476,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withAlpha(25),
                 blurRadius: 8,
                 offset: Offset(0, 2),
               ),
@@ -521,8 +511,8 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                       gradient: LinearGradient(
                         colors: [
                           primaryColor,
-                          primaryColor.withOpacity(0.8),
-                          primaryColor.withOpacity(0.9),
+                          primaryColor.withAlpha(201),
+                          primaryColor.withAlpha(226),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -543,7 +533,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                           child: Container(
                             padding: EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withAlpha(51),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -566,7 +556,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                         Text(
                           "يرجى اختيار السائق المناسب لرحلتك",
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withAlpha(226),
                             fontSize: 16,
                           ),
                           textAlign: TextAlign.center,
@@ -578,19 +568,17 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                                   children: [
                                     SizedBox(height: 16),
                                     Container(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 16, vertical: 12),
+                                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.2),
+                                        color: Colors.white.withAlpha(51),
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
-                                          color: Colors.white.withOpacity(0.3),
+                                          color: Colors.white.withAlpha(76),
                                           width: 1,
                                         ),
                                       ),
                                       child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                                        mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
                                           Icon(
                                             Icons.payments,
@@ -601,8 +589,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                                           Text(
                                             "تكلفة الرحلة: ",
                                             style: TextStyle(
-                                              color:
-                                                  Colors.white.withOpacity(0.9),
+                                              color: Colors.white.withAlpha(226),
                                               fontSize: 16,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -642,7 +629,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
             return Visibility(
               visible: appStore.isLoading,
               child: Container(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withAlpha(127),
                 child: Center(
                   child: Container(
                     padding: EdgeInsets.all(20),
@@ -654,8 +641,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         CircularProgressIndicator(
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(primaryColor),
+                          valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
                         ),
                         SizedBox(height: 16),
                         Text(
@@ -732,8 +718,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
               );
             },
             color: primaryColor,
-            textStyle:
-                TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            textStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -764,9 +749,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
               ),
             ],
             border: Border.all(
-              color: selectedDriver?.id == driver.id
-                  ? primaryColor
-                  : Colors.transparent,
+              color: selectedDriver?.id == driver.id ? primaryColor : Colors.transparent,
               width: 2,
             ),
           ),
@@ -797,16 +780,13 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   gradient: LinearGradient(
-                                    colors: [
-                                      primaryColor,
-                                      primaryColor.withOpacity(0.7)
-                                    ],
+                                    colors: [primaryColor, primaryColor.withAlpha(178)],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: primaryColor.withOpacity(0.3),
+                                      color: primaryColor.withAlpha(76),
                                       blurRadius: 15,
                                       offset: Offset(0, 5),
                                     ),
@@ -820,15 +800,13 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                                   ),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(40),
-                                    child: driver.profileImage != null &&
-                                            driver.profileImage!.isNotEmpty
+                                    child: driver.profileImage != null && driver.profileImage!.isNotEmpty
                                         ? Image.network(
                                             driver.profileImage!,
                                             fit: BoxFit.cover,
                                             height: 74,
                                             width: 74,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
+                                            errorBuilder: (context, error, stackTrace) {
                                               return Container(
                                                 height: 74,
                                                 width: 74,
@@ -868,13 +846,12 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                                   width: 20,
                                   height: 20,
                                   decoration: BoxDecoration(
-                                    color: Colors.green,
+                                    color: AppColors.primary,
                                     shape: BoxShape.circle,
-                                    border: Border.all(
-                                        color: Colors.white, width: 3),
+                                    border: Border.all(color: Colors.white, width: 3),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.green.withOpacity(0.3),
+                                        color: AppColors.primary.withAlpha(76),
                                         blurRadius: 8,
                                         offset: Offset(0, 2),
                                       ),
@@ -909,36 +886,23 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                               Row(
                                 children: [
                                   Container(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
+                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: driverRating > 0
-                                          ? Colors.amber[50]
-                                          : Colors.grey[50],
+                                      color: driverRating > 0 ? Colors.amber[50] : Colors.grey[50],
                                       borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                          color: driverRating > 0
-                                              ? Colors.amber[200]!
-                                              : Colors.grey[200]!),
+                                      border: Border.all(color: driverRating > 0 ? Colors.amber[200]! : Colors.grey[200]!),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Icon(Icons.star,
-                                            color: driverRating > 0
-                                                ? Colors.amber
-                                                : Colors.grey[400],
-                                            size: 16),
+                                            color: driverRating > 0 ? Colors.amber : Colors.grey[400], size: 16),
                                         SizedBox(width: 4),
                                         Text(
-                                          driverRating > 0
-                                              ? driverRating.toStringAsFixed(1)
-                                              : "لا يوجد",
+                                          driverRating > 0 ? driverRating.toStringAsFixed(1) : "لا يوجد",
                                           style: TextStyle(
                                             fontSize: 14,
-                                            color: driverRating > 0
-                                                ? Colors.amber[800]
-                                                : Colors.grey[600],
+                                            color: driverRating > 0 ? Colors.amber[800] : Colors.grey[600],
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -947,19 +911,16 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                                   ),
                                   SizedBox(width: 12),
                                   Container(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 6),
+                                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                                     decoration: BoxDecoration(
                                       color: Colors.blue[50],
                                       borderRadius: BorderRadius.circular(8),
-                                      border:
-                                          Border.all(color: Colors.blue[200]!),
+                                      border: Border.all(color: Colors.blue[200]!),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.location_on,
-                                            color: Colors.blue[600], size: 16),
+                                        Icon(Icons.location_on, color: Colors.blue[600], size: 16),
                                         SizedBox(width: 4),
                                         Text(
                                           driverDistance,
@@ -977,31 +938,27 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                               SizedBox(height: 8),
                               // Estimated arrival time
                               Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
+                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [
-                                      Colors.green[50]!,
-                                      Colors.green[100]!
-                                    ],
+                                    colors: [AppColors.primary, AppColors.primary],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   ),
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: Colors.green[200]!),
+                                  border: Border.all(color: AppColors.primary),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     /*    Icon(Icons.access_time,
-                                        color: Colors.green[700], size: 18),
+                                        color: AppColors.primary[700], size: 18),
                                     SizedBox(width: 6), */
                                     Text(
                                       "يصل خلال $estimatedTime",
                                       style: TextStyle(
                                         fontSize: 10,
-                                        color: Colors.green[800],
+                                        color: AppColors.primary,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -1016,8 +973,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                                         children: [
                                           SizedBox(height: 8),
                                           Container(
-                                            padding: EdgeInsets.symmetric(
-                                                horizontal: 10, vertical: 6),
+                                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                             decoration: BoxDecoration(
                                               gradient: LinearGradient(
                                                 colors: [
@@ -1027,17 +983,13 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                                                 begin: Alignment.topLeft,
                                                 end: Alignment.bottomRight,
                                               ),
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              border: Border.all(
-                                                  color: Colors.amber[200]!),
+                                              borderRadius: BorderRadius.circular(10),
+                                              border: Border.all(color: Colors.amber[200]!),
                                             ),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                Icon(Icons.payments,
-                                                    color: Colors.amber[700],
-                                                    size: 16),
+                                                Icon(Icons.payments, color: Colors.amber[700], size: 16),
                                                 SizedBox(width: 6),
                                                 Text(
                                                   "تكلفة الرحلة: ",
@@ -1065,29 +1017,22 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
 
                               // Car details section
                               SizedBox(height: 8),
-                              if (driver.userDetail?.carModel != null ||
-                                  driver.userDetail?.carPlateNumber != null)
+                              if (driver.userDetail?.carModel != null || driver.userDetail?.carPlateNumber != null)
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    if (driver.userDetail?.carModel !=
-                                        null) ...[
+                                    if (driver.userDetail?.carModel != null) ...[
                                       Container(
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 4),
+                                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
                                           color: Colors.purple[50],
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          border: Border.all(
-                                              color: Colors.purple[200]!),
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(color: Colors.purple[200]!),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Icon(Icons.directions_car,
-                                                color: Colors.purple[600],
-                                                size: 16),
+                                            Icon(Icons.directions_car, color: Colors.purple[600], size: 16),
                                             SizedBox(width: 4),
                                             Text(
                                               "موديل السيارة: ${driver.userDetail!.carModel!}",
@@ -1102,24 +1047,18 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                                       ),
                                       SizedBox(height: 4),
                                     ],
-                                    if (driver.userDetail?.carPlateNumber !=
-                                        null)
+                                    if (driver.userDetail?.carPlateNumber != null)
                                       Container(
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 4),
+                                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
                                           color: Colors.orange[50],
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          border: Border.all(
-                                              color: Colors.orange[200]!),
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(color: Colors.orange[200]!),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Icon(Icons.confirmation_number,
-                                                color: Colors.orange[600],
-                                                size: 16),
+                                            Icon(Icons.confirmation_number, color: Colors.orange[600], size: 16),
                                             SizedBox(width: 4),
                                             Text(
                                               "رقم اللوحة: ${driver.userDetail!.carPlateNumber!}",
@@ -1150,7 +1089,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                                   gradient: LinearGradient(
                                     colors: [
                                       primaryColor,
-                                      primaryColor.withOpacity(0.8)
+                                      primaryColor.withAlpha(201)
                                     ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
@@ -1180,8 +1119,8 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      Colors.green[600]!,
-                                      Colors.green[700]!
+                                      AppColors.primary[600]!,
+                                      AppColors.primary[700]!
                                     ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
@@ -1189,7 +1128,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                                   borderRadius: BorderRadius.circular(14),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.green.withOpacity(0.4),
+                                      color: AppColors.primary.withOpacity(0.4),
                                       blurRadius: 12,
                                       offset: Offset(0, 6),
                                     ),
@@ -1232,8 +1171,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                                 backgroundColor: Colors.red[50],
                                 foregroundColor: Colors.red[700],
                                 elevation: 0,
-                                side: BorderSide(
-                                    color: Colors.red[200]!, width: 1.5),
+                                side: BorderSide(color: Colors.red[200]!, width: 1.5),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                 ),
@@ -1365,8 +1303,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
 
       // Step 2: Check if user is logged in
       if (!zegoService.isLoggedIn) {
-        print(
-            "${DateTime.now()}: User not logged into Zego, attempting login...");
+        print("${DateTime.now()}: User not logged into Zego, attempting login...");
 
         // Check if app user is authenticated
         if (!appStore.isLoggedIn || appStore.userPhone.isEmpty) {
@@ -1386,14 +1323,11 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
           try {
             loginResult = await zegoService.loginToZego(
               userID: appStore.userPhone,
-              userName: appStore.userName.isNotEmpty
-                  ? appStore.userName
-                  : appStore.firstName,
+              userName: appStore.userName.isNotEmpty ? appStore.userName : appStore.firstName,
             );
 
             if (loginResult) {
-              print(
-                  "${DateTime.now()}: Zego login successful on attempt $attempt");
+              print("${DateTime.now()}: Zego login successful on attempt $attempt");
               break;
             } else {
               print("${DateTime.now()}: Zego login failed on attempt $attempt");
@@ -1403,8 +1337,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
               }
             }
           } catch (e) {
-            print(
-                "${DateTime.now()}: Zego login error on attempt $attempt: $e");
+            print("${DateTime.now()}: Zego login error on attempt $attempt: $e");
             if (attempt < maxRetries) {
               await Future.delayed(Duration(milliseconds: 1000 * attempt));
             }
@@ -1412,15 +1345,13 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
         }
 
         if (!loginResult) {
-          print(
-              "${DateTime.now()}: Failed to login to Zego after $maxRetries attempts");
+          print("${DateTime.now()}: Failed to login to Zego after $maxRetries attempts");
           return false;
         }
       }
 
       // Step 3: Final verification with timeout
-      print(
-          "${DateTime.now()}: Performing final Zego connection verification...");
+      print("${DateTime.now()}: Performing final Zego connection verification...");
 
       // Wait a bit for connection to stabilize
       await Future.delayed(Duration(milliseconds: 500));
@@ -1480,25 +1411,17 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                   Container(
                     padding: EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: zegoService.isLoggedIn
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.orange.withOpacity(0.1),
+                      color: zegoService.isLoggedIn ? AppColors.primary.withAlpha(25) : Colors.orange.withAlpha(25),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: zegoService.isLoggedIn
-                            ? Colors.green
-                            : Colors.orange,
+                        color: zegoService.isLoggedIn ? AppColors.primary : Colors.orange,
                       ),
                     ),
                     child: Row(
                       children: [
                         Icon(
-                          zegoService.isLoggedIn
-                              ? Icons.check_circle
-                              : Icons.warning,
-                          color: zegoService.isLoggedIn
-                              ? Colors.green
-                              : Colors.orange,
+                          zegoService.isLoggedIn ? Icons.check_circle : Icons.warning,
+                          color: zegoService.isLoggedIn ? AppColors.primary : Colors.orange,
                           size: 16,
                         ),
                         SizedBox(width: 8),
@@ -1537,13 +1460,10 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                           // Force reinitialize Zego
                           await zegoService.logoutFromZego();
                           await zegoService.initializeZegoSDK();
-                          if (appStore.isLoggedIn &&
-                              appStore.userPhone.isNotEmpty) {
+                          if (appStore.isLoggedIn && appStore.userPhone.isNotEmpty) {
                             await zegoService.loginToZego(
                               userID: appStore.userPhone,
-                              userName: appStore.userName.isNotEmpty
-                                  ? appStore.userName
-                                  : appStore.firstName,
+                              userName: appStore.userName.isNotEmpty ? appStore.userName : appStore.firstName,
                             );
                           }
                         } catch (e) {
@@ -1555,8 +1475,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                       },
                       icon: Icon(Icons.refresh, size: 16),
                       label: Text('إعادة المحاولة'),
-                      style:
-                          TextButton.styleFrom(foregroundColor: primaryColor),
+                      style: TextButton.styleFrom(foregroundColor: primaryColor),
                     ),
                   ],
                 ],
@@ -1604,7 +1523,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                     icon: Icon(Icons.phone, size: 16),
                     label: Text("اتصال عادي"),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1643,8 +1562,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                 Navigator.of(context).pop(); // Close loading
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(
-                        'فشل في الاتصال بخدمة Zego. سيتم استخدام الهاتف العادي.'),
+                    content: Text('فشل في الاتصال بخدمة Zego. سيتم استخدام الهاتف العادي.'),
                     backgroundColor: Colors.orange,
                     action: SnackBarAction(
                       label: 'محاولة مرة أخرى',
@@ -1659,34 +1577,26 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
 
             switch (callType) {
               case 'video':
-                print(
-                    "${DateTime.now()}: Initiating Zego video call to ${driver.contactNumber}");
+                print("${DateTime.now()}: Initiating Zego video call to ${driver.contactNumber}");
                 callSuccess = await zegoService.initiateVideoCall(
                   driverPhoneNumber: driver.contactNumber!,
                   context: context,
-                  driverName:
-                      "${driver.firstName ?? ''} ${driver.lastName ?? ''}"
-                          .trim(),
+                  driverName: "${driver.firstName ?? ''} ${driver.lastName ?? ''}".trim(),
                 );
                 break;
               case 'voice':
-                print(
-                    "${DateTime.now()}: Initiating Zego voice call to ${driver.contactNumber}");
+                print("${DateTime.now()}: Initiating Zego voice call to ${driver.contactNumber}");
                 callSuccess = await zegoService.initiateVoiceCall(
                   driverPhoneNumber: driver.contactNumber!,
                   context: context,
-                  driverName:
-                      "${driver.firstName ?? ''} ${driver.lastName ?? ''}"
-                          .trim(),
+                  driverName: "${driver.firstName ?? ''} ${driver.lastName ?? ''}".trim(),
                 );
                 break;
               case 'phone':
-                print(
-                    "${DateTime.now()}: Initiating traditional phone call to ${driver.contactNumber}");
+                print("${DateTime.now()}: Initiating traditional phone call to ${driver.contactNumber}");
                 final Uri phoneUri = Uri.parse('tel:${driver.contactNumber}');
                 if (await canLaunchUrl(phoneUri)) {
-                  await launchUrl(phoneUri,
-                      mode: LaunchMode.externalApplication);
+                  await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
                   callSuccess = true;
                 } else {
                   callSuccess = false;
@@ -1702,11 +1612,9 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    callType == 'phone'
-                        ? 'تم فتح تطبيق الهاتف'
-                        : 'تم إرسال دعوة المكالمة بنجاح',
+                    callType == 'phone' ? 'تم فتح تطبيق الهاتف' : 'تم إرسال دعوة المكالمة بنجاح',
                   ),
-                  backgroundColor: Colors.green,
+                  backgroundColor: AppColors.primary,
                   duration: Duration(seconds: 2),
                 ),
               );
@@ -1720,8 +1628,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
             print('Call error: $callError');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content:
-                    Text('فشل في إجراء المكالمة. الرجاء المحاولة مرة أخرى.'),
+                content: Text('فشل في إجراء المكالمة. الرجاء المحاولة مرة أخرى.'),
                 backgroundColor: Colors.red,
                 duration: Duration(seconds: 3),
               ),
@@ -1788,13 +1695,13 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
-                      colors: [primaryColor, primaryColor.withOpacity(0.7)],
+                      colors: [primaryColor, primaryColor.withAlpha(178)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: primaryColor.withOpacity(0.3),
+                        color: primaryColor.withAlpha(76),
                         blurRadius: 20,
                         offset: Offset(0, 8),
                       ),
@@ -1808,8 +1715,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(50),
-                      child: driver.profileImage != null &&
-                              driver.profileImage!.isNotEmpty
+                      child: driver.profileImage != null && driver.profileImage!.isNotEmpty
                           ? Image.network(
                               driver.profileImage!,
                               fit: BoxFit.cover,
@@ -1866,33 +1772,20 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: _getDriverRating(driver) > 0
-                        ? Colors.amber[50]
-                        : Colors.grey[50],
+                    color: _getDriverRating(driver) > 0 ? Colors.amber[50] : Colors.grey[50],
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: _getDriverRating(driver) > 0
-                            ? Colors.amber[200]!
-                            : Colors.grey[200]!),
+                    border: Border.all(color: _getDriverRating(driver) > 0 ? Colors.amber[200]! : Colors.grey[200]!),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.star,
-                          color: _getDriverRating(driver) > 0
-                              ? Colors.amber
-                              : Colors.grey[400],
-                          size: 18),
+                      Icon(Icons.star, color: _getDriverRating(driver) > 0 ? Colors.amber : Colors.grey[400], size: 18),
                       SizedBox(width: 6),
                       Text(
-                        _getDriverRating(driver) > 0
-                            ? _getDriverRating(driver).toStringAsFixed(1)
-                            : "لا يوجد",
+                        _getDriverRating(driver) > 0 ? _getDriverRating(driver).toStringAsFixed(1) : "لا يوجد",
                         style: TextStyle(
                           fontSize: 16,
-                          color: _getDriverRating(driver) > 0
-                              ? Colors.amber[800]
-                              : Colors.grey[600],
+                          color: _getDriverRating(driver) > 0 ? Colors.amber[800] : Colors.grey[600],
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1901,9 +1794,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                         "تقييم",
                         style: TextStyle(
                           fontSize: 14,
-                          color: _getDriverRating(driver) > 0
-                              ? Colors.amber[700]
-                              : Colors.grey[500],
+                          color: _getDriverRating(driver) > 0 ? Colors.amber[700] : Colors.grey[500],
                         ),
                       ),
                     ],
@@ -1933,10 +1824,9 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                         icon: Icons.access_time,
                         title: "وقت الوصول المتوقع",
                         value: _getEstimatedArrivalTime(driver),
-                        color: Colors.green[600]!,
+                        color: AppColors.primary,
                       ),
-                      if (driver.contactNumber != null &&
-                          driver.contactNumber!.isNotEmpty) ...[
+                      if (driver.contactNumber != null && driver.contactNumber!.isNotEmpty) ...[
                         SizedBox(height: 12),
                         _buildProfileRow(
                           icon: Icons.phone,
@@ -1972,7 +1862,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
                         icon: Icon(Icons.phone, size: 18),
                         label: Text("اتصال"),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green[600],
+                          backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
                           padding: EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
@@ -2021,7 +1911,7 @@ class _DriverSelectionScreenState extends State<DriverSelectionScreen>
         Container(
           padding: EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withAlpha(25),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: color, size: 18),

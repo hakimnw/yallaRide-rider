@@ -3,10 +3,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../../constant/app_colors.dart';
+
 class ChooseComplainsTopicsDropDown extends StatelessWidget {
-  const ChooseComplainsTopicsDropDown({
-    super.key,
-  });
+  const ChooseComplainsTopicsDropDown({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,17 +15,8 @@ class ChooseComplainsTopicsDropDown extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       decoration: ShapeDecoration(
         color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        shadows: const [
-          BoxShadow(
-            color: Color(0x26000000),
-            blurRadius: 4,
-            offset: Offset(0, 0),
-            spreadRadius: 0,
-          )
-        ],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shadows: const [BoxShadow(color: AppColors.black, blurRadius: 4, offset: Offset(0, 0), spreadRadius: 0)],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,7 +25,7 @@ class ChooseComplainsTopicsDropDown extends StatelessWidget {
           const Text(
             'اختر الموضوع',
             style: TextStyle(
-              color: Color(0xFFB0B0B0),
+              color: AppColors.gray,
               fontSize: 16,
               fontFamily: 'Tajawal',
               fontWeight: FontWeight.w500,
@@ -43,11 +34,7 @@ class ChooseComplainsTopicsDropDown extends StatelessWidget {
           ),
           Transform.rotate(
             angle: pi / 2,
-            child: Icon(
-              Icons.arrow_back_ios,
-              size: 16.r,
-              color: const Color(0xFFB0B0B0),
-            ),
+            child: Icon(Icons.arrow_back_ios, size: 16.r, color: AppColors.gray),
           ),
         ],
       ),

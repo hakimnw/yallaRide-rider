@@ -1,26 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:taxi_booking/utils/core/widget/appbar/home_screen_app_bar.dart';
-import 'package:taxi_booking/utils/core/utils/responsive_vertical_space.dart';
 import 'package:taxi_booking/screens/settings/help/app_bar/search_field.dart';
+import 'package:taxi_booking/utils/core/utils/responsive_vertical_space.dart';
+import 'package:taxi_booking/utils/core/widget/appbar/home_screen_app_bar.dart';
 
 import '../../components/CreateTabScreen.dart';
 import '../../utils/Constants.dart';
-import '../main.dart';
 import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/Extensions/app_common.dart';
-import '../components/ModernAppBar.dart';
 
 class RideListScreen extends StatefulWidget {
   @override
   RideListScreenState createState() => RideListScreenState();
 }
 
-class RideListScreenState extends State<RideListScreen>
-    with TickerProviderStateMixin {
+class RideListScreenState extends State<RideListScreen> with TickerProviderStateMixin {
   int currentPage = 1;
   int totalPage = 1;
   List<String> riderStatus = [COMPLETED, CANCELED];
@@ -201,7 +195,7 @@ class RideListScreenState extends State<RideListScreen>
                   spreadRadius: 0,
                 ),
                 BoxShadow(
-                  color: primaryColor.withOpacity(0.1),
+                  color: primaryColor.withAlpha(25),
                   blurRadius: 40,
                   offset: Offset(0, 16),
                   spreadRadius: 0,
@@ -218,7 +212,7 @@ class RideListScreenState extends State<RideListScreen>
                   end: Alignment.bottomRight,
                   colors: [
                     primaryColor,
-                    primaryColor.withOpacity(0.8),
+                    primaryColor.withAlpha(201),
                   ],
                 ),
                 boxShadow: [
@@ -242,16 +236,14 @@ class RideListScreenState extends State<RideListScreen>
                 fontSize: 15,
               ),
               tabs: riderStatus.asMap().entries.map((entry) {
-                int index = entry.key;
+                // int index = entry.key;
                 String status = entry.value;
                 return Tab(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        status == COMPLETED
-                            ? Icons.check_circle_outline
-                            : Icons.cancel_outlined,
+                        status == COMPLETED ? Icons.check_circle_outline : Icons.cancel_outlined,
                         size: 18,
                       ),
                       SizedBox(width: 6),
@@ -296,13 +288,13 @@ class RideListScreenState extends State<RideListScreen>
                             end: Alignment.bottomCenter,
                             colors: [
                               primaryColor,
-                              primaryColor.withOpacity(0.6),
+                              primaryColor.withAlpha(153),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(10),
                           boxShadow: [
                             BoxShadow(
-                              color: primaryColor.withOpacity(0.3),
+                              color: primaryColor.withAlpha(76),
                               blurRadius: 8,
                               offset: Offset(0, 2),
                             ),
@@ -350,13 +342,13 @@ class RideListScreenState extends State<RideListScreen>
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              primaryColor.withOpacity(0.1),
-                              primaryColor.withOpacity(0.05),
+                              primaryColor.withAlpha(25),
+                              primaryColor.withAlpha(13),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: primaryColor.withOpacity(0.2),
+                            color: primaryColor.withAlpha(51),
                             width: 1,
                           ),
                         ),
@@ -398,7 +390,7 @@ class RideListScreenState extends State<RideListScreen>
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withAlpha(13),
                         blurRadius: 20,
                         offset: Offset(0, -5),
                         spreadRadius: 0,

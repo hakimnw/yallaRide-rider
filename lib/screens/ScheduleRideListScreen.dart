@@ -15,6 +15,7 @@ import '../utils/Common.dart';
 import '../utils/Constants.dart';
 import '../utils/Extensions/AppButtonWidget.dart';
 import '../utils/Extensions/app_common.dart';
+import '../utils/constant/app_colors.dart';
 
 class ScheduleRideListScreen extends StatefulWidget {
   ScheduleRideListScreen({super.key});
@@ -55,8 +56,7 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
         appBar: AppBar(
           title: Text(
             "${language.schedule_list_title}",
-            style: primaryTextStyle(
-                size: 18, weight: FontWeight.bold, color: Colors.white),
+            style: primaryTextStyle(size: 18, weight: FontWeight.bold, color: Colors.white),
           ),
         ),
         body: Stack(
@@ -67,8 +67,7 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Text(
                     "🚖 ${language.schedule_list_desc}",
-                    style: secondaryTextStyle(
-                        size: 14, color: Colors.black, weight: FontWeight.bold),
+                    style: secondaryTextStyle(size: 14, color: Colors.black, weight: FontWeight.bold),
                   ),
                 ),
                 Expanded(
@@ -80,32 +79,26 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                           Container(
                             width: context.width(),
                             padding: EdgeInsets.all(8),
-                            margin: EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
+                            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               border: Border.all(color: primaryColor),
-                              borderRadius:
-                                  BorderRadius.circular(defaultRadius),
+                              borderRadius: BorderRadius.circular(defaultRadius),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   mainAxisSize: MainAxisSize.max,
                                   children: [
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
                                         children: [
                                           Text(
                                             "${language.rideId}: ${schedule_ride_request[i].id}",
-                                            style: primaryTextStyle(
-                                                size: 12,
-                                                weight: FontWeight.bold),
+                                            style: primaryTextStyle(size: 12, weight: FontWeight.bold),
                                           ),
                                           Text(
                                             "${language.schedule_at}: ${DateFormat('dd MMM yyyy hh:mm a').format(DateTime.parse(schedule_ride_request[i].schedule_datetime.toString() + "Z").toLocal())}",
@@ -125,13 +118,11 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                                       },
                                       // color: Colors.white70,
                                       shadowColor: Colors.black,
-                                      popUpAnimationStyle: AnimationStyle(
-                                          curve: Curves.bounceIn,
-                                          reverseCurve: Curves.bounceInOut),
+                                      popUpAnimationStyle:
+                                          AnimationStyle(curve: Curves.bounceIn, reverseCurve: Curves.bounceInOut),
                                       borderRadius: radius(24),
                                       padding: EdgeInsets.zero,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius: radius(12)),
+                                      shape: RoundedRectangleBorder(borderRadius: radius(12)),
                                       child: Icon(Icons.more_vert),
                                       enabled: true,
                                       clipBehavior: Clip.none,
@@ -146,14 +137,9 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                                                   onCancel: (reason) async {
                                                     Navigator.pop(context);
                                                     appStore.setLoading(true);
-                                                    sharedPref
-                                                        .remove(REMAINING_TIME);
+                                                    sharedPref.remove(REMAINING_TIME);
                                                     sharedPref.remove(IS_TIME);
-                                                    await cancelRequest(reason,
-                                                        ride_id:
-                                                            schedule_ride_request[
-                                                                    i]
-                                                                .id);
+                                                    await cancelRequest(reason, ride_id: schedule_ride_request[i].id);
                                                     appStore.setLoading(false);
                                                   },
                                                 );
@@ -169,17 +155,11 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                                   children: [
                                     Row(
                                       children: [
-                                        Icon(Icons.near_me,
-                                            color: Colors.green, size: 18),
+                                        Icon(Icons.near_me, color: AppColors.primary, size: 18),
                                         SizedBox(width: 8),
                                         Expanded(
-                                            child: Text(
-                                                schedule_ride_request[i]
-                                                    .startAddress
-                                                    .validate(),
-                                                style:
-                                                    primaryTextStyle(size: 14),
-                                                maxLines: 2)),
+                                            child: Text(schedule_ride_request[i].startAddress.validate(),
+                                                style: primaryTextStyle(size: 14), maxLines: 2)),
                                       ],
                                     ),
                                     Row(
@@ -199,25 +179,15 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                                     ),
                                     Row(
                                       children: [
-                                        Icon(Icons.location_on,
-                                            color: Colors.red, size: 18),
+                                        Icon(Icons.location_on, color: Colors.red, size: 18),
                                         SizedBox(width: 8),
                                         Expanded(
-                                            child: Text(
-                                                schedule_ride_request[i]
-                                                    .endAddress
-                                                    .validate(),
-                                                style:
-                                                    primaryTextStyle(size: 14),
-                                                maxLines: 2)),
+                                            child: Text(schedule_ride_request[i].endAddress.validate(),
+                                                style: primaryTextStyle(size: 14), maxLines: 2)),
                                       ],
                                     ),
-                                    if (schedule_ride_request[i]
-                                                .multiDropLocation !=
-                                            null &&
-                                        schedule_ride_request[i]
-                                            .multiDropLocation!
-                                            .isNotEmpty)
+                                    if (schedule_ride_request[i].multiDropLocation != null &&
+                                        schedule_ride_request[i].multiDropLocation!.isNotEmpty)
                                       Row(
                                         children: [
                                           SizedBox(width: 8),
@@ -233,23 +203,16 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                                           ),
                                         ],
                                       ),
-                                    if (schedule_ride_request[i]
-                                                .multiDropLocation !=
-                                            null &&
-                                        schedule_ride_request[i]
-                                            .multiDropLocation!
-                                            .isNotEmpty)
+                                    if (schedule_ride_request[i].multiDropLocation != null &&
+                                        schedule_ride_request[i].multiDropLocation!.isNotEmpty)
                                       AppButtonWidget(
                                         textColor: primaryColor,
                                         color: Colors.white,
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 0),
+                                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                                         // height: 30,
                                         shapeBorder: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                                defaultRadius),
-                                            side: BorderSide(
-                                                color: primaryColor)),
+                                            borderRadius: BorderRadius.circular(defaultRadius),
+                                            side: BorderSide(color: primaryColor)),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [

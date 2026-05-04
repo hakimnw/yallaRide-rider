@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+
+import '../utils/constant/app_colors.dart';
 
 class RideCompletionNotification extends StatefulWidget {
   final VoidCallback? onDismiss;
@@ -12,12 +13,10 @@ class RideCompletionNotification extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _RideCompletionNotificationState createState() =>
-      _RideCompletionNotificationState();
+  _RideCompletionNotificationState createState() => _RideCompletionNotificationState();
 }
 
-class _RideCompletionNotificationState extends State<RideCompletionNotification>
-    with TickerProviderStateMixin {
+class _RideCompletionNotificationState extends State<RideCompletionNotification> with TickerProviderStateMixin {
   late AnimationController _slideController;
   late AnimationController _scaleController;
   late Animation<Offset> _slideAnimation;
@@ -100,17 +99,14 @@ class _RideCompletionNotificationState extends State<RideCompletionNotification>
           padding: EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                Colors.green[600]!,
-                Colors.green[700]!,
-              ],
+              colors: [AppColors.primary, AppColors.primary],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.green.withOpacity(0.4),
+                color: AppColors.primary.withOpacity(0.4),
                 blurRadius: 20,
                 offset: Offset(0, 8),
               ),
@@ -126,7 +122,7 @@ class _RideCompletionNotificationState extends State<RideCompletionNotification>
                     child: Container(
                       padding: EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withAlpha(51),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -152,7 +148,7 @@ class _RideCompletionNotificationState extends State<RideCompletionNotification>
                         Text(
                           "Ride Completed Successfully!",
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withAlpha(226),
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
@@ -164,7 +160,7 @@ class _RideCompletionNotificationState extends State<RideCompletionNotification>
                     onPressed: _dismiss,
                     icon: Icon(
                       Icons.close,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withAlpha(201),
                       size: 20,
                     ),
                   ),
@@ -174,7 +170,7 @@ class _RideCompletionNotificationState extends State<RideCompletionNotification>
               Container(
                 padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withAlpha(38),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -229,5 +225,5 @@ void showRideCompletionNotification(BuildContext context, {String? rideId}) {
     ),
   );
 
-  Overlay.of(context)?.insert(overlayEntry);
+  Overlay.of(context).insert(overlayEntry);
 }

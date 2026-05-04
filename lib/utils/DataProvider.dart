@@ -1,5 +1,3 @@
-import '../main.dart';
-
 List<String> getCancelReasonList() {
   List<String> list = [];
   list.add("السائق يتحرك في الاتجاه الخطأ");

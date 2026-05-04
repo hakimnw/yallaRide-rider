@@ -2,15 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:taxi_booking/utils/core/constant/app_colors.dart';
-import 'package:taxi_booking/utils/core/constant/app_icons.dart';
-import 'package:taxi_booking/utils/core/constant/app_image.dart';
 import 'package:taxi_booking/utils/core/utils/responsive_horizontal_space.dart';
 
 class PaymentCardItem extends StatelessWidget {
   final int selectedIndex;
   final bool canEdit;
-  const PaymentCardItem(
-      {super.key, this.selectedIndex = 0, required this.canEdit});
+  const PaymentCardItem({super.key, this.selectedIndex = 0, required this.canEdit});
 
   @override
   Widget build(BuildContext context) {

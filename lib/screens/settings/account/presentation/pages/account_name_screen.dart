@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:taxi_booking/main.dart';
 import 'package:taxi_booking/utils/core/constant/app_colors.dart';
 import 'package:taxi_booking/utils/core/constant/styles/app_text_style.dart';
 import 'package:taxi_booking/utils/core/utils/responsive_vertical_space.dart';
 import 'package:taxi_booking/utils/core/widget/app_input_fields/app_text_form_field.dart';
 import 'package:taxi_booking/utils/core/widget/appbar/back_app_bar.dart';
 import 'package:taxi_booking/utils/core/widget/buttons/app_buttons.dart';
-import 'package:taxi_booking/main.dart';
-import 'package:taxi_booking/utils/core/widget/shared/custom_navigation_bar.dart';
 
 class AccountNameScreen extends StatefulWidget {
   const AccountNameScreen({super.key});
@@ -47,7 +46,7 @@ class _AccountNameScreenState extends State<AccountNameScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('تم تحديث الاسم بنجاح'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.primary,
           ),
         );
         Navigator.pop(context); // Go back after successful update

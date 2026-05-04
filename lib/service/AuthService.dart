@@ -11,13 +11,11 @@ import 'package:the_apple_sign_in/the_apple_sign_in.dart';
 import '../components/OTPDialog.dart';
 import '../main.dart';
 import '../network/RestApis.dart';
-import '../screens/DashBoardScreen.dart';
 import '../screens/EditProfileScreen.dart';
 import '../utils/Constants.dart';
 import '../utils/Extensions/app_common.dart';
 import '../utils/Extensions/dataTypeExtensions.dart';
 import 'AuthService1.dart';
-import 'ZegoService.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -44,11 +42,8 @@ Future<void> loginWithOTP(BuildContext context, String phoneNumber) async {
       appStore.setLoading(false);
       await showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-            content: OTPDialog(
-                verificationId: verificationId,
-                isCodeSent: true,
-                phoneNumber: phoneNumber)),
+        builder: (context) =>
+            AlertDialog(content: OTPDialog(verificationId: verificationId, isCodeSent: true, phoneNumber: phoneNumber)),
         barrierDismissible: false,
       );
     },
@@ -69,16 +64,14 @@ class GoogleAuthServices {
       GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
       if (googleSignInAccount != null) {
         //Authentication
-        final GoogleSignInAuthentication googleSignInAuthentication =
-            await googleSignInAccount.authentication;
+        final GoogleSignInAuthentication googleSignInAuthentication = await googleSignInAccount.authentication;
 
         final AuthCredential credential = GoogleAuthProvider.credential(
           accessToken: googleSignInAuthentication.accessToken,
           idToken: googleSignInAuthentication.idToken,
         );
 
-        final UserCredential authResult =
-            await _auth.signInWithCredential(credential);
+        final UserCredential authResult = await _auth.signInWithCredential(credential);
         final User user = authResult.user!;
 
         assert(!user.isAnonymous);
@@ -88,8 +81,7 @@ class GoogleAuthServices {
 
         googleSignIn.signOut();
 
-        await loginFromFirebase(
-            user, LoginTypeGoogle, googleSignInAuthentication.accessToken);
+        await loginFromFirebase(user, LoginTypeGoogle, googleSignInAuthentication.accessToken);
       } else {
         throw errorSomethingWentWrong;
       }
@@ -111,8 +103,7 @@ Future<void> appleLogIn() async {
         final oAuthProvider = OAuthProvider('apple.com');
         final credential = oAuthProvider.credential(
           idToken: String.fromCharCodes(appleIdCredential.identityToken!),
-          accessToken:
-              String.fromCharCodes(appleIdCredential.authorizationCode!),
+          accessToken: String.fromCharCodes(appleIdCredential.authorizationCode!),
         );
         final authResult = await _auth.signInWithCredential(credential);
         final user = authResult.user!;
@@ -121,8 +112,7 @@ Future<void> appleLogIn() async {
           await saveAppleData(result);
         }
 
-        await loginFromFirebase(user, LoginTypeApple,
-            String.fromCharCodes(appleIdCredential.authorizationCode!));
+        await loginFromFirebase(user, LoginTypeApple, String.fromCharCodes(appleIdCredential.authorizationCode!));
         break;
       case AuthorizationStatus.error:
         throw ("Sign in failed: ${result.error!.localizedDescription}");
@@ -136,10 +126,8 @@ Future<void> appleLogIn() async {
 
 Future<void> saveAppleData(AuthorizationResult result) async {
   await sharedPref.setString('appleEmail', result.credential!.email.validate());
-  await sharedPref.setString(
-      'appleGivenName', result.credential!.fullName!.givenName.validate());
-  await sharedPref.setString(
-      'appleFamilyName', result.credential!.fullName!.familyName.validate());
+  await sharedPref.setString('appleGivenName', result.credential!.fullName!.givenName.validate());
+  await sharedPref.setString('appleFamilyName', result.credential!.fullName!.familyName.validate());
 }
 
 // Future deleteUser(String email, String password) async {
@@ -149,17 +137,13 @@ Future<void> saveAppleData(AuthorizationResult result) async {
 //   }
 // }
 
-Future<void> loginFromFirebase(
-    User currentUser, String loginType, String? accessToken) async {
+Future<void> loginFromFirebase(User currentUser, String loginType, String? accessToken) async {
   String firstName = '';
   String lastName = '';
   if (loginType == LoginTypeGoogle) {
-    if (currentUser.displayName != null &&
-        currentUser.displayName!.trim().isNotEmpty) {
-      if (currentUser.displayName.validate().split(' ').length >= 1)
-        firstName = currentUser.displayName.splitBefore(' ');
-      if (currentUser.displayName.validate().split(' ').length >= 2)
-        lastName = currentUser.displayName.splitAfter(' ');
+    if (currentUser.displayName != null && currentUser.displayName!.trim().isNotEmpty) {
+      if (currentUser.displayName.validate().split(' ').length >= 1) firstName = currentUser.displayName.splitBefore(' ');
+      if (currentUser.displayName.validate().split(' ').length >= 2) lastName = currentUser.displayName.splitAfter(' ');
     } else {
       firstName = "Rider";
       lastName = "Anonymous";
@@ -178,26 +162,22 @@ Future<void> loginFromFirebase(
     "uid": currentUser.uid,
     'accessToken': accessToken,
     "player_id": sharedPref.getString(PLAYER_ID).validate(),
-    if (!currentUser.phoneNumber.isEmptyOrNull)
-      'contact_number': currentUser.phoneNumber.validate(),
+    if (!currentUser.phoneNumber.isEmptyOrNull) 'contact_number': currentUser.phoneNumber.validate(),
   };
 
   await logInApi(req, isSocialLogin: true).then((value) async {
     AuthServices authService = AuthServices();
     authService
-        .loginFromFirebaseUser(currentUser,
-            loginDetail: value, fullName: (firstName + lastName).toLowerCase())
+        .loginFromFirebaseUser(currentUser, loginDetail: value, fullName: (firstName + lastName).toLowerCase())
         .then((value) {});
     Navigator.pop(getContext);
     sharedPref.setString(UID, currentUser.uid);
     await appStore.setUserProfile(currentUser.photoURL.toString());
-    await sharedPref.setString(
-        USER_PROFILE_PHOTO, currentUser.photoURL.toString());
+    await sharedPref.setString(USER_PROFILE_PHOTO, currentUser.photoURL.toString());
 
     // Auto-login to Zego Cloud after successful app login
     try {
-      print(
-          "${DateTime.now()}: User logged in successfully, attempting Zego auto-login...");
+      print("${DateTime.now()}: User logged in successfully, attempting Zego auto-login...");
       final zegoLoginSuccess = await zegoService.autoLoginIfAuthenticated();
       if (zegoLoginSuccess) {
         print("${DateTime.now()}: Zego auto-login successful after app login");
@@ -217,8 +197,7 @@ Future<void> loginFromFirebase(
         try {
           Directory tempDir = await getTemporaryDirectory();
           String filePath = '${tempDir.path}/downloaded_image.jpg';
-          var response =
-              await http.get(Uri.parse(currentUser.photoURL.toString()));
+          var response = await http.get(Uri.parse(currentUser.photoURL.toString()));
           if (response.statusCode == 200) {
             imgFile = File(filePath);
             await imgFile.writeAsBytes(response.bodyBytes);
@@ -234,21 +213,18 @@ Future<void> loginFromFirebase(
           userEmail: currentUser.email.validate(),
           file: imgFile != null ? imgFile : null,
         ).then((value) {
-          launchScreen(getContext, MainScreen(),
-              isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
+          launchScreen(getContext, MainScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
         }).catchError((error) {
           log(error.toString());
         });
       } else if (value.data!.playerId.isEmptyOrNull) {
         await updatePlayerId().then((value) {
-          launchScreen(getContext, MainScreen(),
-              isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
+          launchScreen(getContext, MainScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
         }).catchError((error) {
           log(error.toString());
         });
       } else {
-        launchScreen(getContext, MainScreen(),
-            isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
+        launchScreen(getContext, MainScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
       }
     }
   }).catchError((e) {

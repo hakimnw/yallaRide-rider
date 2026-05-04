@@ -21,10 +21,10 @@ abstract class RouterNames {
   static const String selectAddressFromInMap = '/SelectAddressFromInMap';
   static const String tripDetailsMap = '/TripDetailsMap';
   static const String complainsScreen = '/ComplainsScreen';
-  static const String walletAddPaymentMethodScreen =
-      '/WalletAddPaymentMethodScreen';
+  static const String walletAddPaymentMethodScreen = '/WalletAddPaymentMethodScreen';
   static const String walletAddChargeScreen = '/WalletAddChargeScreen';
   static const String addPaymentCardScreen = '/AddPaymentCardScreen';
+  static const String manageCardsScreen = '/ManageCardsScreen';
   // static const String paymentMethodScreen = '/PaymentMethodScreen';
   static const String addPaymentMethodScreen = '/AddPaymentMethodScreen';
   static const String accountScreen = '/AccountScreen';
@@ -40,11 +40,9 @@ abstract class RouterNames {
   static const String helpMainScreen = '/HelpMainScreen';
   static const String helpRideScreen = '/HelpRideScreen';
   static const String rideProblemScreen = '/RideProblemScreen';
-  static const String driverAskedMoreContactScreen =
-      '/DriverAskedMoreContactScreen';
+  static const String driverAskedMoreContactScreen = '/DriverAskedMoreContactScreen';
   static const String helperContactMessageScreen = '/DriverAskedMoreScreen';
   static const String amountPaidContactScreen = '/AmountPaidContactScreen';
-  static const String lostSomethingContactScreen =
-      '/LostSomethingContactScreen';
+  static const String lostSomethingContactScreen = '/LostSomethingContactScreen';
 // Add more routes here as needed
 }

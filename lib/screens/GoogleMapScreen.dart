@@ -66,14 +66,12 @@ class GoogleMapScreenState extends State<GoogleMapScreen> {
 
     if (permission == LocationPermission.deniedForever) {
       setState(() {
-        selectedAddress =
-            "Permission permanently denied. Enable from settings.";
+        selectedAddress = "Permission permanently denied. Enable from settings.";
       });
       return;
     }
 
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
 
     setState(() {
       selectedPosition = LatLng(position.latitude, position.longitude);
@@ -132,8 +130,7 @@ class GoogleMapScreenState extends State<GoogleMapScreen> {
                 children: [
                   TextField(
                     controller: searchController,
-                    onChanged: (t) =>
-                        fetchPlaceSuggestions(searchController.text),
+                    onChanged: (t) => fetchPlaceSuggestions(searchController.text),
                     decoration: InputDecoration(
                       hintText: "ابحث عن مكان",
                       filled: true,
@@ -155,37 +152,24 @@ class GoogleMapScreenState extends State<GoogleMapScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black26, blurRadius: 5)
-                        ],
+                        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 5)],
                       ),
                       child: ListView.builder(
                         itemCount: placeSuggestions.length,
                         itemBuilder: (context, index) {
                           return ListTile(
-                            title: Text(placeSuggestions[index]
-                                .placePrediction!
-                                .text!
-                                .text
-                                .validate()),
+                            title: Text(placeSuggestions[index].placePrediction!.text!.text.validate()),
                             onTap: () async {
                               // Call places detail api and get lat and long.
                               log("PlaceId::::: ${placeSuggestions[index].placePrediction!.placeId!}");
-                              GooglePlacesApiResponse response =
-                                  await searchAddressRequestPlaceId(
-                                placeId: placeSuggestions[index]
-                                    .placePrediction!
-                                    .placeId!,
+                              GooglePlacesApiResponse response = await searchAddressRequestPlaceId(
+                                placeId: placeSuggestions[index].placePrediction!.placeId!,
                               );
 
                               log("Google Response::::: ${response.toJson()}");
 
 // // Update the search controller text
-                              searchController.text = placeSuggestions[index]
-                                  .placePrediction!
-                                  .text!
-                                  .text
-                                  .validate();
+                              searchController.text = placeSuggestions[index].placePrediction!.text!.text.validate();
 //
 // // Move camera to the selected place
                               mapController?.animateCamera(
@@ -221,22 +205,18 @@ class GoogleMapScreenState extends State<GoogleMapScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black26, blurRadius: 5)
-                      ],
+                      boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 5)],
                     ),
                     child: Text(
                       selectedAddress,
                       textAlign: TextAlign.center,
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                     ),
                   ),
                   SizedBox(height: 10),
                   AppButtonWidget(
                     width: MediaQuery.of(context).size.width,
-                    onTap: selectedPosition == null &&
-                            selectedAddress != "Fetching address..."
+                    onTap: selectedPosition == null && selectedAddress != "Fetching address..."
                         ? null
                         : () {
                             Navigator.pop(context, {
@@ -247,8 +227,7 @@ class GoogleMapScreenState extends State<GoogleMapScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(language.continueD,
-                            style: boldTextStyle(color: Colors.white)),
+                        Text(language.continueD, style: boldTextStyle(color: Colors.white)),
                       ],
                     ),
                   ),
@@ -267,13 +246,9 @@ class GoogleMapScreenState extends State<GoogleMapScreen> {
       return;
     }
 
-    var headers = {
-      'X-Goog-Api-Key': '$GOOGLE_MAP_API_KEY',
-      'Content-Type': 'application/json'
-    };
+    var headers = {'X-Goog-Api-Key': '$GOOGLE_MAP_API_KEY', 'Content-Type': 'application/json'};
 
-    var request = http.Request('POST',
-        Uri.parse('https://places.googleapis.com/v1/places:autocomplete'));
+    var request = http.Request('POST', Uri.parse('https://places.googleapis.com/v1/places:autocomplete'));
     request.body = json.encode({"input": query});
     request.headers.addAll(headers);
 
@@ -284,9 +259,7 @@ class GoogleMapScreenState extends State<GoogleMapScreen> {
       var data = json.decode(responseData);
       print("CheckDate::::${data}");
       setState(() {
-        placeSuggestions = List<Suggestion>.from(
-                data["suggestions"]!.map((x) => Suggestion.fromJson(x))) ??
-            [];
+        placeSuggestions = List<Suggestion>.from(data["suggestions"]!.map((x) => Suggestion.fromJson(x)));
       });
       print("CheckDat163::::${placeSuggestions.length}");
       print("CheckDat164::::${placeSuggestions}");
@@ -307,8 +280,7 @@ class GoogleMapScreenState extends State<GoogleMapScreen> {
         final data = json.decode(response.body);
         if (data['status'] == 'OK' && data['results'].isNotEmpty) {
           setState(() {
-            selectedAddress =
-                data['results'][0]['formatted_address'] ?? "Unknown location";
+            selectedAddress = data['results'][0]['formatted_address'] ?? "Unknown location";
           });
         } else {
           setState(() {

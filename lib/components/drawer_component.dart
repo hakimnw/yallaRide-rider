@@ -9,7 +9,7 @@ import '../screens/EmergencyContactScreen.dart';
 import '../screens/RideListScreen.dart';
 import '../screens/ScheduleRideListScreen.dart';
 import '../screens/SettingScreen.dart';
-import '../screens/WalletScreen.dart';
+import '../screens/settings/wallet_screens/presentation/pages/WalletScreen.dart';
 import '../utils/Colors.dart';
 import '../utils/Common.dart';
 import '../utils/Constants.dart';
@@ -17,7 +17,7 @@ import '../utils/Extensions/ConformationDialog.dart';
 import '../utils/Extensions/app_common.dart';
 import '../utils/Extensions/dataTypeExtensions.dart';
 import '../utils/images.dart';
-import 'DrawerWidget.dart';
+import 'drawer_widget.dart';
 
 class DrawerComponent extends StatefulWidget {
   @override
@@ -44,14 +44,18 @@ class _DrawerComponentState extends State<DrawerComponent> {
                       children: [
                         ClipRRect(
                           borderRadius: radius(),
-                          child: commonCachedNetworkImage(appStore.userProfile.validate().validate(), height: 70, width: 70, fit: BoxFit.cover),
+                          child: commonCachedNetworkImage(appStore.userProfile.validate().validate(),
+                              height: 70, width: 70, fit: BoxFit.cover),
                         ),
                         SizedBox(width: 8),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(sharedPref.getString(FIRST_NAME).validate().capitalizeFirstLetter() + " " + sharedPref.getString(LAST_NAME).validate().capitalizeFirstLetter(),
+                              Text(
+                                  sharedPref.getString(FIRST_NAME).validate().capitalizeFirstLetter() +
+                                      " " +
+                                      sharedPref.getString(LAST_NAME).validate().capitalizeFirstLetter(),
                                   style: boldTextStyle()),
                               SizedBox(height: 4),
                               Text(appStore.userEmail, style: secondaryTextStyle()),

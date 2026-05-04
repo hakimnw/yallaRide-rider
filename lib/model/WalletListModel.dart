@@ -31,7 +31,7 @@ class WalletListModel {
 }
 
 class WalletModel {
-  String? data;
+  Map<String, dynamic>? data;
   num? amount;
   num? balance;
   String? createdAt;

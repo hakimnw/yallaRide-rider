@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'images.dart';
 
 //region App name
-const mAppName = 'Masarak';
+const mAppName = 'YallahRide';
 //endregion
 
 // region Google map key
@@ -11,8 +11,7 @@ const GOOGLE_MAP_API_KEY = 'AIzaSyDcWIxw6lRSHR9O8ts9R76d9Z7ZzsFmDa0';
 //endregion
 
 //region DomainUrl
-const DOMAIN_URL =
-    'https://masark-sa.com'; // Don't add slash at the end of the url
+const DOMAIN_URL = 'https://yallahride.com';
 //endregion
 
 //region OneSignal Keys
@@ -28,11 +27,10 @@ const mOneSignalRestKeyRider =
 const mOneSignalRiderChannelID = 'd48c7b03-6d4d-4ed2-80c5-6cb35d3c0a6a';
 
 //region Zego Cloud Configuration - REAL CREDENTIALS
-const ZEGO_APP_ID = 113057318; // Real App ID from Zego Cloud console
-const ZEGO_APP_SIGN =
-    '0a02b0de3f2a9213f4cd0731e1ce7c0d2ee6acdc1f52cd6958ac7839b9caddc6'; // Real App Sign
-const ZEGO_CALLBACK_SECRET =
-    '0a02b0de3f2a9213f4cd0731e1ce7c0d'; // Callback Secret
+const ZEGO_APP_ID = 21583310; // Real App ID from Zego Cloud console
+const ZEGO_APP_SIGN = '1850e7392028d557bdc0d11dfa47270277f2ecebf749b40fe96c4bdd063dfe39'; // Real App Sign
+const ZEGO_CALLBACK_SECRET = '1850e7392028d557bdc0d11dfa472702'; // Callback Secret
+const ZEGO_SERVER_SECRET = 'eabb0643c363ca7c30334f86badf1f9c'; // Server Secret
 const ZEGO_SCENARIO = 'Default'; // Voice & Video Call scenario
 //endregion
 
@@ -208,10 +206,8 @@ const RIDE_FOR_OTHER = 'RIDE_FOR_OTHER';
 const IS_MULTI_DROP = 'RIDE_MULTIPLE_DROP_LOCATION';
 const RIDE_IS_SCHEDULE_RIDE = 'RIDE_IS_SCHEDULE_RIDE';
 const IS_BID_ENABLE = 'is_bidding';
-const MAX_TIME_FOR_RIDER_MINUTE =
-    'max_time_for_find_drivers_for_regular_ride_in_minute';
-const MAX_TIME_FOR_DRIVER_SECOND =
-    'ride_accept_decline_duration_for_driver_in_second';
+const MAX_TIME_FOR_RIDER_MINUTE = 'max_time_for_find_drivers_for_regular_ride_in_minute';
+const MAX_TIME_FOR_DRIVER_SECOND = 'ride_accept_decline_duration_for_driver_in_second';
 const MIN_AMOUNT_TO_ADD = 'min_amount_to_add';
 const MAX_AMOUNT_TO_ADD = 'max_amount_to_add';
 //endregion
@@ -257,8 +253,6 @@ extension MessageExtension on MessageType {
         return 'VIDEO';
       case MessageType.AUDIO:
         return 'AUDIO';
-      default:
-        return null;
     }
   }
 }
